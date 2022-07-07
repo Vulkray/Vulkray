@@ -9,7 +9,7 @@
 
 #include <iostream>
 #include <vector>
-#include <format>
+#include <stdio.h>
 
 class Initialize {
 public:
@@ -34,9 +34,9 @@ private:
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
         window = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, WIN_TITLE, nullptr, nullptr);
 
-        glm::mat4 matrix;
-        glm::vec4 vec;
-        auto test = matrix * vec;
+        //glm::mat4 matrix;
+        //glm::vec4 vec;
+        //auto test = matrix * vec;
         spdlog::info("Initialized GLFW window.");
     }
 
@@ -75,12 +75,6 @@ private:
 
         std::vector<VkExtensionProperties> extensions(extensionCount);
         vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
-
-        spdlog::info("Available extensions: ");
-
-        for (const auto& extension : extensions) {
-            spdlog::info(std::format("\t{}", extension.extensionName));
-        }
     }
 
     void mainLoop() {
@@ -90,15 +84,15 @@ private:
         }
     }
     void cleanup() {
-        spdlog::info("Cleaning up GLFW & Vulkan instances ...");
+        spdlog::info("Cleaning up instances ...");
         glfwDestroyWindow(window);
         glfwTerminate();
     }
 };
 
 int main(int argc, char** argv) {
-    Initialize init;
     spdlog::set_pattern("[%H:%M:%S] [%n] [%^--%L--%$] [thread %t] %v");
+    Initialize init;
 
     try {
         init.launch();
