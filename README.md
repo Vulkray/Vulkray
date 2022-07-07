@@ -3,5 +3,7 @@ Requirements
 
 Installing the required dependency packages on **Arch Linux**:
 ```shell
-$ sudo pacman -S gcc cmake ninja glfw glm vulkan-devel
+$ sudo pacman -S \
+      vulkan-devel clang llvm-libs \
+      libc++ cmake ninja glfw glm 
 ```
