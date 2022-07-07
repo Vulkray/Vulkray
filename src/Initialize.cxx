@@ -1,15 +1,16 @@
-#define GLFW_INCLUDE_VULKAN
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-
-#include <GLFW/glfw3.h>
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
+
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
+
+#include "vulkan/VulkanInstance.hxx"
 
 #include <iostream>
 #include <vector>
-#include <stdio.h>
 
 class Initialize {
 public:
@@ -31,7 +32,7 @@ private:
     void initGlfw() {
         glfwInit();
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE); // lock window resizing
         window = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, WIN_TITLE, nullptr, nullptr);
 
         //glm::mat4 matrix;
@@ -41,40 +42,11 @@ private:
     }
 
     void initVulkan() {
-        createVulkanInstance();
+        spdlog::info("Initializing Vulkan ...");
+
+        VulkanInstance::createInstance(&vulkanInstance, WIN_TITLE);
+
         spdlog::info("Initialized Vulkan instances.");
-    }
-
-    void createVulkanInstance() {
-        VkApplicationInfo applicationInfo{};
-        applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-        applicationInfo.pApplicationName = WIN_TITLE;
-        applicationInfo.applicationVersion = VK_MAKE_VERSION(0, 1, 0);
-        applicationInfo.pEngineName = "No Engine";
-        applicationInfo.engineVersion = VK_MAKE_VERSION(0, 0, 0);
-        applicationInfo.apiVersion = VK_API_VERSION_1_3;
-
-        VkInstanceCreateInfo createInfo{};
-        createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-        createInfo.pApplicationInfo = &applicationInfo;
-
-        uint32_t glfwExtensionCount = 0;
-        const char** glfwExtensions;
-        glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-        createInfo.enabledExtensionCount = glfwExtensionCount;
-        createInfo.ppEnabledExtensionNames = glfwExtensions;
-        createInfo.enabledLayerCount = 0;
-
-        if (vkCreateInstance(&createInfo, nullptr, &vulkanInstance) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to create Vulkan instance!");
-        }
-
-        uint32_t extensionCount = 0;
-        vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-
-        std::vector<VkExtensionProperties> extensions(extensionCount);
-        vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
     }
 
     void mainLoop() {
@@ -85,13 +57,16 @@ private:
     }
     void cleanup() {
         spdlog::info("Cleaning up instances ...");
+        // Cleanup Vulkan
+        vkDestroyInstance(vulkanInstance, nullptr);
+        // Cleanup GLFW
         glfwDestroyWindow(window);
         glfwTerminate();
     }
 };
 
 int main(int argc, char** argv) {
-    spdlog::set_pattern("[%H:%M:%S] [%n] [%^--%L--%$] [thread %t] %v");
+    spdlog::set_pattern("[%H:%M:%S] [%n] [%^-%L-%$] [thread %t] %v");
     Initialize init;
 
     try {
