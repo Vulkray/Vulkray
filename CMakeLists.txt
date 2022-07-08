@@ -26,6 +26,6 @@ add_executable(${this} src/Initialize.cxx src/vulkan/VulkanInstance.cxx src/vulk
 # Linked dynamic libraries (SOs)
 target_link_libraries(${this} glfw vulkan fmt)
 
-# Unit testing
+# Google Tests
 enable_testing()
 add_subdirectory(tests)
