@@ -2,7 +2,7 @@
  * VulkanInstance class
  * Creates a new Vulkan object instance
  */
-#include "VulkanInstance.hxx"
+#include "VulkanInstance.h"
 
 #include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>

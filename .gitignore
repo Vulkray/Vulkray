@@ -37,10 +37,21 @@
 
 # End of https://www.toptal.com/developers/gitignore/api/c++
 
+# Compressed files
+*.tar.bz2
+*.tar.gz
+*.7z
+
 # IDE directories
 .idea/
 .vscode/
 
-# Generated files
+# Build files
 build/
+
+# Other files
+*.spv
+*__pycache__*
+*.ini
+*.csv
 *.log

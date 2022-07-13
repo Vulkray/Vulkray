@@ -7,7 +7,7 @@
 #include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
 
-#include "vulkan/VulkanInstance.hxx"
+#include "vulkan/VulkanInstance.h"
 
 #include <iostream>
 #include <vector>
