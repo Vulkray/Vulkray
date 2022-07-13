@@ -7,7 +7,7 @@
 #include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
 
-#include "vulkan/VulkanInstance.h"
+#include "vulkan/VulkanInstance.hxx"
 
 #include <iostream>
 #include <vector>
@@ -21,13 +21,23 @@ public:
         cleanup(); // Destroys GLFW/Vulkan objects
     }
 private:
-    // GLFW
     const char* WIN_TITLE = "Vulkan Program";
     const int WIN_WIDTH = 1300;
     const int WIN_HEIGHT = 750;
+    // GLFW instances
     GLFWwindow* window{};
-    // Vulkan
+    // Vulkan instances
     VkInstance vulkanInstance{};
+
+    // Vulkan validation layers
+    const std::vector<const char*> validationLayers = {
+            "VK_LAYER_KHRONOS_validation"
+    };
+    #ifdef NDEBUG
+        const bool enableValidationLayers = false;
+    #else
+        const bool enableValidationLayers = true;
+    #endif
 
     void initGlfw() {
         glfwInit();
@@ -44,7 +54,7 @@ private:
     void initVulkan() {
         spdlog::info("Initializing Vulkan ...");
 
-        VulkanInstance::createInstance(&vulkanInstance, WIN_TITLE);
+        VulkanInstance::createInstance(&vulkanInstance, WIN_TITLE, enableValidationLayers, validationLayers);
 
         spdlog::info("Initialized Vulkan instances.");
     }

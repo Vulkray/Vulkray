@@ -14,7 +14,7 @@ include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
 # Executable targets
-add_executable(${name} src/Initialize.cxx src/vulkan/VulkanInstance.cxx src/vulkan/VulkanInstance.h)
+add_executable(${name} src/Initialize.cxx src/vulkan/VulkanInstance.cxx src/vulkan/VulkanInstance.hxx)
 
 # Setup linked libraries using Conan info
 target_link_libraries(${name} ${CONAN_LIBS})

@@ -2,15 +2,14 @@
  * VulkanInstance class
  * Creates a new Vulkan object instance
  */
-#include "VulkanInstance.h"
+#include "VulkanInstance.hxx"
 
 #include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
 
-#include <iostream>
-#include <vector>
-
-void VulkanInstance::createInstance(VkInstance* vulkanInstance, const char* appName) {
+void VulkanInstance::createInstance(
+        VkInstance* vkInstance, const char* appName,
+        const bool enableVkLayers, const std::vector<const char*> vkLayers) {
 
     VkApplicationInfo applicationInfo{};
     applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -32,7 +31,27 @@ void VulkanInstance::createInstance(VkInstance* vulkanInstance, const char* appN
     createInfo.ppEnabledExtensionNames = glfwExtensions;
     createInfo.enabledLayerCount = 0;
 
-    if (vkCreateInstance(&createInfo, nullptr, vulkanInstance) != VK_SUCCESS) {
+    // Modify createInfo if vulkan validation layers requested
+    if (enableVkLayers) {
+        /*
+         * On DEBUG cmake build, a warning may be printed by the driver.
+         * This is NORMAL as it's simply highlighting that validation layers are enabled.
+         *  E.g. "MESA-INTEL: warning: Performance support disabled, consider sysctl dev.i915.perf_stream_paranoid=0"
+         */
+        createInfo.enabledLayerCount = static_cast<uint32_t>(vkLayers.size());
+        createInfo.ppEnabledLayerNames = vkLayers.data();
+    }
+
+    /*
+     * Check supported vulkan validation layers, if requested.
+     *  Ensures vkCreateInstance() never returns 'VK_ERROR_LAYER_NOT_PRESENT' enum.
+     */
+    if (enableVkLayers && !checkValidationLayerSupport(vkLayers)) {
+        spdlog::error("Vulkan Validation layers requested, but not available!");
+        throw std::runtime_error("Failed required validation layers check.");
+    }
+    // Create vulkan instance
+    if (vkCreateInstance(&createInfo, nullptr, vkInstance) != VK_SUCCESS) {
         throw std::runtime_error("Failed to create Vulkan instance!");
     }
 
@@ -63,4 +82,27 @@ int VulkanInstance::checkRequiredExtensions(
         if (!extensionFound) return 0;
     }
     return 1;
+}
+
+bool VulkanInstance::checkValidationLayerSupport(const std::vector<const char*> vkLayers) {
+    uint32_t layerCount;
+    vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+
+    std::vector<VkLayerProperties> availableLayers(layerCount);
+    vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+
+    for (const char* layerName : vkLayers) {
+        bool layerFound = false;
+
+        for (const auto& layerProperties : availableLayers) {
+            if (strcmp(layerName, layerProperties.layerName) == 0) {
+                layerFound = true;
+                break;
+            }
+        }
+        if (!layerFound) {
+            return false;
+        }
+    }
+    return true;
 }
