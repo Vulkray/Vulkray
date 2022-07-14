@@ -1,5 +1,5 @@
 /*
- * PhysicalDevice class
+ * PhysicalDevice.cxx
  * Scans system GPU devices and selects a suitable device.
  *
  * Copyright 2022 Max Rodriguez
@@ -21,12 +21,21 @@
 #define VULKRAY_PHYSICALDEVICE_HXX
 
 #include <vulkan/vulkan.h>
+#include <optional>
+
+struct QueueFamilyIndices {
+    std::optional<uint32_t> graphicsFamily;
+    bool isComplete() {
+        return graphicsFamily.has_value();
+    }
+};
 
 class PhysicalDevice {
 public:
     static void selectPhysicalDevice(VkPhysicalDevice *physicalDevice, VkInstance vulkanInstance);
 private:
-    static int rateGPUSuitability(VkPhysicalDevice *gpuDevice);
+    static int rateGPUSuitability(VkPhysicalDevice gpuDevice);
+    static QueueFamilyIndices findDeviceQueueFamilies(VkPhysicalDevice gpuDevice);
 };
 
 

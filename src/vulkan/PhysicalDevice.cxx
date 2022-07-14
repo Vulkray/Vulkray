@@ -1,5 +1,5 @@
 /*
- * PhysicalDevice class
+ * PhysicalDevice.cxx
  * Scans system GPU devices and selects a suitable device.
  *
  * Copyright 2022 Max Rodriguez
@@ -41,7 +41,7 @@ void PhysicalDevice::selectPhysicalDevice(VkPhysicalDevice *physicalDevice, VkIn
     std::multimap<int, VkPhysicalDevice> candidates;
 
     for (auto& device : devices) {
-        int score = rateGPUSuitability(&device);
+        int score = rateGPUSuitability(device);
         candidates.insert(std::make_pair(score, device));
     }
 
@@ -60,19 +60,20 @@ void PhysicalDevice::selectPhysicalDevice(VkPhysicalDevice *physicalDevice, VkIn
     spdlog::info("Vulkan GPU Selected: {0}", gpuProperties.deviceName);
 }
 
-int PhysicalDevice::rateGPUSuitability(VkPhysicalDevice *gpuDevice) {
-
+int PhysicalDevice::rateGPUSuitability(VkPhysicalDevice gpuDevice) {
     int deviceScore = 0;
 
     // Get GPU device information
     VkPhysicalDeviceProperties gpuProperties;
     VkPhysicalDeviceFeatures gpuFeatures;
+    QueueFamilyIndices gpuQueueIndices = findDeviceQueueFamilies(gpuDevice);
 
-    vkGetPhysicalDeviceProperties(*gpuDevice, &gpuProperties);
-    vkGetPhysicalDeviceFeatures(*gpuDevice, &gpuFeatures);
+    vkGetPhysicalDeviceProperties(gpuDevice, &gpuProperties);
+    vkGetPhysicalDeviceFeatures(gpuDevice, &gpuFeatures);
 
     // Check minimal GPU device requirements
-    if (!gpuFeatures.geometryShader) return 0;
+    if (!gpuQueueIndices.isComplete()) return 0; // required GPU queues
+    if (!gpuFeatures.geometryShader) return 0; // required geometry shader
 
     // Rate GPU physical device with score
     if (gpuProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) deviceScore += 1000;
@@ -80,4 +81,28 @@ int PhysicalDevice::rateGPUSuitability(VkPhysicalDevice *gpuDevice) {
     deviceScore += gpuProperties.limits.maxImageDimension2D;
 
     return deviceScore;
+}
+
+QueueFamilyIndices PhysicalDevice::findDeviceQueueFamilies(VkPhysicalDevice gpuDevice) {
+    QueueFamilyIndices queueIndices; // values initialized with std::optional, so no init required
+
+    // Get device queue family information
+    uint32_t queueFamilyCount = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(gpuDevice, &queueFamilyCount, nullptr);
+
+    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(gpuDevice, &queueFamilyCount, queueFamilies.data());
+
+    // For each queue family in GPU, find the index of each queue type we need.
+    int index = 0;
+    for (const auto& queueFamily : queueFamilies) {
+        if (queueIndices.isComplete()) break; // break loop if queue indices struct is complete
+
+        if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            queueIndices.graphicsFamily = index; // found graphics queue index
+        }
+        index++;
+    }
+
+    return queueIndices;
 }

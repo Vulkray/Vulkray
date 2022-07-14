@@ -1,5 +1,5 @@
 /*
- * VulkanInstance class
+ * VulkanInstance.cxx
  * Creates a new Vulkan object instance
  *
  * Copyright 2022 Max Rodriguez
