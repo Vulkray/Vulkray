@@ -47,7 +47,8 @@
 .vscode/
 
 # Build files
-build/
+build-debug/
+build-release/
 
 # Other files
 *.spv
