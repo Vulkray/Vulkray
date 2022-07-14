@@ -1,6 +1,6 @@
 /*
- * VulkanInstance class
- * Creates a new Vulkan object instance
+ * PhysicalDevice class
+ * Scans system GPU devices and selects a suitable device.
  *
  * Copyright 2022 Max Rodriguez
 
@@ -17,20 +17,17 @@
    limitations under the License.
  */
 
-#ifndef VULKRAY_VULKANINSTANCE_HXX
-#define VULKRAY_VULKANINSTANCE_HXX
+#ifndef VULKRAY_PHYSICALDEVICE_HXX
+#define VULKRAY_PHYSICALDEVICE_HXX
 
 #include <vulkan/vulkan.h>
-#include <vector>
 
-class VulkanInstance {
+class PhysicalDevice {
 public:
-    static void createInstance(VkInstance* vkInstance, const char* appName,
-                               const bool enableVkLayers, const std::vector<const char*> vkLayers);
+    void selectPhysicalDevice(VkPhysicalDevice physicalDevice);
 private:
-    static int checkRequiredExtensions(
-            const char** glfwExts, uint32_t glfwCount, std::vector<VkExtensionProperties> exts);
-    static bool checkValidationLayerSupport(const std::vector<const char*> vkLayers);
+    //
 };
 
-#endif //VULKRAY_VULKANINSTANCE_HXX
+
+#endif //VULKRAY_PHYSICALDEVICE_HXX

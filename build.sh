@@ -19,4 +19,4 @@ fi
 
 # Run build with Ninja
 ninja
-./bin/VulkanEngine
+./bin/vulkray
