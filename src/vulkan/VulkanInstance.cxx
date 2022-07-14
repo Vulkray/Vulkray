@@ -52,7 +52,10 @@ void VulkanInstance::createInstance(
          * On DEBUG cmake build, a warning may be printed by the driver.
          * This is NORMAL as it's simply highlighting that validation layers are enabled.
          *  E.g. "MESA-INTEL: warning: Performance support disabled, consider sysctl dev.i915.perf_stream_paranoid=0"
+         *
+         *  Update: hold on, it's happening without validation layers too... I don't know why lol
          */
+        spdlog::info("Enabling validation layers..");
         createInfo.enabledLayerCount = static_cast<uint32_t>(vkLayers.size());
         createInfo.ppEnabledLayerNames = vkLayers.data();
     }

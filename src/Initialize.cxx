@@ -48,7 +48,7 @@ private:
     GLFWwindow* window{};
     // Vulkan instances
     VkInstance vulkanInstance{};
-    VkPhysicalDevice physicalDevice{};
+    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
     // Vulkan validation layers
     const std::vector<const char*> validationLayers = {
@@ -76,7 +76,7 @@ private:
         spdlog::debug("Initializing Vulkan ...");
 
         VulkanInstance::createInstance(&vulkanInstance, WIN_TITLE, enableValidationLayers, validationLayers);
-        PhysicalDevice::selectPhysicalDevice(&physicalDevice);
+        PhysicalDevice::selectPhysicalDevice(&physicalDevice, vulkanInstance);
 
         spdlog::debug("Initialized Vulkan instances.");
     }
@@ -100,10 +100,12 @@ private:
 int main() {
     #ifndef NDEBUG
         spdlog::set_level(spdlog::level::debug); // enable debug logging for debug builds
+    #else
+        spdlog::set_level(spdlog::level::info); // only print info output on release builds
     #endif
-    spdlog::set_pattern("[Vulkray] [%H:%M:%S] [%^%l%$] [thread %t] %v");
+    spdlog::set_pattern("[Vulkray] [%n] [%H:%M:%S] [%^%l%$] %v");
     Initialize init;
-
+    // Initialize the engine
     try {
         init.launch();
     } catch (const std::exception& e) {

@@ -24,9 +24,9 @@
 
 class PhysicalDevice {
 public:
-    void selectPhysicalDevice(VkPhysicalDevice physicalDevice);
+    static void selectPhysicalDevice(VkPhysicalDevice *physicalDevice, VkInstance vulkanInstance);
 private:
-    //
+    static int rateGPUSuitability(VkPhysicalDevice *gpuDevice);
 };
 
 
