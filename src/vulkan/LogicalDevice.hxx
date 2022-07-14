@@ -1,6 +1,6 @@
 /*
- * PhysicalDevice.cxx
- * Scans system GPU devices and selects a suitable device.
+ * LogicalDevice.cxx
+ * Creates the Vulkan logical device instance with the selected GPU physical device.
  *
  * Copyright 2022 Max Rodriguez
 
@@ -17,26 +17,17 @@
    limitations under the License.
  */
 
-#ifndef VULKRAY_PHYSICALDEVICE_HXX
-#define VULKRAY_PHYSICALDEVICE_HXX
+#ifndef VULKRAY_LOGICALDEVICE_HXX
+#define VULKRAY_LOGICALDEVICE_HXX
 
 #include <vulkan/vulkan.h>
-#include <optional>
+#include <vector>
 
-struct QueueFamilyIndices {
-    std::optional<uint32_t> graphicsFamily;
-    bool isComplete() {
-        return graphicsFamily.has_value();
-    }
-};
-
-class PhysicalDevice {
+class LogicalDevice {
 public:
-    static void selectPhysicalDevice(VkPhysicalDevice *physicalDevice, VkInstance vulkanInstance);
-    static QueueFamilyIndices findDeviceQueueFamilies(VkPhysicalDevice gpuDevice);
-private:
-    static int rateGPUSuitability(VkPhysicalDevice gpuDevice);
+    static void createLogicalDevice(VkDevice *logicalDevice, VkQueue *graphicsQueueHandle,
+                                    VkPhysicalDevice physicalDevice,
+                                    const bool enableVkLayers, const std::vector<const char*> vkLayers);
 };
 
-
-#endif //VULKRAY_PHYSICALDEVICE_HXX
+#endif //VULKRAY_LOGICALDEVICE_HXX

@@ -25,6 +25,7 @@
 
 #include "vulkan/VulkanInstance.hxx"
 #include "vulkan/PhysicalDevice.hxx"
+#include "vulkan/LogicalDevice.hxx"
 
 #include <iostream>
 
@@ -44,11 +45,15 @@ private:
     const char* WIN_TITLE = "Vulkray";
     const int WIN_WIDTH = 1300;
     const int WIN_HEIGHT = 750;
+
     // GLFW instances
     GLFWwindow* window{};
     // Vulkan instances
     VkInstance vulkanInstance{};
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+    VkDevice logicalDevice = VK_NULL_HANDLE;
+    // GPU Queue handles
+    VkQueue graphicsQueue;
 
     // Vulkan validation layers
     const std::vector<const char*> validationLayers = {
@@ -77,6 +82,8 @@ private:
 
         VulkanInstance::createInstance(&vulkanInstance, WIN_TITLE, enableValidationLayers, validationLayers);
         PhysicalDevice::selectPhysicalDevice(&physicalDevice, vulkanInstance);
+        LogicalDevice::createLogicalDevice(&logicalDevice, &graphicsQueue, physicalDevice,
+                                           enableValidationLayers, validationLayers);
 
         spdlog::debug("Initialized Vulkan instances.");
     }
@@ -88,8 +95,9 @@ private:
         }
     }
     void cleanup() {
-        spdlog::debug("Cleaning up instances ...");
+        spdlog::debug("Cleaning up engine ...");
         // Cleanup Vulkan
+        vkDestroyDevice(logicalDevice, nullptr);
         vkDestroyInstance(vulkanInstance, nullptr);
         // Cleanup GLFW
         glfwDestroyWindow(window);
@@ -98,16 +106,19 @@ private:
 };
 
 int main() {
+    // ----- Spdlog logging configuration ----- //
     #ifndef NDEBUG
         spdlog::set_level(spdlog::level::debug); // enable debug logging for debug builds
     #else
         spdlog::set_level(spdlog::level::info); // only print info output on release builds
     #endif
     spdlog::set_pattern("[Vulkray] [%n] [%H:%M:%S] [%^%l%$] %v");
-    Initialize init;
-    // Initialize the engine
+
+    // ----- Initialize the engine ----- //
+    Initialize base;
+
     try {
-        init.launch();
+        base.launch();
     } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
         return 1;

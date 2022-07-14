@@ -22,9 +22,8 @@
 #include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
 
-void VulkanInstance::createInstance(
-        VkInstance* vkInstance, const char* appName,
-        const bool enableVkLayers, const std::vector<const char*> vkLayers) {
+void VulkanInstance::createInstance(VkInstance* vkInstance, const char* appName,
+                                    const bool enableVkLayers, const std::vector<const char*> vkLayers) {
 
     VkApplicationInfo applicationInfo{};
     applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;

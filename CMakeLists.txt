@@ -18,7 +18,7 @@ set(sources
     src/Initialize.cxx
     src/vulkan/VulkanInstance.cxx src/vulkan/VulkanInstance.hxx
     src/vulkan/PhysicalDevice.cxx src/vulkan/PhysicalDevice.hxx
-)
+        src/vulkan/LogicalDevice.cxx src/vulkan/LogicalDevice.hxx)
 # Executable targets
 add_executable(${name} ${sources})
 
