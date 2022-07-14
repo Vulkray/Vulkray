@@ -10,7 +10,10 @@
 #include "vulkan/VulkanInstance.hxx"
 
 #include <iostream>
-#include <vector>
+
+void set_spdlog_debug() {
+    spdlog::set_level(spdlog::level::debug);
+}
 
 class Initialize {
 public:
@@ -21,7 +24,7 @@ public:
         cleanup(); // Destroys GLFW/Vulkan objects
     }
 private:
-    const char* WIN_TITLE = "Vulkan Program";
+    const char* WIN_TITLE = "Vulkray";
     const int WIN_WIDTH = 1300;
     const int WIN_HEIGHT = 750;
     // GLFW instances
@@ -48,25 +51,25 @@ private:
         //glm::mat4 matrix;
         //glm::vec4 vec;
         //auto test = matrix * vec;
-        spdlog::info("Initialized GLFW window.");
+        spdlog::debug("Initialized GLFW window.");
     }
 
     void initVulkan() {
-        spdlog::info("Initializing Vulkan ...");
+        spdlog::debug("Initializing Vulkan ...");
 
         VulkanInstance::createInstance(&vulkanInstance, WIN_TITLE, enableValidationLayers, validationLayers);
 
-        spdlog::info("Initialized Vulkan instances.");
+        spdlog::debug("Initialized Vulkan instances.");
     }
 
     void mainLoop() {
-        spdlog::info("Running main program loop ...");
+        spdlog::debug("Running main program loop ...");
         while(!glfwWindowShouldClose(window)) {
             glfwPollEvents();
         }
     }
     void cleanup() {
-        spdlog::info("Cleaning up instances ...");
+        spdlog::debug("Cleaning up instances ...");
         // Cleanup Vulkan
         vkDestroyInstance(vulkanInstance, nullptr);
         // Cleanup GLFW
@@ -75,8 +78,11 @@ private:
     }
 };
 
-int main(int argc, char** argv) {
-    spdlog::set_pattern("[%H:%M:%S] [%n] [%^-%L-%$] [thread %t] %v");
+int main() {
+    #ifndef NDEBUG
+        spdlog::set_level(spdlog::level::debug); // enable debug logging for debug builds
+    #endif
+    spdlog::set_pattern("[Vulkray] [%H:%M:%S] [%^%l%$] [thread %t] %v");
     Initialize init;
 
     try {
