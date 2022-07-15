@@ -22,7 +22,8 @@
 #include <spdlog/spdlog.h>
 #include <map>
 
-void PhysicalDevice::selectPhysicalDevice(VkPhysicalDevice *physicalDevice, VkInstance vulkanInstance) {
+void PhysicalDevice::selectPhysicalDevice(VkPhysicalDevice *physicalDevice,
+                                          VkInstance vulkanInstance, VkSurfaceKHR surface) {
 
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(vulkanInstance, &deviceCount, nullptr);
@@ -41,7 +42,7 @@ void PhysicalDevice::selectPhysicalDevice(VkPhysicalDevice *physicalDevice, VkIn
     std::multimap<int, VkPhysicalDevice> candidates;
 
     for (auto& device : devices) {
-        int score = rateGPUSuitability(device);
+        int score = rateGPUSuitability(device, surface);
         candidates.insert(std::make_pair(score, device));
     }
 
@@ -60,13 +61,13 @@ void PhysicalDevice::selectPhysicalDevice(VkPhysicalDevice *physicalDevice, VkIn
     spdlog::info("Vulkan GPU Selected: {0}", gpuProperties.deviceName);
 }
 
-int PhysicalDevice::rateGPUSuitability(VkPhysicalDevice gpuDevice) {
+int PhysicalDevice::rateGPUSuitability(VkPhysicalDevice gpuDevice, VkSurfaceKHR surface) {
     int deviceScore = 0;
 
     // Get GPU device information
     VkPhysicalDeviceProperties gpuProperties;
     VkPhysicalDeviceFeatures gpuFeatures;
-    QueueFamilyIndices gpuQueueIndices = findDeviceQueueFamilies(gpuDevice);
+    QueueFamilyIndices gpuQueueIndices = findDeviceQueueFamilies(gpuDevice, surface);
 
     vkGetPhysicalDeviceProperties(gpuDevice, &gpuProperties);
     vkGetPhysicalDeviceFeatures(gpuDevice, &gpuFeatures);
@@ -83,7 +84,7 @@ int PhysicalDevice::rateGPUSuitability(VkPhysicalDevice gpuDevice) {
     return deviceScore;
 }
 
-QueueFamilyIndices PhysicalDevice::findDeviceQueueFamilies(VkPhysicalDevice gpuDevice) {
+QueueFamilyIndices PhysicalDevice::findDeviceQueueFamilies(VkPhysicalDevice gpuDevice, VkSurfaceKHR surface) {
     QueueFamilyIndices queueIndices; // values initialized with std::optional, so no init required
 
     // Get device queue family information
@@ -97,6 +98,11 @@ QueueFamilyIndices PhysicalDevice::findDeviceQueueFamilies(VkPhysicalDevice gpuD
     int index = 0;
     for (const auto& queueFamily : queueFamilies) {
         if (queueIndices.isComplete()) break; // break loop if queue indices struct is complete
+
+        VkBool32 presentSupport = false;
+        vkGetPhysicalDeviceSurfaceSupportKHR(gpuDevice, index, surface, &presentSupport);
+
+        if (presentSupport) queueIndices.presentFamily = index; // found present queue index
 
         if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
             queueIndices.graphicsFamily = index; // found graphics queue index

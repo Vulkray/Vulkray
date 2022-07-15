@@ -25,8 +25,8 @@
 
 class LogicalDevice {
 public:
-    static void createLogicalDevice(VkDevice *logicalDevice, VkQueue *graphicsQueueHandle,
-                                    VkPhysicalDevice physicalDevice,
+    static void createLogicalDevice(VkDevice *logicalDevice, VkQueue *graphicsQueue, VkQueue *presentQueue,
+                                    VkPhysicalDevice physicalDevice, VkSurfaceKHR surface,
                                     const bool enableVkLayers, const std::vector<const char*> vkLayers);
 };
 

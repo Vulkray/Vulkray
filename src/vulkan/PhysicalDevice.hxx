@@ -25,18 +25,20 @@
 
 struct QueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;
+    std::optional<uint32_t> presentFamily;
     bool isComplete() {
-        return graphicsFamily.has_value();
+        return graphicsFamily.has_value()
+        && presentFamily.has_value();
     }
 };
 
 class PhysicalDevice {
 public:
-    static void selectPhysicalDevice(VkPhysicalDevice *physicalDevice, VkInstance vulkanInstance);
-    static QueueFamilyIndices findDeviceQueueFamilies(VkPhysicalDevice gpuDevice);
+    static void selectPhysicalDevice(VkPhysicalDevice *physicalDevice,
+                                     VkInstance vulkanInstance, VkSurfaceKHR surface);
+    static QueueFamilyIndices findDeviceQueueFamilies(VkPhysicalDevice gpuDevice, VkSurfaceKHR surface);
 private:
-    static int rateGPUSuitability(VkPhysicalDevice gpuDevice);
+    static int rateGPUSuitability(VkPhysicalDevice gpuDevice, VkSurfaceKHR surface);
 };
-
 
 #endif //VULKRAY_PHYSICALDEVICE_HXX

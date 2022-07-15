@@ -21,30 +21,42 @@
 #include "PhysicalDevice.hxx"
 
 #include <spdlog/spdlog.h>
+#include <set>
 
-void LogicalDevice::createLogicalDevice(VkDevice *logicalDevice, VkQueue *graphicsQueueHandle,
-                                        VkPhysicalDevice physicalDevice,
+void LogicalDevice::createLogicalDevice(VkDevice *logicalDevice, VkQueue *graphicsQueue, VkQueue *presentQueue,
+                                        VkPhysicalDevice physicalDevice, VkSurfaceKHR surface,
                                         const bool enableVkLayers, const std::vector<const char*> vkLayers) {
 
     // get GPU queue family indices
-    QueueFamilyIndices gpuQueueIndices = PhysicalDevice::findDeviceQueueFamilies(physicalDevice);
+    QueueFamilyIndices gpuQueueIndices = PhysicalDevice::findDeviceQueueFamilies(physicalDevice, surface);
 
-    // Logical device info structs
-    VkDeviceQueueCreateInfo queueCreateInfo{};
+    // Logical device create info structs
+    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+    std::set<uint32_t> uniqueQueueFamilies = {
+            gpuQueueIndices.graphicsFamily.value(),
+            gpuQueueIndices.presentFamily.value()
+    };
     VkPhysicalDeviceFeatures deviceFeatures{}; // device features are not configured for now
     VkDeviceCreateInfo createInfo{};
 
-    // Configure logical device graphics queue
-    float graphicsQueuePriority = 1.0f;
-    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queueCreateInfo.queueFamilyIndex = gpuQueueIndices.graphicsFamily.value();
-    queueCreateInfo.queueCount = 1;
-    queueCreateInfo.pQueuePriorities = &graphicsQueuePriority;
+    // Create logical device queue create info struct for each queue
+    for (uint32_t queueFamily : uniqueQueueFamilies) {
+
+        VkDeviceQueueCreateInfo queueCreateInfo{};
+        float graphicsQueuePriority = 1.0f;
+
+        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.queueFamilyIndex = queueFamily;
+        queueCreateInfo.queueCount = 1;
+        queueCreateInfo.pQueuePriorities = &graphicsQueuePriority;
+        // Push new queue create info to vector
+        queueCreateInfos.push_back(queueCreateInfo);
+    }
 
     // Create Vulkan logical device
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    createInfo.pQueueCreateInfos = &queueCreateInfo;
-    createInfo.queueCreateInfoCount = 1;
+    createInfo.pQueueCreateInfos = queueCreateInfos.data();
+    createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
     createInfo.pEnabledFeatures = &deviceFeatures;
     createInfo.enabledExtensionCount = 0;
 
@@ -62,6 +74,7 @@ void LogicalDevice::createLogicalDevice(VkDevice *logicalDevice, VkQueue *graphi
         throw std::runtime_error("Failed to create the logical device!");
     }
 
-    // Create graphics queue handle using given handle pointer
-    vkGetDeviceQueue(*logicalDevice, gpuQueueIndices.graphicsFamily.value(), 0, graphicsQueueHandle);
+    // Create handles for Graphics and Present queues using given handle pointers
+    vkGetDeviceQueue(*logicalDevice, gpuQueueIndices.graphicsFamily.value(), 0, graphicsQueue);
+    vkGetDeviceQueue(*logicalDevice, gpuQueueIndices.presentFamily.value(), 0, presentQueue);
 }

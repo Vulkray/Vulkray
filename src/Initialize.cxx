@@ -56,6 +56,7 @@ private:
     VkSurfaceKHR surface;
     // GPU Queue handles
     VkQueue graphicsQueue;
+    VkQueue presentQueue;
 
     // Vulkan validation layers
     const std::vector<const char*> validationLayers = {
@@ -83,9 +84,9 @@ private:
         spdlog::debug("Initializing Vulkan ...");
         VulkanInstance::createInstance(&vulkanInstance, WIN_TITLE, enableValidationLayers, validationLayers);
         SurfaceKHR::createSurfaceKHR(&surface, vulkanInstance, glfwWindow);
-        PhysicalDevice::selectPhysicalDevice(&physicalDevice, vulkanInstance);
-        LogicalDevice::createLogicalDevice(&logicalDevice, &graphicsQueue, physicalDevice,
-                                           enableValidationLayers, validationLayers);
+        PhysicalDevice::selectPhysicalDevice(&physicalDevice, vulkanInstance, surface);
+        LogicalDevice::createLogicalDevice(&logicalDevice, &graphicsQueue, &presentQueue, physicalDevice,
+                                           surface, enableValidationLayers, validationLayers);
         spdlog::debug("Initialized Vulkan instances.");
     }
 
