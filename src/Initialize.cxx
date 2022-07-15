@@ -81,13 +81,11 @@ private:
 
     void initVulkan() {
         spdlog::debug("Initializing Vulkan ...");
-
         VulkanInstance::createInstance(&vulkanInstance, WIN_TITLE, enableValidationLayers, validationLayers);
+        SurfaceKHR::createSurfaceKHR(&surface, vulkanInstance, glfwWindow);
         PhysicalDevice::selectPhysicalDevice(&physicalDevice, vulkanInstance);
         LogicalDevice::createLogicalDevice(&logicalDevice, &graphicsQueue, physicalDevice,
                                            enableValidationLayers, validationLayers);
-        SurfaceKHR::createSurfaceKHR(&surface, vulkanInstance, glfwWindow);
-
         spdlog::debug("Initialized Vulkan instances.");
     }
 
