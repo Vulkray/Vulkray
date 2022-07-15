@@ -24,9 +24,10 @@
 #include <spdlog/spdlog.h>
 
 #include "vulkan/VulkanInstance.hxx"
+#include "vulkan/WindowSurface.hxx"
 #include "vulkan/PhysicalDevice.hxx"
 #include "vulkan/LogicalDevice.hxx"
-#include "vulkan/WindowSurface.hxx"
+#include "vulkan/SwapChain.hxx"
 
 #include <chrono>
 #include <thread>
@@ -91,6 +92,7 @@ private:
         PhysicalDevice::selectPhysicalDevice(&physicalDevice, vulkanInstance, surface, requiredExtensions);
         LogicalDevice::createLogicalDevice(&logicalDevice, &graphicsQueue, &presentQueue, physicalDevice,
                                            surface, requiredExtensions, enableValidationLayers, validationLayers);
+        SwapChain::createSwapChain();
         spdlog::debug("Initialized Vulkan instances.");
     }
 

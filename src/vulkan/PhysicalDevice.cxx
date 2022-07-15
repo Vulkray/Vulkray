@@ -18,6 +18,7 @@
  */
 
 #include "PhysicalDevice.hxx"
+#include "SwapChain.hxx"
 
 #include <spdlog/spdlog.h>
 #include <map>
@@ -77,6 +78,11 @@ int PhysicalDevice::rateGPUSuitability(VkPhysicalDevice gpuDevice, VkSurfaceKHR 
 
     // Check minimal GPU device requirements
     if (!hasRequiredExtensions) return 0; // required GPU extensions
+    else {
+        // Check GPU swap chain support
+        SwapChainSupportDetails swapChainSupport = SwapChain::querySwapChainSupport(gpuDevice, surface);
+        if (swapChainSupport.formats.empty() || swapChainSupport.presentModes.empty()) return 0;
+    }
     if (!gpuQueueIndices.isComplete()) return 0; // required GPU queues
     if (!gpuFeatures.geometryShader) return 0; // required geometry shader
 
@@ -120,9 +126,9 @@ bool PhysicalDevice::checkGPUExtensionSupport(VkPhysicalDevice gpuDevice, const 
 
     // Get GPU extensions information
     uint32_t extensionCount;
-    std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-
     vkEnumerateDeviceExtensionProperties(gpuDevice, nullptr, &extensionCount, nullptr);
+
+    std::vector<VkExtensionProperties> availableExtensions(extensionCount);
     vkEnumerateDeviceExtensionProperties(gpuDevice, nullptr, &extensionCount, availableExtensions.data());
 
     std::set<std::string> requiredExtensions(extensions.begin(), extensions.end());

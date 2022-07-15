@@ -20,9 +20,19 @@
 #ifndef VULKRAY_SWAPCHAIN_HXX
 #define VULKRAY_SWAPCHAIN_HXX
 
+#include <vulkan/vulkan.h>
+#include <vector>
+
+struct SwapChainSupportDetails {
+    VkSurfaceCapabilitiesKHR capabilities;
+    std::vector<VkSurfaceFormatKHR> formats;
+    std::vector<VkPresentModeKHR> presentModes;
+};
+
 class SwapChain {
 public:
-    //
+    static void createSwapChain();
+    static SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
 };
 
 #endif //VULKRAY_SWAPCHAIN_HXX

@@ -19,3 +19,31 @@
 
 #include "SwapChain.hxx"
 
+void SwapChain::createSwapChain() {
+    return; // placeholder; temporary!
+}
+
+SwapChainSupportDetails SwapChain::querySwapChainSupport(VkPhysicalDevice gpuDevice, VkSurfaceKHR surface) {
+    // Get GPU device surface capabilities
+    SwapChainSupportDetails details;
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(gpuDevice, surface, &details.capabilities);
+
+    // Get GPU device surface formats
+    uint32_t formatCount;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(gpuDevice, surface, &formatCount, nullptr);
+
+    if (formatCount != 0) {
+        details.formats.resize(formatCount);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(gpuDevice, surface, &formatCount, details.formats.data());
+    }
+
+    // Get GPU device present modes
+    uint32_t presentModeCount;
+    vkGetPhysicalDeviceSurfacePresentModesKHR(gpuDevice, surface, &presentModeCount, nullptr);
+
+    if (presentModeCount != 0) {
+        details.presentModes.resize(presentModeCount);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(gpuDevice, surface, &presentModeCount, details.presentModes.data());
+    }
+    return details; // return filled out GPU support details
+}
