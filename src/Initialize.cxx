@@ -26,6 +26,7 @@
 #include "vulkan/VulkanInstance.hxx"
 #include "vulkan/PhysicalDevice.hxx"
 #include "vulkan/LogicalDevice.hxx"
+#include "vulkan/SurfaceKHR.hxx"
 
 #include <iostream>
 
@@ -47,11 +48,12 @@ private:
     const int WIN_HEIGHT = 750;
 
     // GLFW instances
-    GLFWwindow* window{};
+    GLFWwindow *glfwWindow{};
     // Vulkan instances
     VkInstance vulkanInstance{};
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
     VkDevice logicalDevice = VK_NULL_HANDLE;
+    VkSurfaceKHR surface;
     // GPU Queue handles
     VkQueue graphicsQueue;
 
@@ -69,7 +71,7 @@ private:
         glfwInit();
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE); // lock window resizing
-        window = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, WIN_TITLE, nullptr, nullptr);
+        glfwWindow = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, WIN_TITLE, nullptr, nullptr);
 
         //glm::mat4 matrix;
         //glm::vec4 vec;
@@ -84,13 +86,14 @@ private:
         PhysicalDevice::selectPhysicalDevice(&physicalDevice, vulkanInstance);
         LogicalDevice::createLogicalDevice(&logicalDevice, &graphicsQueue, physicalDevice,
                                            enableValidationLayers, validationLayers);
+        SurfaceKHR::createSurfaceKHR(&surface, vulkanInstance, glfwWindow);
 
         spdlog::debug("Initialized Vulkan instances.");
     }
 
     void mainLoop() {
         spdlog::debug("Running main program loop ...");
-        while(!glfwWindowShouldClose(window)) {
+        while(!glfwWindowShouldClose(glfwWindow)) {
             glfwPollEvents();
         }
     }
@@ -98,9 +101,10 @@ private:
         spdlog::debug("Cleaning up engine ...");
         // Cleanup Vulkan
         vkDestroyDevice(logicalDevice, nullptr);
+        vkDestroySurfaceKHR(vulkanInstance, surface, nullptr);
         vkDestroyInstance(vulkanInstance, nullptr);
         // Cleanup GLFW
-        glfwDestroyWindow(window);
+        glfwDestroyWindow(glfwWindow);
         glfwTerminate();
     }
 };
