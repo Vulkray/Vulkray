@@ -29,6 +29,8 @@
 #include "vulkan/SurfaceKHR.hxx"
 
 #include <iostream>
+#include <chrono>
+#include <thread>
 
 void set_spdlog_debug() {
     spdlog::set_level(spdlog::level::debug);
@@ -93,6 +95,7 @@ private:
     void mainLoop() {
         spdlog::debug("Running main program loop ...");
         while(!glfwWindowShouldClose(glfwWindow)) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(16)); // check ~60 times/second; temporary!
             glfwPollEvents();
         }
     }
