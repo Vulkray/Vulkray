@@ -14,11 +14,11 @@ include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
 # Source code files
-set(sources
-    src/Initialize.cxx
-    src/vulkan/VulkanInstance.cxx src/vulkan/VulkanInstance.hxx
-    src/vulkan/PhysicalDevice.cxx src/vulkan/PhysicalDevice.hxx
-        src/vulkan/LogicalDevice.cxx src/vulkan/LogicalDevice.hxx src/vulkan/SurfaceKHR.cxx src/vulkan/SurfaceKHR.hxx)
+set(sources src/Initialize.cxx src/vulkan/VulkanInstance.cxx src/vulkan/VulkanInstance.hxx
+        src/vulkan/PhysicalDevice.cxx src/vulkan/PhysicalDevice.hxx
+        src/vulkan/LogicalDevice.cxx src/vulkan/LogicalDevice.hxx
+        src/vulkan/WindowSurface.cxx src/vulkan/WindowSurface.hxx
+        src/vulkan/SwapChain.cxx src/vulkan/SwapChain.hxx)
 # Executable targets
 add_executable(${name} ${sources})
 

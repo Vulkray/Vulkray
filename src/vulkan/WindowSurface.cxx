@@ -17,7 +17,7 @@
    limitations under the License.
  */
 
-#include "SurfaceKHR.hxx"
+#include "WindowSurface.hxx"
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -30,7 +30,7 @@
     #include <GLFW/glfw3native.h>
 #endif
 
-void SurfaceKHR::createSurfaceKHR(VkSurfaceKHR *surface, VkInstance vulkanInstance, GLFWwindow *window) {
+void WindowSurface::createSurfaceKHR(VkSurfaceKHR *surface, VkInstance vulkanInstance, GLFWwindow *window) {
 
     // Windows platform-specific window
     #ifdef _WIN32

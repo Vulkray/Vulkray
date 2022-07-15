@@ -1,6 +1,6 @@
 /*
- * SurfaceKHR.cxx
- * Creates the Vulkan Surface instance for presenting to the GLFW window.
+ * SwapChain.cxx
+ * Creates the Vulkan swap chain instance and swap chain buffers.
  *
  * Copyright 2022 Max Rodriguez
 
@@ -17,15 +17,12 @@
    limitations under the License.
  */
 
-#ifndef VULKRAY_SURFACEKHR_HXX
-#define VULKRAY_SURFACEKHR_HXX
+#ifndef VULKRAY_SWAPCHAIN_HXX
+#define VULKRAY_SWAPCHAIN_HXX
 
-#include <vulkan/vulkan.h>
-#include <GLFW/glfw3.h>
-
-class SurfaceKHR {
+class SwapChain {
 public:
-    static void createSurfaceKHR(VkSurfaceKHR *surface, VkInstance vulkanInstance, GLFWwindow *window);
+    //
 };
 
-#endif //VULKRAY_SURFACEKHR_HXX
+#endif //VULKRAY_SWAPCHAIN_HXX

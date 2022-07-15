@@ -26,7 +26,7 @@
 #include "vulkan/VulkanInstance.hxx"
 #include "vulkan/PhysicalDevice.hxx"
 #include "vulkan/LogicalDevice.hxx"
-#include "vulkan/SurfaceKHR.hxx"
+#include "vulkan/WindowSurface.hxx"
 
 #include <iostream>
 #include <chrono>
@@ -85,7 +85,7 @@ private:
     void initVulkan() {
         spdlog::debug("Initializing Vulkan ...");
         VulkanInstance::createInstance(&vulkanInstance, WIN_TITLE, enableValidationLayers, validationLayers);
-        SurfaceKHR::createSurfaceKHR(&surface, vulkanInstance, glfwWindow);
+        WindowSurface::createSurfaceKHR(&surface, vulkanInstance, glfwWindow);
         PhysicalDevice::selectPhysicalDevice(&physicalDevice, vulkanInstance, surface);
         LogicalDevice::createLogicalDevice(&logicalDevice, &graphicsQueue, &presentQueue, physicalDevice,
                                            surface, enableValidationLayers, validationLayers);
