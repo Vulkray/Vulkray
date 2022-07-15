@@ -28,7 +28,6 @@
 #include "vulkan/LogicalDevice.hxx"
 #include "vulkan/WindowSurface.hxx"
 
-#include <iostream>
 #include <chrono>
 #include <thread>
 
@@ -51,14 +50,10 @@ private:
 
     // GLFW instances
     GLFWwindow *glfwWindow{};
-    // Vulkan instances
-    VkInstance vulkanInstance{};
-    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-    VkDevice logicalDevice = VK_NULL_HANDLE;
-    VkSurfaceKHR surface;
-    // GPU Queue handles
-    VkQueue graphicsQueue;
-    VkQueue presentQueue;
+    // GLM variables
+    glm::mat4 matrix;
+    glm::vec4 vec;
+    //auto test = matrix * vec;
 
     // Vulkan validation layers
     const std::vector<const char*> validationLayers = {
@@ -69,16 +64,23 @@ private:
     #else
         const bool enableValidationLayers = true;
     #endif
+    // Vulkan instances
+    VkInstance vulkanInstance{};
+    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+    VkDevice logicalDevice = VK_NULL_HANDLE;
+    VkSurfaceKHR surface;
+    const std::vector<const char*> requiredExtensions = {
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME
+    };
+    // GPU queue handles
+    VkQueue graphicsQueue;
+    VkQueue presentQueue;
 
     void initGlfw() {
         glfwInit();
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE); // lock window resizing
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE); // lock window resizing; temporary!
         glfwWindow = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, WIN_TITLE, nullptr, nullptr);
-
-        //glm::mat4 matrix;
-        //glm::vec4 vec;
-        //auto test = matrix * vec;
         spdlog::debug("Initialized GLFW window.");
     }
 
@@ -86,9 +88,9 @@ private:
         spdlog::debug("Initializing Vulkan ...");
         VulkanInstance::createInstance(&vulkanInstance, WIN_TITLE, enableValidationLayers, validationLayers);
         WindowSurface::createSurfaceKHR(&surface, vulkanInstance, glfwWindow);
-        PhysicalDevice::selectPhysicalDevice(&physicalDevice, vulkanInstance, surface);
+        PhysicalDevice::selectPhysicalDevice(&physicalDevice, vulkanInstance, surface, requiredExtensions);
         LogicalDevice::createLogicalDevice(&logicalDevice, &graphicsQueue, &presentQueue, physicalDevice,
-                                           surface, enableValidationLayers, validationLayers);
+                                           surface, requiredExtensions, enableValidationLayers, validationLayers);
         spdlog::debug("Initialized Vulkan instances.");
     }
 
@@ -125,9 +127,9 @@ int main() {
 
     try {
         base.launch();
-    } catch (const std::exception& e) {
-        std::cerr << e.what() << std::endl;
-        return 1;
+    } catch (const std::exception& exception) {
+        spdlog::error("Failed to initialize Vulkray engine base: {0}", exception.what());
+        return 1; // exit with error
     }
     return 0;
 }

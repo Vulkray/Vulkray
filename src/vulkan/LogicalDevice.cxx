@@ -25,6 +25,7 @@
 
 void LogicalDevice::createLogicalDevice(VkDevice *logicalDevice, VkQueue *graphicsQueue, VkQueue *presentQueue,
                                         VkPhysicalDevice physicalDevice, VkSurfaceKHR surface,
+                                        const std::vector<const char*> gpuExtensions,
                                         const bool enableVkLayers, const std::vector<const char*> vkLayers) {
 
     // get GPU queue family indices
@@ -58,7 +59,8 @@ void LogicalDevice::createLogicalDevice(VkDevice *logicalDevice, VkQueue *graphi
     createInfo.pQueueCreateInfos = queueCreateInfos.data();
     createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
     createInfo.pEnabledFeatures = &deviceFeatures;
-    createInfo.enabledExtensionCount = 0;
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(gpuExtensions.size());
+    createInfo.ppEnabledExtensionNames = gpuExtensions.data();
 
     // Validation layer fields are ignored by newer Vk implementations; set for compatibility
     if (enableVkLayers) {

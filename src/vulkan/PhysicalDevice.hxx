@@ -22,23 +22,25 @@
 
 #include <vulkan/vulkan.h>
 #include <optional>
+#include <vector>
 
 struct QueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;
     std::optional<uint32_t> presentFamily;
     bool isComplete() {
-        return graphicsFamily.has_value()
-        && presentFamily.has_value();
+        return graphicsFamily.has_value() && presentFamily.has_value();
     }
 };
 
 class PhysicalDevice {
 public:
-    static void selectPhysicalDevice(VkPhysicalDevice *physicalDevice,
-                                     VkInstance vulkanInstance, VkSurfaceKHR surface);
+    static void selectPhysicalDevice(VkPhysicalDevice *physicalDevice, VkInstance vulkanInstance,
+                                     VkSurfaceKHR surface, const std::vector<const char*> extensions);
     static QueueFamilyIndices findDeviceQueueFamilies(VkPhysicalDevice gpuDevice, VkSurfaceKHR surface);
 private:
-    static int rateGPUSuitability(VkPhysicalDevice gpuDevice, VkSurfaceKHR surface);
+    static int rateGPUSuitability(VkPhysicalDevice gpuDevice, VkSurfaceKHR surface,
+                                  const std::vector<const char*> extensions);
+    static bool checkGPUExtensionSupport(VkPhysicalDevice gpuDevice, const std::vector<const char*> extensions);
 };
 
 #endif //VULKRAY_PHYSICALDEVICE_HXX

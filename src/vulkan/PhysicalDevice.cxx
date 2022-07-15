@@ -21,9 +21,10 @@
 
 #include <spdlog/spdlog.h>
 #include <map>
+#include <set>
 
-void PhysicalDevice::selectPhysicalDevice(VkPhysicalDevice *physicalDevice,
-                                          VkInstance vulkanInstance, VkSurfaceKHR surface) {
+void PhysicalDevice::selectPhysicalDevice(VkPhysicalDevice *physicalDevice, VkInstance vulkanInstance,
+                                          VkSurfaceKHR surface, const std::vector<const char*> extensions) {
 
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(vulkanInstance, &deviceCount, nullptr);
@@ -42,7 +43,7 @@ void PhysicalDevice::selectPhysicalDevice(VkPhysicalDevice *physicalDevice,
     std::multimap<int, VkPhysicalDevice> candidates;
 
     for (auto& device : devices) {
-        int score = rateGPUSuitability(device, surface);
+        int score = PhysicalDevice::rateGPUSuitability(device, surface, extensions);
         candidates.insert(std::make_pair(score, device));
     }
 
@@ -61,18 +62,21 @@ void PhysicalDevice::selectPhysicalDevice(VkPhysicalDevice *physicalDevice,
     spdlog::info("Vulkan GPU Selected: {0}", gpuProperties.deviceName);
 }
 
-int PhysicalDevice::rateGPUSuitability(VkPhysicalDevice gpuDevice, VkSurfaceKHR surface) {
+int PhysicalDevice::rateGPUSuitability(VkPhysicalDevice gpuDevice, VkSurfaceKHR surface,
+                                       const std::vector<const char*> extensions) {
     int deviceScore = 0;
 
     // Get GPU device information
     VkPhysicalDeviceProperties gpuProperties;
     VkPhysicalDeviceFeatures gpuFeatures;
-    QueueFamilyIndices gpuQueueIndices = findDeviceQueueFamilies(gpuDevice, surface);
+    QueueFamilyIndices gpuQueueIndices = PhysicalDevice::findDeviceQueueFamilies(gpuDevice, surface);
+    bool hasRequiredExtensions = PhysicalDevice::checkGPUExtensionSupport(gpuDevice, extensions);
 
     vkGetPhysicalDeviceProperties(gpuDevice, &gpuProperties);
     vkGetPhysicalDeviceFeatures(gpuDevice, &gpuFeatures);
 
     // Check minimal GPU device requirements
+    if (!hasRequiredExtensions) return 0; // required GPU extensions
     if (!gpuQueueIndices.isComplete()) return 0; // required GPU queues
     if (!gpuFeatures.geometryShader) return 0; // required geometry shader
 
@@ -109,6 +113,22 @@ QueueFamilyIndices PhysicalDevice::findDeviceQueueFamilies(VkPhysicalDevice gpuD
         }
         index++;
     }
-
     return queueIndices;
+}
+
+bool PhysicalDevice::checkGPUExtensionSupport(VkPhysicalDevice gpuDevice, const std::vector<const char*> extensions) {
+
+    // Get GPU extensions information
+    uint32_t extensionCount;
+    std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+
+    vkEnumerateDeviceExtensionProperties(gpuDevice, nullptr, &extensionCount, nullptr);
+    vkEnumerateDeviceExtensionProperties(gpuDevice, nullptr, &extensionCount, availableExtensions.data());
+
+    std::set<std::string> requiredExtensions(extensions.begin(), extensions.end());
+
+    for (const auto& extension : availableExtensions) {
+        requiredExtensions.erase(extension.extensionName);
+    }
+    return requiredExtensions.empty();
 }
