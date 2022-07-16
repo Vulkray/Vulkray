@@ -45,9 +45,28 @@ void WindowSurface::createSurfaceKHR(VkSurfaceKHR *surface, VkInstance vulkanIns
         }
     // GLFW window surface
     #elifdef __unix__
-        if (glfwCreateWindowSurface(vulkanInstance, window, nullptr, surface) != VK_SUCCESS) {
-            spdlog::error("Failed to create Vulkan window surface instance.");
-            throw std::runtime_error("Failed to create window surface!");
+        VkResult result = glfwCreateWindowSurface(vulkanInstance, window, nullptr, surface);
+
+        if (result != VK_SUCCESS) {
+            // Check if it's a GLFW error or a Vulkan error
+            const char *errorMsg;
+            int errorCode = glfwGetError(&errorMsg);
+
+            if (errorCode != GLFW_NO_ERROR) {
+                spdlog::error("A GLFW error occurred while trying to create the window surface:");
+                spdlog::error("Error: {0}", errorMsg); // print error description
+            } else {
+                spdlog::error("A Vulkan error occurred while trying to create the window surface:");
+                switch (result) {
+                    case VK_ERROR_INCOMPATIBLE_DISPLAY_KHR:
+                        spdlog::error("Vulkan error returned: VK_ERROR_INCOMPATIBLE_DISPLAY_KHR");
+                        break;
+                    default:
+                        spdlog::error("An unkown Vulkan error was returned by glfwCreateWindowSurface.");
+                        break;
+                }
+            }
+            throw std::runtime_error("Failed to create the Vulkan window surface!");
         }
     #endif
 }

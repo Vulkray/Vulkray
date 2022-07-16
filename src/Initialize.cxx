@@ -45,7 +45,7 @@ public:
         cleanup(); // Destroys GLFW/Vulkan objects
     }
 private:
-    const char* WIN_TITLE = "Vulkray";
+    const char* WIN_TITLE = "Vulkray Engine - Alpha";
     const int WIN_WIDTH = 1300;
     const int WIN_HEIGHT = 750;
 

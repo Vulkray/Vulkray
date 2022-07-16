@@ -67,9 +67,33 @@ void VulkanInstance::createInstance(VkInstance* vkInstance, const char* appName,
         spdlog::error("Vulkan Validation layers requested, but not available!");
         throw std::runtime_error("Failed required validation layers check.");
     }
-    // Create vulkan instance
-    if (vkCreateInstance(&createInfo, nullptr, vkInstance) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create Vulkan instance!");
+
+    // Create the Vulkan instance
+    VkResult result = vkCreateInstance(&createInfo, nullptr, vkInstance);
+
+    if (result != VK_SUCCESS) {
+        spdlog::error("An error occurred while creating the Vulkan instance:");
+        switch (result) {
+            case VK_ERROR_INCOMPATIBLE_DRIVER:
+                spdlog::error("The system Vulkan ICD (Installable Client Driver) is not compatible.");
+                break;
+            case VK_ERROR_LAYER_NOT_PRESENT:
+                spdlog::error("The requested Vulkan instance validation layers were not found.");
+                break;
+            case VK_ERROR_EXTENSION_NOT_PRESENT:
+                spdlog::error("The requested Vulkan instance device extensions were not found.");
+                break;
+            case VK_ERROR_OUT_OF_HOST_MEMORY:
+                spdlog::error("The host system ran out of memory while initializing the Vulkan instance.");
+                break;
+            case VK_ERROR_OUT_OF_DEVICE_MEMORY:
+                spdlog::error("The device ran out of memory while initializing the Vulkan instance.");
+                break;
+            default:
+                spdlog::error("An unknown issue was encountered when creating the Vulkan instance.");
+                break;
+        }
+        throw std::runtime_error("Fatal! Failed to create the Vulkan instance!");
     }
 
     uint32_t extensionCount = 0;
