@@ -25,7 +25,8 @@
 #include <limits>
 #include <algorithm>
 
-void SwapChain::createSwapChain(VkSwapchainKHR *swapChain, VkDevice logicalDevice,
+void SwapChain::createSwapChain(VkSwapchainKHR *swapChain, std::vector<VkImage> *swapImages,
+                                VkFormat *format, VkExtent2D *extent, VkDevice logicalDevice,
                                 VkPhysicalDevice gpuDevice, VkSurfaceKHR surface, GLFWwindow *window) {
 
     // Get device swap chain support info
@@ -88,6 +89,13 @@ void SwapChain::createSwapChain(VkSwapchainKHR *swapChain, VkDevice logicalDevic
         spdlog::error("An issue was encountered while trying to create the Vulkan swap chain.");
         throw std::runtime_error("Failed to initialize the swap chain!");
     }
+
+    // Get the swap chain images handles
+    vkGetSwapchainImagesKHR(logicalDevice, *swapChain, &imageCount, nullptr);
+    vkGetSwapchainImagesKHR(logicalDevice, *swapChain, &imageCount, swapImages->data());
+    // Store swap format & extent in variable pointers for global use
+    *format = surfaceFormat.format;
+    *extent = swapExtent;
 }
 
 SwapChainSupportDetails SwapChain::querySwapChainSupport(VkPhysicalDevice gpuDevice, VkSurfaceKHR surface) {

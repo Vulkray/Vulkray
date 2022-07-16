@@ -39,8 +39,10 @@ struct SwapChainSupportDetails {
 
 class SwapChain {
 public:
-    static void createSwapChain(VkSwapchainKHR *swapChain, VkDevice logicalDevice,
+    static void createSwapChain(VkSwapchainKHR *swapChain, std::vector<VkImage> *swapImages,
+                                VkFormat *format, VkExtent2D *extent, VkDevice logicalDevice,
                                 VkPhysicalDevice gpuDevice, VkSurfaceKHR surface, GLFWwindow *window);
+
     static SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
 private:
     // Surface format (presentation color depth)
