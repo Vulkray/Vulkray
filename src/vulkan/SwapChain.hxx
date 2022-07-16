@@ -21,7 +21,15 @@
 #define VULKRAY_SWAPCHAIN_HXX
 
 #include <vulkan/vulkan.h>
+#include <GLFW/glfw3.h>
 #include <vector>
+
+// Prefer standard 32-bit color formats (SRGB)
+const VkFormat PREFERRED_COLOR_FORMAT = VK_FORMAT_B8G8R8A8_SRGB;
+const VkColorSpaceKHR PREFERRED_COLOR_SPACE = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+// Preferred swap chain presentation modes
+const VkPresentModeKHR DEFAULT_PRESENTATION = VK_PRESENT_MODE_FIFO_KHR; // guaranteed & optimal, higher latency
+const VkPresentModeKHR PREFERRED_PRESENTATION = VK_PRESENT_MODE_MAILBOX_KHR; // more expensive, but lowest latency
 
 struct SwapChainSupportDetails {
     VkSurfaceCapabilitiesKHR capabilities;
@@ -31,8 +39,16 @@ struct SwapChainSupportDetails {
 
 class SwapChain {
 public:
-    static void createSwapChain();
+    static void createSwapChain(VkSwapchainKHR *swapChain, VkDevice logicalDevice,
+                                VkPhysicalDevice gpuDevice, VkSurfaceKHR surface, GLFWwindow *window);
     static SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
+private:
+    // Surface format (presentation color depth)
+    static VkSurfaceFormatKHR chooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats);
+    // Presentation mode (image buffer swapping methods)
+    static VkPresentModeKHR choosePresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes);
+    // Swap Extent (resolution of swap chain images)
+    static VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities, GLFWwindow *window);
 };
 
 #endif //VULKRAY_SWAPCHAIN_HXX

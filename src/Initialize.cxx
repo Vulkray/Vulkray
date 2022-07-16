@@ -70,6 +70,7 @@ private:
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
     VkDevice logicalDevice = VK_NULL_HANDLE;
     VkSurfaceKHR surface;
+    VkSwapchainKHR swapChain;
     const std::vector<const char*> requiredExtensions = {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME
     };
@@ -92,7 +93,7 @@ private:
         PhysicalDevice::selectPhysicalDevice(&physicalDevice, vulkanInstance, surface, requiredExtensions);
         LogicalDevice::createLogicalDevice(&logicalDevice, &graphicsQueue, &presentQueue, physicalDevice,
                                            surface, requiredExtensions, enableValidationLayers, validationLayers);
-        SwapChain::createSwapChain();
+        SwapChain::createSwapChain(&swapChain, logicalDevice, physicalDevice, surface, glfwWindow);
         spdlog::debug("Initialized Vulkan instances.");
     }
 
@@ -106,6 +107,7 @@ private:
     void cleanup() {
         spdlog::debug("Cleaning up engine ...");
         // Cleanup Vulkan
+        vkDestroySwapchainKHR(logicalDevice, swapChain, nullptr);
         vkDestroyDevice(logicalDevice, nullptr);
         vkDestroySurfaceKHR(vulkanInstance, surface, nullptr);
         vkDestroyInstance(vulkanInstance, nullptr);
