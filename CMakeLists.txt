@@ -18,7 +18,9 @@ set(sources src/Initialize.cxx src/vulkan/VulkanInstance.cxx src/vulkan/VulkanIn
         src/vulkan/PhysicalDevice.cxx src/vulkan/PhysicalDevice.hxx
         src/vulkan/LogicalDevice.cxx src/vulkan/LogicalDevice.hxx
         src/vulkan/WindowSurface.cxx src/vulkan/WindowSurface.hxx
-        src/vulkan/SwapChain.cxx src/vulkan/SwapChain.hxx)
+        src/vulkan/SwapChain.cxx src/vulkan/SwapChain.hxx
+        src/vulkan/ImageViews.cxx src/vulkan/ImageViews.hxx)
+
 # Executable targets
 add_executable(${name} ${sources})
 

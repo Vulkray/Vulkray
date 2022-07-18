@@ -28,6 +28,7 @@
 #include "vulkan/PhysicalDevice.hxx"
 #include "vulkan/LogicalDevice.hxx"
 #include "vulkan/SwapChain.hxx"
+#include "vulkan/ImageViews.hxx"
 
 #include <chrono>
 #include <thread>
@@ -74,6 +75,7 @@ private:
     std::vector<VkImage> swapChainImages;
     VkFormat swapChainImageFormat;
     VkExtent2D swapChainExtent;
+    std::vector<VkImageView> swapChainImageViews;
     const std::vector<const char*> requiredExtensions = {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME
     };
@@ -98,6 +100,7 @@ private:
                                            surface, requiredExtensions, enableValidationLayers, validationLayers);
         SwapChain::createSwapChain(&swapChain, &swapChainImages, &swapChainImageFormat, &swapChainExtent,
                                    logicalDevice, physicalDevice, surface, glfwWindow);
+        ImageViews::createImageViews(swapChainImageViews, logicalDevice, swapChainImages, swapChainImageFormat);
         spdlog::debug("Initialized Vulkan instances.");
     }
 
@@ -111,6 +114,9 @@ private:
     void cleanup() {
         spdlog::debug("Cleaning up engine ...");
         // Cleanup Vulkan
+        for (auto imageView : swapChainImageViews) {
+            vkDestroyImageView(logicalDevice, imageView, nullptr);
+        }
         vkDestroySwapchainKHR(logicalDevice, swapChain, nullptr);
         vkDestroyDevice(logicalDevice, nullptr);
         vkDestroySurfaceKHR(vulkanInstance, surface, nullptr);
