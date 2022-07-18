@@ -20,9 +20,17 @@
 #ifndef VULKRAY_GRAPHICSPIPELINE_HXX
 #define VULKRAY_GRAPHICSPIPELINE_HXX
 
+#include <vulkan/vulkan.h>
+#include <vector>
+#include <string>
+
 class GraphicsPipeline {
 public:
-    //
+    static void createGraphicsPipeline(VkPipelineLayout *pipelineLayout,
+                                       VkDevice logicalDevice, VkExtent2D swapExtent);
+private:
+    static VkShaderModule createShaderModule(const std::vector<char> &shaderBinary, VkDevice logicalDevice);
+    static std::vector<char> readSpirVShaderBinary(const std::string &filename);
 };
 
 #endif //VULKRAY_GRAPHICSPIPELINE_HXX

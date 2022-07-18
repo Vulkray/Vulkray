@@ -29,6 +29,7 @@
 #include "vulkan/LogicalDevice.hxx"
 #include "vulkan/SwapChain.hxx"
 #include "vulkan/ImageViews.hxx"
+#include "vulkan/GraphicsPipeline.hxx"
 
 #include <chrono>
 #include <thread>
@@ -79,6 +80,7 @@ private:
     const std::vector<const char*> requiredExtensions = {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME
     };
+    VkPipelineLayout pipelineLayout;
     // GPU queue handles
     VkQueue graphicsQueue;
     VkQueue presentQueue;
@@ -93,6 +95,7 @@ private:
 
     void initVulkan() {
         spdlog::debug("Initializing Vulkan ...");
+
         VulkanInstance::createInstance(&vulkanInstance, WIN_TITLE, enableValidationLayers, validationLayers);
         WindowSurface::createSurfaceKHR(&surface, vulkanInstance, glfwWindow);
         PhysicalDevice::selectPhysicalDevice(&physicalDevice, vulkanInstance, surface, requiredExtensions);
@@ -101,6 +104,8 @@ private:
         SwapChain::createSwapChain(&swapChain, &swapChainImages, &swapChainImageFormat, &swapChainExtent,
                                    logicalDevice, physicalDevice, surface, glfwWindow);
         ImageViews::createImageViews(swapChainImageViews, logicalDevice, swapChainImages, swapChainImageFormat);
+        GraphicsPipeline::createGraphicsPipeline(&pipelineLayout, logicalDevice, swapChainExtent);
+
         spdlog::debug("Initialized Vulkan instances.");
     }
 
@@ -114,6 +119,7 @@ private:
     void cleanup() {
         spdlog::debug("Cleaning up engine ...");
         // Cleanup Vulkan
+        vkDestroyPipelineLayout(logicalDevice, pipelineLayout, nullptr);
         for (auto imageView : swapChainImageViews) {
             vkDestroyImageView(logicalDevice, imageView, nullptr);
         }
