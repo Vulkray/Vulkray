@@ -29,6 +29,7 @@
 #include "vulkan/LogicalDevice.hxx"
 #include "vulkan/SwapChain.hxx"
 #include "vulkan/ImageViews.hxx"
+#include "vulkan/RenderPass.hxx"
 #include "vulkan/GraphicsPipeline.hxx"
 
 #include <chrono>
@@ -72,15 +73,17 @@ private:
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
     VkDevice logicalDevice = VK_NULL_HANDLE;
     VkSurfaceKHR surface;
+    const std::vector<const char*> requiredExtensions = {
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME
+    };
     VkSwapchainKHR swapChain;
     std::vector<VkImage> swapChainImages;
     VkFormat swapChainImageFormat;
     VkExtent2D swapChainExtent;
     std::vector<VkImageView> swapChainImageViews;
-    const std::vector<const char*> requiredExtensions = {
-            VK_KHR_SWAPCHAIN_EXTENSION_NAME
-    };
+    VkRenderPass renderPass;
     VkPipelineLayout pipelineLayout;
+    VkPipeline graphicsPipeline;
     // GPU queue handles
     VkQueue graphicsQueue;
     VkQueue presentQueue;
@@ -104,7 +107,9 @@ private:
         SwapChain::createSwapChain(&swapChain, &swapChainImages, &swapChainImageFormat, &swapChainExtent,
                                    logicalDevice, physicalDevice, surface, glfwWindow);
         ImageViews::createImageViews(swapChainImageViews, logicalDevice, swapChainImages, swapChainImageFormat);
-        GraphicsPipeline::createGraphicsPipeline(&pipelineLayout, logicalDevice, swapChainExtent);
+        RenderPass::createRenderPass(&renderPass, logicalDevice, swapChainImageFormat);
+        GraphicsPipeline::createGraphicsPipeline(&graphicsPipeline, &pipelineLayout, renderPass,
+                                                 logicalDevice, swapChainExtent);
 
         spdlog::debug("Initialized Vulkan instances.");
     }
@@ -119,7 +124,9 @@ private:
     void cleanup() {
         spdlog::debug("Cleaning up engine ...");
         // Cleanup Vulkan
+        vkDestroyPipeline(logicalDevice, graphicsPipeline, nullptr);
         vkDestroyPipelineLayout(logicalDevice, pipelineLayout, nullptr);
+        vkDestroyRenderPass(logicalDevice, renderPass, nullptr);
         for (auto imageView : swapChainImageViews) {
             vkDestroyImageView(logicalDevice, imageView, nullptr);
         }

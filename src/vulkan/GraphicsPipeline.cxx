@@ -22,8 +22,8 @@
 #include <spdlog/spdlog.h>
 #include <fstream>
 
-void GraphicsPipeline::createGraphicsPipeline(VkPipelineLayout *pipelineLayout,
-                                              VkDevice logicalDevice, VkExtent2D swapExtent) {
+void GraphicsPipeline::createGraphicsPipeline(VkPipeline *graphicsPipeline, VkPipelineLayout *pipelineLayout,
+                                              VkRenderPass renderPass, VkDevice logicalDevice, VkExtent2D swapExtent) {
 
     // read spir-v shader binary files
     auto vertShaderCode = GraphicsPipeline::readSpirVShaderBinary("shaders/triangle.vert.spv");
@@ -151,6 +151,31 @@ void GraphicsPipeline::createGraphicsPipeline(VkPipelineLayout *pipelineLayout,
     if (result != VK_SUCCESS) {
         spdlog::error("An error occurred when initializing the graphics pipeline layout instance.");
         throw std::runtime_error("Failed to create the graphics pipeline layout!");
+    }
+
+    // Create the Vulkan graphics pipeline instance
+    VkGraphicsPipelineCreateInfo pipelineInfo{};
+    pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    pipelineInfo.stageCount = 2;
+    pipelineInfo.pStages = shaderStages;
+    pipelineInfo.pVertexInputState = &vertexInputInfo;
+    pipelineInfo.pInputAssemblyState = &inputAssembly;
+    pipelineInfo.pViewportState = &viewportState;
+    pipelineInfo.pRasterizationState = &rasterizer;
+    pipelineInfo.pMultisampleState = &multisampling;
+    pipelineInfo.pDepthStencilState = nullptr; // optional
+    pipelineInfo.pColorBlendState = &colorBlending;
+    pipelineInfo.pDynamicState = &dynamicState;
+    pipelineInfo.layout = *pipelineLayout;
+    pipelineInfo.renderPass = renderPass;
+    pipelineInfo.subpass = 0;
+    pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // optional
+    pipelineInfo.basePipelineIndex = -1; // optional
+
+    result = vkCreateGraphicsPipelines(logicalDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, graphicsPipeline);
+    if (result != VK_SUCCESS) {
+        spdlog::error("An error occurred when initializing the Vulkan graphics pipeline instance.");
+        throw std::runtime_error("Failed to create the Vulkan graphics pipeline.");
     }
 
     // modules compiled after pipeline creation, so they can be destroyed

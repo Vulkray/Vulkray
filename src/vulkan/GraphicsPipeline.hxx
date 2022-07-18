@@ -26,8 +26,8 @@
 
 class GraphicsPipeline {
 public:
-    static void createGraphicsPipeline(VkPipelineLayout *pipelineLayout,
-                                       VkDevice logicalDevice, VkExtent2D swapExtent);
+    static void createGraphicsPipeline(VkPipeline *graphicsPipeline, VkPipelineLayout *pipelineLayout,
+                                       VkRenderPass renderPass, VkDevice logicalDevice, VkExtent2D swapExtent);
 private:
     static VkShaderModule createShaderModule(const std::vector<char> &shaderBinary, VkDevice logicalDevice);
     static std::vector<char> readSpirVShaderBinary(const std::string &filename);
