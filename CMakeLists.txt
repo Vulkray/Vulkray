@@ -19,13 +19,18 @@ set(sources src/Initialize.cxx src/vulkan/VulkanInstance.cxx src/vulkan/VulkanIn
         src/vulkan/LogicalDevice.cxx src/vulkan/LogicalDevice.hxx
         src/vulkan/WindowSurface.cxx src/vulkan/WindowSurface.hxx
         src/vulkan/SwapChain.cxx src/vulkan/SwapChain.hxx
-        src/vulkan/ImageViews.cxx src/vulkan/ImageViews.hxx)
+        src/vulkan/ImageViews.cxx src/vulkan/ImageViews.hxx
+        src/vulkan/GraphicsPipeline.cxx src/vulkan/GraphicsPipeline.hxx)
 
 # Executable targets
 add_executable(${name} ${sources})
 
 # Setup linked libraries using Conan info
 target_link_libraries(${name} ${CONAN_LIBS})
+
+# GLSL shaders to Spir-V
+add_subdirectory(shaders)
+add_dependencies(${name} vulkray-shaders)
 
 # Google Tests
 enable_testing()
