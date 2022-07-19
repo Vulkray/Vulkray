@@ -27,15 +27,18 @@
 
 class Vulkan {
 public:
+    void initialize(const char* engineName, GLFWwindow *engineWindow); // Initializes the class and its instances.
+    void shutdown(); // Cleans up & terminates all Vulkan instances.
+private:
     // Vulkan validation layers
     const std::vector<const char*> validationLayers = {
             "VK_LAYER_KHRONOS_validation"
     };
-    #ifdef NDEBUG
-        const bool enableValidationLayers = false;
-    #else
-        const bool enableValidationLayers = true;
-    #endif
+#ifdef NDEBUG
+    const bool enableValidationLayers = false;
+#else
+    const bool enableValidationLayers = true;
+#endif
     // Vulkan instances
     VkInstance vulkanInstance{};
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
@@ -52,12 +55,10 @@ public:
     VkRenderPass renderPass;
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
+    std::vector<VkFramebuffer> swapChainFrameBuffers;
     // GPU queue handles
     VkQueue graphicsQueue;
     VkQueue presentQueue;
-
-    void initialize(const char* engineName, GLFWwindow *engineWindow); // Initializes the class and its instances.
-    void shutdown(); // Cleans up & terminates all Vulkan instances.
 };
 
 #endif //VULKRAY_VULKAN_HXX
