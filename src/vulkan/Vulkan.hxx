@@ -56,6 +56,8 @@ private:
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
     std::vector<VkFramebuffer> swapChainFrameBuffers;
+    VkCommandPool commandPool;
+    VkCommandBuffer commandBuffer;
     // GPU queue handles
     VkQueue graphicsQueue;
     VkQueue presentQueue;

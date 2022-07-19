@@ -28,6 +28,7 @@
 #include "RenderPass.hxx"
 #include "GraphicsPipeline.hxx"
 #include "FrameBuffers.hxx"
+#include "CommandBuffer.hxx"
 
 #include <spdlog/spdlog.h>
 
@@ -52,10 +53,13 @@ void Vulkan::initialize(const char* engineName, GLFWwindow *engineWindow) {
                                              this->logicalDevice, this->swapChainExtent);
     FrameBuffers::createFrameBuffers(this->swapChainFrameBuffers, this->swapChainImageViews,
                                      this->logicalDevice, this->renderPass, this->swapChainExtent);
+    CommandBuffer::createCommandPool(&this->commandPool, this->logicalDevice, this->physicalDevice, this->surface);
+    CommandBuffer::createCommandBuffer(&this->commandBuffer, this->logicalDevice, this->commandPool);
     spdlog::debug("Initialized Vulkan instances.");
 }
 
 void Vulkan::shutdown() {
+    vkDestroyCommandPool(this->logicalDevice, this->commandPool, nullptr);
     for (auto framebuffer : swapChainFrameBuffers) {
         vkDestroyFramebuffer(this->logicalDevice, framebuffer, nullptr);
     }

@@ -24,6 +24,7 @@ set(sources src/Initialize.cxx
         src/vulkan/RenderPass.cxx src/vulkan/RenderPass.hxx
         src/vulkan/GraphicsPipeline.cxx src/vulkan/GraphicsPipeline.hxx
         src/vulkan/FrameBuffers.cxx src/vulkan/FrameBuffers.hxx
+        src/vulkan/CommandBuffer.cxx src/vulkan/CommandBuffer.hxx
         src/vulkan/Vulkan.cxx src/vulkan/Vulkan.hxx)
 
 # Executable targets
