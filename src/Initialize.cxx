@@ -23,27 +23,16 @@
 #include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
 
-#include "vulkan/VulkanInstance.hxx"
-#include "vulkan/WindowSurface.hxx"
-#include "vulkan/PhysicalDevice.hxx"
-#include "vulkan/LogicalDevice.hxx"
-#include "vulkan/SwapChain.hxx"
-#include "vulkan/ImageViews.hxx"
-#include "vulkan/RenderPass.hxx"
-#include "vulkan/GraphicsPipeline.hxx"
+#include "vulkan/Vulkan.hxx"
 
 #include <chrono>
 #include <thread>
-
-void set_spdlog_debug() {
-    spdlog::set_level(spdlog::level::debug);
-}
 
 class Initialize {
 public:
     void launch() {
         initGlfw(); // Initializes GLFW window
-        initVulkan(); // Initializes Vulkan objects
+        VulkanCore.initialize(WIN_TITLE, glfwWindow); // Initializes Vulkan objects
         mainLoop(); // Main program loop
         cleanup(); // Destroys GLFW/Vulkan objects
     }
@@ -59,34 +48,8 @@ private:
     glm::vec4 vec;
     //auto test = matrix * vec;
 
-    // Vulkan validation layers
-    const std::vector<const char*> validationLayers = {
-            "VK_LAYER_KHRONOS_validation"
-    };
-    #ifdef NDEBUG
-        const bool enableValidationLayers = false;
-    #else
-        const bool enableValidationLayers = true;
-    #endif
-    // Vulkan instances
-    VkInstance vulkanInstance{};
-    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-    VkDevice logicalDevice = VK_NULL_HANDLE;
-    VkSurfaceKHR surface;
-    const std::vector<const char*> requiredExtensions = {
-            VK_KHR_SWAPCHAIN_EXTENSION_NAME
-    };
-    VkSwapchainKHR swapChain;
-    std::vector<VkImage> swapChainImages;
-    VkFormat swapChainImageFormat;
-    VkExtent2D swapChainExtent;
-    std::vector<VkImageView> swapChainImageViews;
-    VkRenderPass renderPass;
-    VkPipelineLayout pipelineLayout;
-    VkPipeline graphicsPipeline;
-    // GPU queue handles
-    VkQueue graphicsQueue;
-    VkQueue presentQueue;
+    // Engine's Vulkan class
+    Vulkan VulkanCore;
 
     void initGlfw() {
         glfwInit();
@@ -94,24 +57,6 @@ private:
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE); // lock window resizing; temporary!
         glfwWindow = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, WIN_TITLE, nullptr, nullptr);
         spdlog::debug("Initialized GLFW window.");
-    }
-
-    void initVulkan() {
-        spdlog::debug("Initializing Vulkan ...");
-
-        VulkanInstance::createInstance(&vulkanInstance, WIN_TITLE, enableValidationLayers, validationLayers);
-        WindowSurface::createSurfaceKHR(&surface, vulkanInstance, glfwWindow);
-        PhysicalDevice::selectPhysicalDevice(&physicalDevice, vulkanInstance, surface, requiredExtensions);
-        LogicalDevice::createLogicalDevice(&logicalDevice, &graphicsQueue, &presentQueue, physicalDevice,
-                                           surface, requiredExtensions, enableValidationLayers, validationLayers);
-        SwapChain::createSwapChain(&swapChain, &swapChainImages, &swapChainImageFormat, &swapChainExtent,
-                                   logicalDevice, physicalDevice, surface, glfwWindow);
-        ImageViews::createImageViews(swapChainImageViews, logicalDevice, swapChainImages, swapChainImageFormat);
-        RenderPass::createRenderPass(&renderPass, logicalDevice, swapChainImageFormat);
-        GraphicsPipeline::createGraphicsPipeline(&graphicsPipeline, &pipelineLayout, renderPass,
-                                                 logicalDevice, swapChainExtent);
-
-        spdlog::debug("Initialized Vulkan instances.");
     }
 
     void mainLoop() {
@@ -124,16 +69,7 @@ private:
     void cleanup() {
         spdlog::debug("Cleaning up engine ...");
         // Cleanup Vulkan
-        vkDestroyPipeline(logicalDevice, graphicsPipeline, nullptr);
-        vkDestroyPipelineLayout(logicalDevice, pipelineLayout, nullptr);
-        vkDestroyRenderPass(logicalDevice, renderPass, nullptr);
-        for (auto imageView : swapChainImageViews) {
-            vkDestroyImageView(logicalDevice, imageView, nullptr);
-        }
-        vkDestroySwapchainKHR(logicalDevice, swapChain, nullptr);
-        vkDestroyDevice(logicalDevice, nullptr);
-        vkDestroySurfaceKHR(vulkanInstance, surface, nullptr);
-        vkDestroyInstance(vulkanInstance, nullptr);
+        VulkanCore.shutdown();
         // Cleanup GLFW
         glfwDestroyWindow(glfwWindow);
         glfwTerminate();
