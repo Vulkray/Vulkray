@@ -17,7 +17,7 @@
    limitations under the License.
  */
 
-#include "RenderPass.hxx"
+#include "Vulkan.hxx"
 
 #include <spdlog/spdlog.h>
 
@@ -42,6 +42,14 @@ void RenderPass::createRenderPass(VkRenderPass *renderPass, VkDevice logicalDevi
     subpass.colorAttachmentCount = 1;
     subpass.pColorAttachments = &colorAttachmentRef;
 
+    VkSubpassDependency dependency{};
+    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependency.dstSubpass = 0;
+    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.srcAccessMask = 0;
+    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
     // Configure Render Pass instance
     VkRenderPassCreateInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -49,6 +57,8 @@ void RenderPass::createRenderPass(VkRenderPass *renderPass, VkDevice logicalDevi
     renderPassInfo.pAttachments = &colorAttachment;
     renderPassInfo.subpassCount = 1;
     renderPassInfo.pSubpasses = &subpass;
+    renderPassInfo.dependencyCount = 1;
+    renderPassInfo.pDependencies = &dependency;
 
     // Create the Vulkan render pass instance
     VkResult result = vkCreateRenderPass(logicalDevice, &renderPassInfo, nullptr, renderPass);

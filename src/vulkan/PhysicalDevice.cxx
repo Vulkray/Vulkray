@@ -17,8 +17,7 @@
    limitations under the License.
  */
 
-#include "PhysicalDevice.hxx"
-#include "SwapChain.hxx"
+#include "Vulkan.hxx"
 
 #include <spdlog/spdlog.h>
 #include <map>

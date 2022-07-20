@@ -15,17 +15,12 @@ conan_basic_setup()
 
 # Source code files
 set(sources src/Initialize.cxx
-        src/vulkan/VulkanInstance.cxx src/vulkan/VulkanInstance.hxx
-        src/vulkan/WindowSurface.cxx src/vulkan/WindowSurface.hxx
-        src/vulkan/PhysicalDevice.cxx src/vulkan/PhysicalDevice.hxx
-        src/vulkan/LogicalDevice.cxx src/vulkan/LogicalDevice.hxx
-        src/vulkan/SwapChain.cxx src/vulkan/SwapChain.hxx
-        src/vulkan/ImageViews.cxx src/vulkan/ImageViews.hxx
-        src/vulkan/RenderPass.cxx src/vulkan/RenderPass.hxx
-        src/vulkan/GraphicsPipeline.cxx src/vulkan/GraphicsPipeline.hxx
-        src/vulkan/FrameBuffers.cxx src/vulkan/FrameBuffers.hxx
-        src/vulkan/CommandBuffer.cxx src/vulkan/CommandBuffer.hxx
-        src/vulkan/Vulkan.cxx src/vulkan/Vulkan.hxx)
+        src/vulkan/VulkanInstance.cxx src/vulkan/WindowSurface.cxx
+        src/vulkan/PhysicalDevice.cxx src/vulkan/LogicalDevice.cxx
+        src/vulkan/SwapChain.cxx src/vulkan/ImageViews.cxx
+        src/vulkan/RenderPass.cxx src/vulkan/GraphicsPipeline.cxx
+        src/vulkan/FrameBuffers.cxx src/vulkan/CommandBuffer.cxx
+        src/vulkan/Synchronization.cxx src/vulkan/Vulkan.cxx src/vulkan/Vulkan.hxx)
 
 # Executable targets
 add_executable(${name} ${sources})

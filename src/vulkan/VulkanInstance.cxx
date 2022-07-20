@@ -17,7 +17,7 @@
    limitations under the License.
  */
 
-#include "VulkanInstance.hxx"
+#include "Vulkan.hxx"
 
 #include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>

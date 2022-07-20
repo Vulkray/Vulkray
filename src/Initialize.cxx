@@ -25,9 +25,6 @@
 
 #include "vulkan/Vulkan.hxx"
 
-#include <chrono>
-#include <thread>
-
 class Initialize {
 public:
     void launch() {
@@ -38,8 +35,8 @@ public:
     }
 private:
     const char* WIN_TITLE = "Vulkray Engine - Alpha";
-    const int WIN_WIDTH = 1300;
-    const int WIN_HEIGHT = 750;
+    const int WIN_WIDTH = 800;
+    const int WIN_HEIGHT = 700;
 
     // GLFW instances
     GLFWwindow *glfwWindow{};
@@ -59,12 +56,23 @@ private:
         spdlog::debug("Initialized GLFW window.");
     }
 
+    void renderFrame() {
+        VulkanCore.waitForPreviousFrame();
+        // Get the next image from the swap chain & reset cmd buffer
+        uint32_t imageIndex;
+        VulkanCore.getNextSwapChainImage(&imageIndex);
+        VulkanCore.resetCommandBuffer(imageIndex);
+        VulkanCore.submitCommandBuffer();
+        VulkanCore.presentImageBuffer(&imageIndex);
+    }
+
     void mainLoop() {
-        spdlog::debug("Running main program loop ...");
+        spdlog::debug("Running engine main loop ...");
         while(!glfwWindowShouldClose(glfwWindow)) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(16)); // check ~60 times/second; temporary!
-            glfwPollEvents();
+            glfwPollEvents(); // Respond to window events (exit, resize, etc.)
+            renderFrame(); // Render frame using Vulkan
         }
+        VulkanCore.waitForDeviceIdle(); // finish GPUs last process
     }
     void cleanup() {
         spdlog::debug("Cleaning up engine ...");

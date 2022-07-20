@@ -17,8 +17,7 @@
    limitations under the License.
  */
 
-#include "CommandBuffer.hxx"
-#include "PhysicalDevice.hxx"
+#include "Vulkan.hxx"
 
 #include <spdlog/spdlog.h>
 
@@ -114,5 +113,30 @@ void CommandBuffer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t 
     if (result != VK_SUCCESS) {
         spdlog::error("An error occurred while trying to stop recording to a command buffer.");
         throw std::runtime_error("Failed to stop recording the command buffer!");
+    }
+}
+
+void CommandBuffer::submitCommandBuffer(VkCommandBuffer *commandBuffer, VkQueue graphicsQueue, VkFence inFlightFence,
+                                        VkSemaphore imageAvailableSemaphore, VkSemaphore renderFinishedSemaphore,
+                                        VkSemaphore waitSemaphores[], VkSemaphore signalSemaphores[]) {
+
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+    waitSemaphores[0] = imageAvailableSemaphore;
+    VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.pWaitSemaphores = waitSemaphores;
+    submitInfo.pWaitDstStageMask = waitStages;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = commandBuffer;
+    signalSemaphores[0] = renderFinishedSemaphore;
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = signalSemaphores;
+
+    VkResult result = vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFence);
+    if (result != VK_SUCCESS) {
+        spdlog::error("An error occurred while submitting a command buffer to the graphics queue.");
+        throw std::runtime_error("Failed to submit the draw command buffer!");
     }
 }

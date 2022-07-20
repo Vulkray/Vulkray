@@ -17,7 +17,7 @@
    limitations under the License.
  */
 
-#include "GraphicsPipeline.hxx"
+#include "Vulkan.hxx"
 
 #include <spdlog/spdlog.h>
 #include <fstream>

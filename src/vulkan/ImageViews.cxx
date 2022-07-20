@@ -17,15 +17,15 @@
    limitations under the License.
  */
 
-#include "ImageViews.hxx"
+#include "Vulkan.hxx"
 
 #include <spdlog/spdlog.h>
 
-void ImageViews::createImageViews(std::vector <VkImageView> swapChainImageViews, VkDevice logicalDevice,
+void ImageViews::createImageViews(std::vector <VkImageView> *swapChainImageViews, VkDevice logicalDevice,
                                   std::vector <VkImage> swapChainImages, VkFormat swapImageFormat) {
 
     // Resize image views vector to available swap chain images
-    swapChainImageViews.resize(swapChainImages.size());
+    swapChainImageViews->resize(swapChainImages.size());
 
     for (size_t i = 0; i < swapChainImages.size(); i++) {
         // Create image view for every swap image
@@ -47,7 +47,7 @@ void ImageViews::createImageViews(std::vector <VkImageView> swapChainImageViews,
         createInfo.subresourceRange.layerCount = 1;
 
         // Create the image view instance
-        VkResult result = vkCreateImageView(logicalDevice, &createInfo, nullptr, &swapChainImageViews[i]);
+        VkResult result = vkCreateImageView(logicalDevice, &createInfo, nullptr, &swapChainImageViews->at(i));
         if (result != VK_SUCCESS) {
             spdlog::error("Failed to create Vulkan swap chain image view instance!");
             throw std::runtime_error("Failed to create Vulkan image views!");

@@ -17,8 +17,7 @@
    limitations under the License.
  */
 
-#include "LogicalDevice.hxx"
-#include "PhysicalDevice.hxx"
+#include "Vulkan.hxx"
 
 #include <spdlog/spdlog.h>
 #include <set>

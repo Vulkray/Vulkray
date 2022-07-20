@@ -17,8 +17,7 @@
    limitations under the License.
  */
 
-#include "SwapChain.hxx"
-#include "PhysicalDevice.hxx"
+#include "Vulkan.hxx"
 
 #include <spdlog/spdlog.h>
 #include <cstdint>
@@ -92,6 +91,7 @@ void SwapChain::createSwapChain(VkSwapchainKHR *swapChain, std::vector<VkImage> 
 
     // Get the swap chain images handles
     vkGetSwapchainImagesKHR(logicalDevice, *swapChain, &imageCount, nullptr);
+    swapImages->resize(imageCount); // resize swap chain images vector to expected image count
     vkGetSwapchainImagesKHR(logicalDevice, *swapChain, &imageCount, swapImages->data());
     // Store swap format & extent in variable pointers for global use
     *format = surfaceFormat.format;

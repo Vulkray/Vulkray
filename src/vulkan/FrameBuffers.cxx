@@ -17,16 +17,16 @@
    limitations under the License.
  */
 
-#include "FrameBuffers.hxx"
+#include "Vulkan.hxx"
 
 #include <spdlog/spdlog.h>
 
-void FrameBuffers::createFrameBuffers(std::vector<VkFramebuffer> swapChainFrameBuffers,
+void FrameBuffers::createFrameBuffers(std::vector<VkFramebuffer> *swapChainFrameBuffers,
                                       std::vector<VkImageView> swapChainImageViews,
                                       VkDevice logicalDevice, VkRenderPass renderPass, VkExtent2D swapChainExtent) {
 
     // resize frame buffer vector to image views count
-    swapChainFrameBuffers.resize(swapChainImageViews.size());
+    swapChainFrameBuffers->resize(swapChainImageViews.size());
 
     for (size_t i = 0; i < swapChainImageViews.size(); i++) {
 
@@ -41,7 +41,7 @@ void FrameBuffers::createFrameBuffers(std::vector<VkFramebuffer> swapChainFrameB
         framebufferInfo.height = swapChainExtent.height;
         framebufferInfo.layers = 1;
 
-        VkResult result = vkCreateFramebuffer(logicalDevice, &framebufferInfo, nullptr, &swapChainFrameBuffers[i]);
+        VkResult result = vkCreateFramebuffer(logicalDevice, &framebufferInfo, nullptr, &swapChainFrameBuffers->at(i));
         if (result != VK_SUCCESS) {
             spdlog::error("Failed to create the Vulkan framebuffer instances; Exiting.");
             throw std::runtime_error("Failed to create the framebuffer instances!");

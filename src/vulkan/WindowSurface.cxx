@@ -17,11 +17,9 @@
    limitations under the License.
  */
 
-#include "WindowSurface.hxx"
+#include "Vulkan.hxx"
 
-#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-
 #include <spdlog/spdlog.h>
 
 #ifdef _WIN32 // Windows platform-specific (I haven't even tested this tbh)
