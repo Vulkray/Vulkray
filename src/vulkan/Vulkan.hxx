@@ -45,6 +45,8 @@ public:
     void resetCommandBuffer(uint32_t imageIndex, uint32_t frameIndex); // Wrapper for vkResetCommandBuffer()
     void submitCommandBuffer(uint32_t frameIndex); // Wrapper for vkQueueSubmit() via CommandBuffer class
     void presentImageBuffer(uint32_t *imageIndex); // Wrapper for vkQueuePresentKHR()
+    void recreateSwapChain(GLFWwindow *engineWindow);
+    void destroySwapChain();
     void shutdown(); // Cleans up & terminates all Vulkan instances.
 private:
     // Vulkan validation layers
@@ -86,8 +88,8 @@ public:
     static void createInstance(VkInstance* vkInstance, const char* appName,
                                const bool enableVkLayers, const std::vector<const char*> vkLayers);
 private:
-    static int checkRequiredExtensions(
-            const char** glfwExts, uint32_t glfwCount, std::vector<VkExtensionProperties> exts);
+    static int checkRequiredExtensions(const char** glfwExtensions, uint32_t glfwCount,
+                                       std::vector<VkExtensionProperties> extensions);
     static bool checkValidationLayerSupport(const std::vector<const char*> vkLayers);
 };
 

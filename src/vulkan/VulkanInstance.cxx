@@ -109,8 +109,8 @@ void VulkanInstance::createInstance(VkInstance* vkInstance, const char* appName,
     }
 }
 
-int VulkanInstance::checkRequiredExtensions(
-        const char** glfwExtensions, uint32_t glfwCount, std::vector<VkExtensionProperties> extensions) {
+int VulkanInstance::checkRequiredExtensions(const char** glfwExtensions, uint32_t glfwCount,
+                                            std::vector<VkExtensionProperties> extensions) {
 
     for (unsigned int i = 0; i < glfwCount; i++) {
         const std::string glfwRequirement = glfwExtensions[i];

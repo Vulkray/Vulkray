@@ -133,7 +133,6 @@ VkSurfaceFormatKHR SwapChain::chooseSurfaceFormat(const std::vector <VkSurfaceFo
             return availableFormat;
         }
     }
-    spdlog::warn("Preferred surface format not found; Using the first format available.");
     return availableFormats[0];
 }
 
@@ -143,7 +142,6 @@ VkPresentModeKHR SwapChain::choosePresentMode(const std::vector <VkPresentModeKH
     for (const auto &availablePresentMode : availablePresentModes) {
         if (availablePresentMode == PREFERRED_PRESENTATION) return availablePresentMode;
     }
-    spdlog::warn("Preferred presentation mode not found, using the default FIFO mode.");
     return DEFAULT_PRESENTATION;
 }
 
@@ -153,7 +151,7 @@ VkExtent2D SwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilit
         return capabilities.currentExtent;
     } else {
         int pxWidth, pxHeight;
-        glfwGetFramebufferSize(window, &pxWidth, &pxHeight); // get actual window framebuffer pixel resolution
+        glfwGetFramebufferSize(window, &pxWidth, &pxHeight); // get latest window framebuffer pixel resolution
 
         VkExtent2D actualPixelExtent = {
                 static_cast<uint32_t>(pxWidth),

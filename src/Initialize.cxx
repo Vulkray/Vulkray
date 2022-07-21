@@ -51,23 +51,30 @@ private:
     void initGlfw() {
         glfwInit();
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE); // lock window resizing; temporary!
-        glfwWindow = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, WIN_TITLE, nullptr, nullptr);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+        this->glfwWindow = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, WIN_TITLE, nullptr, nullptr);
+        glfwSetWindowUserPointer(this->glfwWindow, this);
+        glfwSetFramebufferSizeCallback(this->glfwWindow, Initialize::framebufferResizeCallback);
         spdlog::debug("Initialized GLFW window.");
     }
 
     uint32_t frameIndex = 0;
+    bool framebufferResized = false;
 
     void renderFrame() {
+        if (this->framebufferResized) {
+            this->VulkanCore.recreateSwapChain(this->glfwWindow);
+            this->framebufferResized = false;
+        }
         uint32_t imageIndex;
-        VulkanCore.waitForPreviousFrame(frameIndex);
+        this->VulkanCore.waitForPreviousFrame(this->frameIndex);
         // Get the next image from the swap chain & reset cmd buffer
-        VulkanCore.getNextSwapChainImage(&imageIndex, frameIndex);
-        VulkanCore.resetCommandBuffer(imageIndex, frameIndex);
-        VulkanCore.submitCommandBuffer(frameIndex);
-        VulkanCore.presentImageBuffer(&imageIndex);
+        this->VulkanCore.getNextSwapChainImage(&imageIndex, this->frameIndex);
+        this->VulkanCore.resetCommandBuffer(imageIndex, this->frameIndex);
+        this->VulkanCore.submitCommandBuffer(this->frameIndex);
+        this->VulkanCore.presentImageBuffer(&imageIndex);
         // Advance index to the next frame
-        frameIndex = (frameIndex + 1) % VulkanCore.MAX_FRAMES_IN_FLIGHT;
+        this->frameIndex = (this->frameIndex + 1) % VulkanCore.MAX_FRAMES_IN_FLIGHT;
     }
 
     void mainLoop() {
@@ -86,6 +93,11 @@ private:
         glfwDestroyWindow(glfwWindow);
         glfwTerminate();
     }
+
+    static void framebufferResizeCallback(GLFWwindow* engineWindow, int width, int height) {
+        auto app = reinterpret_cast<Initialize*>(glfwGetWindowUserPointer(engineWindow));
+        app->framebufferResized = true;
+    }
 };
 
 int main() {
@@ -98,12 +110,12 @@ int main() {
     spdlog::set_pattern("[Vulkray] [%n] [%H:%M:%S] [%^%l%$] %v");
 
     // ----- Initialize the engine ----- //
-    Initialize base;
+    Initialize engineBase;
 
     try {
-        base.launch();
+        engineBase.launch();
     } catch (const std::exception& exception) {
-        spdlog::error("Failed to initialize Vulkray engine base: {0}", exception.what());
+        spdlog::error("Failed to initialize engine base: {0}", exception.what());
         return 1; // exit with error
     }
     return 0;
