@@ -58,11 +58,10 @@ private:
         uint32_t imageIndex;
         this->VulkanCore.waitForPreviousFrame(this->frameIndex);
         // Get the next image from the swap chain & reset cmd buffer
-        this->VulkanCore.getNextSwapChainImage(&imageIndex, this->frameIndex,
-                                               &this->framebufferResized, this->glfwWindow);
+        this->VulkanCore.getNextSwapChainImage(&imageIndex, this->frameIndex, this->glfwWindow);
         this->VulkanCore.resetCommandBuffer(imageIndex, this->frameIndex);
         this->VulkanCore.submitCommandBuffer(this->frameIndex);
-        this->VulkanCore.presentImageBuffer(&imageIndex, this->glfwWindow);
+        this->VulkanCore.presentImageBuffer(&imageIndex, this->glfwWindow, &this->framebufferResized);
         // Advance index to the next frame
         this->frameIndex = (this->frameIndex + 1) % VulkanCore.MAX_FRAMES_IN_FLIGHT;
     }
@@ -85,8 +84,8 @@ private:
     }
 
     static void framebufferResizeCallback(GLFWwindow* engineWindow, int width, int height) {
-        auto app = reinterpret_cast<Initialize*>(glfwGetWindowUserPointer(engineWindow));
-        app->framebufferResized = true;
+        auto engine = reinterpret_cast<Initialize*>(glfwGetWindowUserPointer(engineWindow));
+        engine->framebufferResized = true;
     }
 };
 

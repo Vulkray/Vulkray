@@ -52,19 +52,19 @@ void Vulkan::waitForPreviousFrame(uint32_t frameIndex) {
     vkWaitForFences(this->logicalDevice, 1, &this->inFlightFences[frameIndex], VK_TRUE, UINT64_MAX);
 }
 
-void Vulkan::getNextSwapChainImage(uint32_t *imageIndex, uint32_t frameIndex,
-                                   bool *windowResized, GLFWwindow *window) {
+void Vulkan::getNextSwapChainImage(uint32_t *imageIndex, uint32_t frameIndex, GLFWwindow *window) {
 
     // acquire next image view, also get swap chain status
     VkResult result = vkAcquireNextImageKHR(this->logicalDevice, this->swapChain, UINT64_MAX,
                           this->imageAvailableSemaphores[frameIndex], VK_NULL_HANDLE, imageIndex);
+
     /* check if vkAcquireNextImageKHR returned an out of date framebuffer flag
      * Note: this is not a feature on all Vulkan compatible drivers! also checking via GLFW resize callback!
      */
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || *windowResized) {
+    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         this->recreateSwapChain(window);
-        *windowResized = false; // reset GLFW triggered framebuffer resized flag
         return;
+
     // TODO: Handle VK_SUBOPTIMAL_KHR status code
     } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
         spdlog::error("An error occurred when acquiring the next swap chain image view; Exiting.");
@@ -87,7 +87,7 @@ void Vulkan::submitCommandBuffer(uint32_t frameIndex) {
                                        this->waitSemaphores, this->signalSemaphores);
 }
 
-void Vulkan::presentImageBuffer(uint32_t *imageIndex, GLFWwindow *window) {
+void Vulkan::presentImageBuffer(uint32_t *imageIndex, GLFWwindow *window, bool *windowResized) {
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 
@@ -102,9 +102,10 @@ void Vulkan::presentImageBuffer(uint32_t *imageIndex, GLFWwindow *window) {
 
     VkResult result = vkQueuePresentKHR(this->presentQueue, &presentInfo);
 
-    // recreate swap chain if out of date or suboptimal flags returned
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || *windowResized) {
+        *windowResized = false; // reset GLFW triggered framebuffer resized flag
         this->recreateSwapChain(window);
+
     } else if (result != VK_SUCCESS) {
         spdlog::error("An error occurred while submitting a swap chain image for presentation.");
         throw std::runtime_error("Failed to present the current swap chain image!");
