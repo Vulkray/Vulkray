@@ -55,17 +55,14 @@ private:
     bool framebufferResized = false;
 
     void renderFrame() {
-        if (this->framebufferResized) {
-            this->VulkanCore.recreateSwapChain(this->glfwWindow);
-            this->framebufferResized = false;
-        }
         uint32_t imageIndex;
         this->VulkanCore.waitForPreviousFrame(this->frameIndex);
         // Get the next image from the swap chain & reset cmd buffer
-        this->VulkanCore.getNextSwapChainImage(&imageIndex, this->frameIndex);
+        this->VulkanCore.getNextSwapChainImage(&imageIndex, this->frameIndex,
+                                               &this->framebufferResized, this->glfwWindow);
         this->VulkanCore.resetCommandBuffer(imageIndex, this->frameIndex);
         this->VulkanCore.submitCommandBuffer(this->frameIndex);
-        this->VulkanCore.presentImageBuffer(&imageIndex);
+        this->VulkanCore.presentImageBuffer(&imageIndex, this->glfwWindow);
         // Advance index to the next frame
         this->frameIndex = (this->frameIndex + 1) % VulkanCore.MAX_FRAMES_IN_FLIGHT;
     }

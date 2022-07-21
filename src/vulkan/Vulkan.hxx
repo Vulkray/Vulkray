@@ -34,14 +34,15 @@ public:
     void initialize(const char* engineName, GLFWwindow *engineWindow); // Initializes the class and its instances.
     void waitForDeviceIdle(); // Wrapper for vkDeviceWaitIdle()
     void waitForPreviousFrame(uint32_t frameIndex); // Wrapper for vkWaitForFences()
-    void getNextSwapChainImage(uint32_t *imageIndex, uint32_t frameIndex); // Wrapper for vkAcquireNextImageKHR()
+    void getNextSwapChainImage(uint32_t *imageIndex, uint32_t frameIndex,
+                               bool *windowResized, GLFWwindow *window); // Wrapper for vkAcquireNextImageKHR()
     void resetCommandBuffer(uint32_t imageIndex, uint32_t frameIndex); // Wrapper for vkResetCommandBuffer()
     void submitCommandBuffer(uint32_t frameIndex); // Wrapper for vkQueueSubmit() via CommandBuffer class
-    void presentImageBuffer(uint32_t *imageIndex); // Wrapper for vkQueuePresentKHR()
-    void recreateSwapChain(GLFWwindow *engineWindow);
-    void destroySwapChain();
+    void presentImageBuffer(uint32_t *imageIndex, GLFWwindow *window); // Wrapper for vkQueuePresentKHR()
     void shutdown(); // Cleans up & terminates all Vulkan instances.
 private:
+    void recreateSwapChain(GLFWwindow *engineWindow);
+    void destroySwapChain();
     // Vulkan validation layers
     #ifdef NDEBUG
         const bool enableValidationLayers = false;

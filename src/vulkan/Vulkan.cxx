@@ -50,12 +50,28 @@ void Vulkan::waitForDeviceIdle() {
 
 void Vulkan::waitForPreviousFrame(uint32_t frameIndex) {
     vkWaitForFences(this->logicalDevice, 1, &this->inFlightFences[frameIndex], VK_TRUE, UINT64_MAX);
-    vkResetFences(this->logicalDevice, 1, &this->inFlightFences[frameIndex]);
 }
 
-void Vulkan::getNextSwapChainImage(uint32_t *imageIndex, uint32_t frameIndex) {
-    vkAcquireNextImageKHR(this->logicalDevice, this->swapChain, UINT64_MAX,
+void Vulkan::getNextSwapChainImage(uint32_t *imageIndex, uint32_t frameIndex,
+                                   bool *windowResized, GLFWwindow *window) {
+
+    // acquire next image view, also get swap chain status
+    VkResult result = vkAcquireNextImageKHR(this->logicalDevice, this->swapChain, UINT64_MAX,
                           this->imageAvailableSemaphores[frameIndex], VK_NULL_HANDLE, imageIndex);
+    /* check if vkAcquireNextImageKHR returned an out of date framebuffer flag
+     * Note: this is not a feature on all Vulkan compatible drivers! also checking via GLFW resize callback!
+     */
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || *windowResized) {
+        this->recreateSwapChain(window);
+        *windowResized = false; // reset GLFW triggered framebuffer resized flag
+        return;
+    // TODO: Handle VK_SUBOPTIMAL_KHR status code
+    } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+        spdlog::error("An error occurred when acquiring the next swap chain image view; Exiting.");
+        throw std::runtime_error("Failed to acquire swap chain image!");
+    }
+    // reset fence only if we know we're submitting work
+    vkResetFences(this->logicalDevice, 1, &this->inFlightFences[frameIndex]);
 }
 
 void Vulkan::resetCommandBuffer(uint32_t imageIndex, uint32_t frameIndex) {
@@ -71,7 +87,7 @@ void Vulkan::submitCommandBuffer(uint32_t frameIndex) {
                                        this->waitSemaphores, this->signalSemaphores);
 }
 
-void Vulkan::presentImageBuffer(uint32_t *imageIndex) {
+void Vulkan::presentImageBuffer(uint32_t *imageIndex, GLFWwindow *window) {
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 
@@ -84,11 +100,26 @@ void Vulkan::presentImageBuffer(uint32_t *imageIndex) {
     presentInfo.pImageIndices = imageIndex;
     presentInfo.pResults = nullptr; // optional
 
-    vkQueuePresentKHR(this->presentQueue, &presentInfo);
+    VkResult result = vkQueuePresentKHR(this->presentQueue, &presentInfo);
+
+    // recreate swap chain if out of date or suboptimal flags returned
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+        this->recreateSwapChain(window);
+    } else if (result != VK_SUCCESS) {
+        spdlog::error("An error occurred while submitting a swap chain image for presentation.");
+        throw std::runtime_error("Failed to present the current swap chain image!");
+    }
 }
 
 // Swap chain recreation methods
 void Vulkan::recreateSwapChain(GLFWwindow *engineWindow) {
+
+    int width = 0, height = 0;
+    glfwGetFramebufferSize(engineWindow, &width, &height);
+    while (width == 0 || height == 0) { // pause graphics until window is un-minimized
+        glfwGetFramebufferSize(engineWindow, &width, &height);
+        glfwWaitEvents();
+    }
 
     this->waitForDeviceIdle(); // finish last GPU render
     this->destroySwapChain(); // destroy the previous swap chain
