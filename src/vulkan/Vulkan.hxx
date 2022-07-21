@@ -30,19 +30,24 @@
 // ---------- Vulkan.cxx ---------- //
 class Vulkan {
 public:
+    // Vulkan configuration
+    const int MAX_FRAMES_IN_FLIGHT = 2;
+    const std::vector<const char*> requiredExtensions = {
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME
+    };
+    const std::vector<const char*> validationLayers = {
+            "VK_LAYER_KHRONOS_validation"
+    };
     void initialize(const char* engineName, GLFWwindow *engineWindow); // Initializes the class and its instances.
     void waitForDeviceIdle(); // Wrapper for vkDeviceWaitIdle()
-    void waitForPreviousFrame(); // Wrapper for vkWaitForFences()
-    void getNextSwapChainImage(uint32_t *imageIndex); // Wrapper for vkAcquireNextImageKHR()
-    void resetCommandBuffer(uint32_t imageIndex); // Wrapper for vkResetCommandBuffer()
-    void submitCommandBuffer(); // Wrapper for vkQueueSubmit() via CommandBuffer class
+    void waitForPreviousFrame(uint32_t frameIndex); // Wrapper for vkWaitForFences()
+    void getNextSwapChainImage(uint32_t *imageIndex, uint32_t frameIndex); // Wrapper for vkAcquireNextImageKHR()
+    void resetCommandBuffer(uint32_t imageIndex, uint32_t frameIndex); // Wrapper for vkResetCommandBuffer()
+    void submitCommandBuffer(uint32_t frameIndex); // Wrapper for vkQueueSubmit() via CommandBuffer class
     void presentImageBuffer(uint32_t *imageIndex); // Wrapper for vkQueuePresentKHR()
     void shutdown(); // Cleans up & terminates all Vulkan instances.
 private:
     // Vulkan validation layers
-    const std::vector<const char*> validationLayers = {
-            "VK_LAYER_KHRONOS_validation"
-    };
     #ifdef NDEBUG
         const bool enableValidationLayers = false;
     #else
@@ -53,9 +58,6 @@ private:
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
     VkDevice logicalDevice = VK_NULL_HANDLE;
     VkSurfaceKHR surface;
-    const std::vector<const char*> requiredExtensions = {
-            VK_KHR_SWAPCHAIN_EXTENSION_NAME
-    };
     VkSwapchainKHR swapChain;
     std::vector<VkImage> swapChainImages;
     VkFormat swapChainImageFormat;
@@ -66,14 +68,14 @@ private:
     VkPipeline graphicsPipeline;
     std::vector<VkFramebuffer> swapChainFrameBuffers;
     VkCommandPool commandPool;
-    VkCommandBuffer commandBuffer;
+    std::vector<VkCommandBuffer> commandBuffers;
     // GPU queue handles
     VkQueue graphicsQueue;
     VkQueue presentQueue;
     // Synchronization Objects (semaphores / fences)
-    VkSemaphore imageAvailableSemaphore;
-    VkSemaphore renderFinishedSemaphore;
-    VkFence inFlightFence;
+    std::vector<VkSemaphore> imageAvailableSemaphores;
+    std::vector<VkSemaphore> renderFinishedSemaphores;
+    std::vector<VkFence> inFlightFences;
     VkSemaphore waitSemaphores[1];
     VkSemaphore signalSemaphores[1];
 };
@@ -191,7 +193,7 @@ class CommandBuffer {
 public:
     static void createCommandPool(VkCommandPool *commandPool, VkDevice logicalDevice,
                                   VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
-    static void createCommandBuffer(VkCommandBuffer *commandBuffer,
+    static void createCommandBuffer(std::vector<VkCommandBuffer> *commandBuffers, const int MAX_FRAMES_IN_FLIGHT,
                                     VkDevice logicalDevice, VkCommandPool commandPool);
     static void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex,
                                     VkPipeline graphicsPipeline, VkRenderPass renderPass,
@@ -204,8 +206,10 @@ public:
 // ---------- Synchronization.cxx ---------- //
 class Synchronization {
 public:
-    static void createSyncObjects(VkSemaphore *imageAvailableSemaphore, VkSemaphore *renderFinishedSemaphore,
-                                  VkFence *inFlightFence, VkDevice logicalDevice);
+    static void createSyncObjects(std::vector<VkSemaphore> *imageAvailableSemaphores,
+                                  std::vector<VkSemaphore> *renderFinishedSemaphores,
+                                  std::vector<VkFence> *inFlightFences, VkDevice logicalDevice,
+                                  const int MAX_FRAMES_IN_FLIGHT);
 };
 
 #endif //VULKRAY_VULKAN_HXX

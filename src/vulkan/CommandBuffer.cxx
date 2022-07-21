@@ -39,17 +39,20 @@ void CommandBuffer::createCommandPool(VkCommandPool *commandPool, VkDevice logic
     }
 }
 
-void CommandBuffer::createCommandBuffer(VkCommandBuffer *commandBuffer,
+void CommandBuffer::createCommandBuffer(std::vector<VkCommandBuffer> *commandBuffers, const int MAX_FRAMES_IN_FLIGHT,
                                         VkDevice logicalDevice, VkCommandPool commandPool) {
+
+    // Resize command buffer vector to max frames in flight value
+    commandBuffers->resize(MAX_FRAMES_IN_FLIGHT);
 
     // Configure & create the command buffer instance
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.commandPool = commandPool;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY; // primary buffer (will be executed directly)
-    allocInfo.commandBufferCount = 1;
+    allocInfo.commandBufferCount = (uint32_t) commandBuffers->size();
 
-    VkResult result = vkAllocateCommandBuffers(logicalDevice, &allocInfo, commandBuffer);
+    VkResult result = vkAllocateCommandBuffers(logicalDevice, &allocInfo, commandBuffers->data());
     if (result != VK_SUCCESS) {
         spdlog::error("An error occurred while allocating the Vulkan command buffers.");
         throw std::runtime_error("Failed to allocate the command buffers!");

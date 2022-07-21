@@ -43,9 +43,10 @@ void Vulkan::initialize(const char* engineName, GLFWwindow *engineWindow) {
     FrameBuffers::createFrameBuffers(&this->swapChainFrameBuffers, this->swapChainImageViews,
                                      this->logicalDevice, this->renderPass, this->swapChainExtent);
     CommandBuffer::createCommandPool(&this->commandPool, this->logicalDevice, this->physicalDevice, this->surface);
-    CommandBuffer::createCommandBuffer(&this->commandBuffer, this->logicalDevice, this->commandPool);
-    Synchronization::createSyncObjects(&this->imageAvailableSemaphore, &this->renderFinishedSemaphore,
-                                       &this->inFlightFence, this->logicalDevice);
+    CommandBuffer::createCommandBuffer(&this->commandBuffers, this->MAX_FRAMES_IN_FLIGHT,
+                                       this->logicalDevice, this->commandPool);
+    Synchronization::createSyncObjects(&this->imageAvailableSemaphores, &this->renderFinishedSemaphores,
+                                       &this->inFlightFences, this->logicalDevice, this->MAX_FRAMES_IN_FLIGHT);
     spdlog::debug("Initialized Vulkan instances.");
 }
 
@@ -53,22 +54,24 @@ void Vulkan::initialize(const char* engineName, GLFWwindow *engineWindow) {
 void Vulkan::waitForDeviceIdle() {
     vkDeviceWaitIdle(this->logicalDevice);
 }
-void Vulkan::waitForPreviousFrame() {
-    vkWaitForFences(this->logicalDevice, 1, &this->inFlightFence, VK_TRUE, UINT64_MAX);
-    vkResetFences(this->logicalDevice, 1, &this->inFlightFence);
+void Vulkan::waitForPreviousFrame(uint32_t frameIndex) {
+    vkWaitForFences(this->logicalDevice, 1, &this->inFlightFences[frameIndex], VK_TRUE, UINT64_MAX);
+    vkResetFences(this->logicalDevice, 1, &this->inFlightFences[frameIndex]);
 }
-void Vulkan::getNextSwapChainImage(uint32_t *imageIndex) {
+void Vulkan::getNextSwapChainImage(uint32_t *imageIndex, uint32_t frameIndex) {
     vkAcquireNextImageKHR(this->logicalDevice, this->swapChain, UINT64_MAX,
-                          this->imageAvailableSemaphore, VK_NULL_HANDLE, imageIndex);
+                          this->imageAvailableSemaphores[frameIndex], VK_NULL_HANDLE, imageIndex);
 }
-void Vulkan::resetCommandBuffer(uint32_t imageIndex) {
-    vkResetCommandBuffer(this->commandBuffer, 0);
-    CommandBuffer::recordCommandBuffer(this->commandBuffer, imageIndex, this->graphicsPipeline,
+void Vulkan::resetCommandBuffer(uint32_t imageIndex, uint32_t frameIndex) {
+    vkResetCommandBuffer(this->commandBuffers[frameIndex], 0);
+    CommandBuffer::recordCommandBuffer(this->commandBuffers[frameIndex], imageIndex, this->graphicsPipeline,
                                        this->renderPass, this->swapChainFrameBuffers, this->swapChainExtent);
 }
-void Vulkan::submitCommandBuffer() {
-    CommandBuffer::submitCommandBuffer(&this->commandBuffer, this->graphicsQueue, this->inFlightFence,
-                                       this->imageAvailableSemaphore, this->renderFinishedSemaphore,
+void Vulkan::submitCommandBuffer(uint32_t frameIndex) {
+    CommandBuffer::submitCommandBuffer(&this->commandBuffers[frameIndex], this->graphicsQueue,
+                                       this->inFlightFences[frameIndex],
+                                       this->imageAvailableSemaphores[frameIndex],
+                                       this->renderFinishedSemaphores[frameIndex],
                                        this->waitSemaphores, this->signalSemaphores);
 }
 void Vulkan::presentImageBuffer(uint32_t *imageIndex) {
@@ -89,9 +92,11 @@ void Vulkan::presentImageBuffer(uint32_t *imageIndex) {
 
 void Vulkan::shutdown() {
     // Clean up synchronization objects
-    vkDestroySemaphore(this->logicalDevice, this->imageAvailableSemaphore, nullptr);
-    vkDestroySemaphore(this->logicalDevice, this->renderFinishedSemaphore, nullptr);
-    vkDestroyFence(this->logicalDevice, this->inFlightFence, nullptr);
+    for (int i = 0; i < this->MAX_FRAMES_IN_FLIGHT; i++) {
+        vkDestroySemaphore(this->logicalDevice, this->imageAvailableSemaphores.at(i), nullptr);
+        vkDestroySemaphore(this->logicalDevice, this->renderFinishedSemaphores.at(i), nullptr);
+        vkDestroyFence(this->logicalDevice, this->inFlightFences.at(i), nullptr);
+    }
     // Clean up Command Buffers
     vkDestroyCommandPool(this->logicalDevice, this->commandPool, nullptr);
     // Clean up Frame Buffers

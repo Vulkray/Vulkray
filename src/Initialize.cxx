@@ -56,14 +56,18 @@ private:
         spdlog::debug("Initialized GLFW window.");
     }
 
+    uint32_t frameIndex = 0;
+
     void renderFrame() {
-        VulkanCore.waitForPreviousFrame();
-        // Get the next image from the swap chain & reset cmd buffer
         uint32_t imageIndex;
-        VulkanCore.getNextSwapChainImage(&imageIndex);
-        VulkanCore.resetCommandBuffer(imageIndex);
-        VulkanCore.submitCommandBuffer();
+        VulkanCore.waitForPreviousFrame(frameIndex);
+        // Get the next image from the swap chain & reset cmd buffer
+        VulkanCore.getNextSwapChainImage(&imageIndex, frameIndex);
+        VulkanCore.resetCommandBuffer(imageIndex, frameIndex);
+        VulkanCore.submitCommandBuffer(frameIndex);
         VulkanCore.presentImageBuffer(&imageIndex);
+        // Advance index to the next frame
+        frameIndex = (frameIndex + 1) % VulkanCore.MAX_FRAMES_IN_FLIGHT;
     }
 
     void mainLoop() {
