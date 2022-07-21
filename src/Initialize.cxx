@@ -7,16 +7,12 @@
  * with this source code in a file named "COPYING."
  */
 
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/vec4.hpp>
-#include <glm/mat4x4.hpp>
-
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
 
 #include "vulkan/Vulkan.hxx"
+#include "Geometry.hxx"
 
 class Initialize {
 public:
@@ -28,18 +24,11 @@ public:
     }
 private:
     const char* WIN_TITLE = "Vulkray Engine - Alpha";
-    const int WIN_WIDTH = 800;
-    const int WIN_HEIGHT = 700;
-
-    // GLFW instances
+    const int WIN_WIDTH = 900;
+    const int WIN_HEIGHT = 600;
     GLFWwindow *glfwWindow{};
-    // GLM variables
-    glm::mat4 matrix;
-    glm::vec4 vec;
-    //auto test = matrix * vec;
-
-    // Engine's Vulkan class
     Vulkan VulkanCore;
+    Geometry GeometryCore;
 
     void initGlfw() {
         glfwInit();

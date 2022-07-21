@@ -6,8 +6,8 @@ project(${name})
 set(CMAKE_CXX_STANDARD 20)
 set(CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_COMPILER g++)
-# Compiler flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
+# Compiler flags (`-Wno-error=volatile` due to GLM headers. Updating GLM ASAP)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wno-error=volatile")
 
 # Include Conan Package Manager info
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
@@ -20,7 +20,9 @@ set(sources src/Initialize.cxx
         src/vulkan/SwapChain.cxx src/vulkan/ImageViews.cxx
         src/vulkan/RenderPass.cxx src/vulkan/GraphicsPipeline.cxx
         src/vulkan/FrameBuffers.cxx src/vulkan/CommandBuffer.cxx
-        src/vulkan/Synchronization.cxx src/vulkan/Vulkan.cxx src/vulkan/Vulkan.hxx)
+        src/vulkan/Synchronization.cxx
+        src/vulkan/Vulkan.cxx src/vulkan/Vulkan.hxx
+        src/Geometry.cxx src/Geometry.hxx)
 
 # Executable targets
 add_executable(${name} ${sources})
