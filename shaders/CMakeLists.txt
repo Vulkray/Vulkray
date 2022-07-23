@@ -3,8 +3,8 @@
 
 # GLSL shader code sources
 set(SHADERS
-        triangle.vert
-        triangle.frag
+        engine_basic.vert
+        engine_basic.frag
 )
 
 # Target Spir-V version
