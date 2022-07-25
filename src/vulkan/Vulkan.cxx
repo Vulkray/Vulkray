@@ -25,6 +25,8 @@ void Vulkan::initialize(const char* engineName, GLFWwindow *engineWindow) {
     LogicalDevice::createLogicalDevice(&this->logicalDevice, &this->graphicsQueue, &this->presentQueue,
                                        this->physicalDevice, this->surface, this->requiredExtensions,
                                        this->enableValidationLayers, this->validationLayers);
+    VulkanMemoryAllocator::initializeMemoryAllocator(&this->memoryAllocator, this->physicalDevice,
+                                                     this->logicalDevice, this->vulkanInstance);
     SwapChain::createSwapChain(&this->swapChain, &this->swapChainImages, &this->swapChainImageFormat,
                                &this->swapChainExtent, this->logicalDevice, this->physicalDevice,
                                this->surface, engineWindow);
@@ -157,6 +159,8 @@ void Vulkan::shutdown() {
     this->destroySwapChain();
     // Destroy the vertex buffer instance
     vkDestroyBuffer(this->logicalDevice, this->vertexBuffer, nullptr);
+    // Destroy VMA memory allocator instance
+    vmaDestroyAllocator(this->memoryAllocator);
     // Clean up Pipeline instances
     vkDestroyPipeline(this->logicalDevice, this->graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(this->logicalDevice, this->pipelineLayout, nullptr);

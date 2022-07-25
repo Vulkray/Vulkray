@@ -7,7 +7,18 @@ set(CMAKE_CXX_STANDARD 20)
 set(CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_COMPILER g++)
 # Compiler flags (`-Wno-error=volatile` due to GLM headers. Updating GLM ASAP)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wno-error=volatile")
+set(WARNING_DISABLE_FLAGS "-Wno-error=volatile -Wno-error=unused-variable -Wno-error=parentheses")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror ${WARNING_DISABLE_FLAGS}")
+
+# Workaround for GCC colored terminal output using Ninja build tool
+option (FORCE_COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only)." TRUE)
+if (${FORCE_COLORED_OUTPUT})
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        add_compile_options (-fdiagnostics-color=always)
+    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+        add_compile_options (-fcolor-diagnostics)
+    endif ()
+endif ()
 
 # Include Conan Package Manager info
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
@@ -17,11 +28,11 @@ conan_basic_setup()
 set(sources src/global_definitions.hxx src/Initialize.cxx
         src/vulkan/VulkanInstance.cxx src/vulkan/WindowSurface.cxx
         src/vulkan/PhysicalDevice.cxx src/vulkan/LogicalDevice.cxx
-        src/vulkan/SwapChain.cxx src/vulkan/ImageViews.cxx
-        src/vulkan/RenderPass.cxx src/vulkan/VertexBuffer.cxx
-        src/vulkan/GraphicsPipeline.cxx src/vulkan/FrameBuffers.cxx
-        src/vulkan/CommandBuffer.cxx src/vulkan/Synchronization.cxx
-        src/vulkan/Vulkan.cxx src/vulkan/Vulkan.hxx)
+        src/vulkan/VulkanMemoryAllocator.cxx src/vulkan/SwapChain.cxx
+        src/vulkan/ImageViews.cxx src/vulkan/RenderPass.cxx
+        src/vulkan/VertexBuffer.cxx src/vulkan/GraphicsPipeline.cxx
+        src/vulkan/FrameBuffers.cxx src/vulkan/CommandBuffer.cxx
+        src/vulkan/Synchronization.cxx src/vulkan/Vulkan.cxx src/vulkan/Vulkan.hxx)
 
 # Executable targets
 add_executable(${name} ${sources})

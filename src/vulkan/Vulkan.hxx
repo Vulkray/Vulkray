@@ -20,6 +20,7 @@
 
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
+#include <vk_mem_alloc.h>
 
 #include <array>
 #include <vector>
@@ -61,6 +62,7 @@ private:
     VkInstance vulkanInstance{};
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
     VkDevice logicalDevice = VK_NULL_HANDLE;
+    VmaAllocator memoryAllocator; // VMA allocator
     VkSurfaceKHR surface;
     VkSwapchainKHR swapChain;
     std::vector<VkImage> swapChainImages;
@@ -130,6 +132,13 @@ public:
                                     VkPhysicalDevice physicalDevice, VkSurfaceKHR surface,
                                     const std::vector<const char*> gpuExtensions,
                                     const bool enableVkLayers, const std::vector<const char*> vkLayers);
+};
+
+// ---------- VulkanMemoryAllocator.cxx ---------- //
+class VulkanMemoryAllocator {
+public:
+    static void initializeMemoryAllocator(VmaAllocator *memoryAllocator, VkPhysicalDevice physicalDevice,
+                                   VkDevice logicalDevice, VkInstance vulkanInstance);
 };
 
 // ---------- SwapChain.cxx ---------- //
