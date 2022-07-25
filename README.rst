@@ -4,7 +4,7 @@ Vulkray Engine
 |license| |platforms| |pull_requests| |discord|
 
 .. image:: .github/vulkray-logo.png
-    :width: 50%
+    :width: 70%
     :alt: Vulkray Engine
 
 Installing the Conan C/C++ package manager on a **Unix-like** system:
