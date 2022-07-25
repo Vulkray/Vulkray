@@ -1,5 +1,5 @@
 /*
- * Geometry.cxx
+ * VertexBuffer.cxx
  * I honestly don't know yet im just learning computer graphics
  *
  * VULKRAY ENGINE SOFTWARE
@@ -10,5 +10,4 @@
  * with this source code in a file named "COPYING."
  */
 
-#include "Geometry.hxx"
-
+#include "Vulkan.hxx"

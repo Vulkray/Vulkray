@@ -18,11 +18,10 @@ set(sources src/Initialize.cxx
         src/vulkan/VulkanInstance.cxx src/vulkan/WindowSurface.cxx
         src/vulkan/PhysicalDevice.cxx src/vulkan/LogicalDevice.cxx
         src/vulkan/SwapChain.cxx src/vulkan/ImageViews.cxx
-        src/vulkan/RenderPass.cxx src/vulkan/GraphicsPipeline.cxx
-        src/vulkan/FrameBuffers.cxx src/vulkan/CommandBuffer.cxx
-        src/vulkan/Synchronization.cxx
-        src/vulkan/Vulkan.cxx src/vulkan/Vulkan.hxx
-        src/Geometry.cxx src/Geometry.hxx)
+        src/vulkan/RenderPass.cxx src/vulkan/VertexBuffer.cxx
+        src/vulkan/GraphicsPipeline.cxx src/vulkan/FrameBuffers.cxx
+        src/vulkan/CommandBuffer.cxx src/vulkan/Synchronization.cxx
+        src/vulkan/Vulkan.cxx src/vulkan/Vulkan.hxx)
 
 # Executable targets
 add_executable(${name} ${sources})

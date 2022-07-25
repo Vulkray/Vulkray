@@ -19,8 +19,8 @@ void GraphicsPipeline::createGraphicsPipeline(VkPipeline *graphicsPipeline, VkPi
                                               VkRenderPass renderPass, VkDevice logicalDevice, VkExtent2D swapExtent) {
 
     // read spir-v shader binary files
-    auto vertShaderCode = GraphicsPipeline::readSpirVShaderBinary("shaders/triangle.vert.spv");
-    auto fragShaderCode = GraphicsPipeline::readSpirVShaderBinary("shaders/triangle.frag.spv");
+    auto vertShaderCode = GraphicsPipeline::readSpirVShaderBinary("shaders/engine_basic.vert.spv");
+    auto fragShaderCode = GraphicsPipeline::readSpirVShaderBinary("shaders/engine_basic.frag.spv");
     // create shader module instances
     VkShaderModule vertShaderModule = GraphicsPipeline::createShaderModule(vertShaderCode, logicalDevice);
     VkShaderModule fragShaderModule = GraphicsPipeline::createShaderModule(fragShaderCode, logicalDevice);
@@ -56,11 +56,15 @@ void GraphicsPipeline::createGraphicsPipeline(VkPipeline *graphicsPipeline, VkPi
     dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
     dynamicState.pDynamicStates = dynamicStates.data();
 
+    // Get vertex shader binding descriptions from VertexBuffer.cxx
+    auto bindingDescription = VertexBuffer::Vertex::getBindingDescription();
+    auto attributeDescriptions = VertexBuffer::Vertex::getAttributeDescriptions();
+
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputInfo.vertexBindingDescriptionCount = 0;
-    vertexInputInfo.pVertexBindingDescriptions = nullptr;
-    vertexInputInfo.vertexAttributeDescriptionCount = 0;
-    vertexInputInfo.pVertexAttributeDescriptions = nullptr;
+    vertexInputInfo.vertexBindingDescriptionCount = 1;
+    vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+    vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+    vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
     inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;

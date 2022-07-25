@@ -12,7 +12,6 @@
 #include <spdlog/spdlog.h>
 
 #include "vulkan/Vulkan.hxx"
-#include "Geometry.hxx"
 
 class Initialize {
 public:
@@ -28,7 +27,6 @@ private:
     const int WIN_HEIGHT = 600;
     GLFWwindow *glfwWindow{};
     Vulkan VulkanCore;
-    Geometry GeometryCore;
 
     void initGlfw() {
         glfwInit();
