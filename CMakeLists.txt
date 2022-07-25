@@ -14,7 +14,7 @@ include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
 # Source code files
-set(sources src/Initialize.cxx
+set(sources src/global_definitions.hxx src/Initialize.cxx
         src/vulkan/VulkanInstance.cxx src/vulkan/WindowSurface.cxx
         src/vulkan/PhysicalDevice.cxx src/vulkan/LogicalDevice.cxx
         src/vulkan/SwapChain.cxx src/vulkan/ImageViews.cxx

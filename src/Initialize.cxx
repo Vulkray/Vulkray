@@ -7,7 +7,8 @@
  * with this source code in a file named "COPYING."
  */
 
-#define GLFW_INCLUDE_VULKAN
+#include "global_definitions.hxx"
+
 #include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
 

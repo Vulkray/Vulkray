@@ -13,8 +13,6 @@
 #ifndef VULKRAY_VULKAN_HXX
 #define VULKRAY_VULKAN_HXX
 
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/mat4x4.hpp>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
