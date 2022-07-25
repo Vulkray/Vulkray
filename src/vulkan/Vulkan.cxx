@@ -36,6 +36,13 @@ void Vulkan::initialize(const char* engineName, GLFWwindow *engineWindow) {
     FrameBuffers::createFrameBuffers(&this->swapChainFrameBuffers, this->swapChainImageViews,
                                      this->logicalDevice, this->renderPass, this->swapChainExtent);
     CommandBuffer::createCommandPool(&this->commandPool, this->logicalDevice, this->physicalDevice, this->surface);
+    // TODO: temporary Vertex vector to test Vertex buffer!
+    const std::vector<Vertex> vertices = {
+            {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+            {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+            {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+    };;
+    VertexBuffer::createVertexBuffer(&this->vertexBuffer, this->logicalDevice, vertices);
     CommandBuffer::createCommandBuffer(&this->commandBuffers, this->MAX_FRAMES_IN_FLIGHT,
                                        this->logicalDevice, this->commandPool);
     Synchronization::createSyncObjects(&this->imageAvailableSemaphores, &this->renderFinishedSemaphores,
@@ -148,6 +155,8 @@ void Vulkan::destroySwapChain() {
 void Vulkan::shutdown() {
     // Destroy the swap chain instances
     this->destroySwapChain();
+    // Destroy the vertex buffer instance
+    vkDestroyBuffer(this->logicalDevice, this->vertexBuffer, nullptr);
     // Clean up Pipeline instances
     vkDestroyPipeline(this->logicalDevice, this->graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(this->logicalDevice, this->pipelineLayout, nullptr);

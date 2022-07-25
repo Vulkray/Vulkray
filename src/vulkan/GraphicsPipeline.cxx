@@ -57,8 +57,8 @@ void GraphicsPipeline::createGraphicsPipeline(VkPipeline *graphicsPipeline, VkPi
     dynamicState.pDynamicStates = dynamicStates.data();
 
     // Get vertex shader binding descriptions from VertexBuffer.cxx
-    auto bindingDescription = VertexBuffer::Vertex::getBindingDescription();
-    auto attributeDescriptions = VertexBuffer::Vertex::getAttributeDescriptions();
+    auto bindingDescription = Vertex::getBindingDescription();
+    auto attributeDescriptions = Vertex::getAttributeDescriptions();
 
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     vertexInputInfo.vertexBindingDescriptionCount = 1;
