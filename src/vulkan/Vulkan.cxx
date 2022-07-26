@@ -159,7 +159,7 @@ void Vulkan::shutdown() {
     // Destroy the swap chain instances
     this->destroySwapChain();
     // Destroy the vertex buffer instance
-    vkDestroyBuffer(this->logicalDevice, this->vertexBuffer, nullptr);
+    vmaDestroyBuffer(this->memoryAllocator, this->vertexBuffer, this->vertexBufferAllocation);
     // Destroy VMA memory allocator instance
     vmaDestroyAllocator(this->memoryAllocator);
     // Clean up Pipeline instances
