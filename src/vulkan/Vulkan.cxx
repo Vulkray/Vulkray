@@ -44,8 +44,7 @@ void Vulkan::initialize(const char* engineName, GLFWwindow *engineWindow) {
             {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
             {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
     };;
-    VertexBuffer::createVertexBuffer(&this->vertexBuffer, &this->vertexBufferAllocation,
-                                     this->memoryAllocator, vertices);
+    VertexBuffer::createVertexBuffer(&this->vertexBuffer, this->memoryAllocator, vertices);
     CommandBuffer::createCommandBuffer(&this->commandBuffers, this->MAX_FRAMES_IN_FLIGHT,
                                        this->logicalDevice, this->commandPool);
     Synchronization::createSyncObjects(&this->imageAvailableSemaphores, &this->renderFinishedSemaphores,
@@ -86,8 +85,9 @@ void Vulkan::getNextSwapChainImage(uint32_t *imageIndex, uint32_t frameIndex, GL
 
 void Vulkan::resetCommandBuffer(uint32_t imageIndex, uint32_t frameIndex) {
     vkResetCommandBuffer(this->commandBuffers[frameIndex], 0);
-    CommandBuffer::recordCommandBuffer(this->commandBuffers[frameIndex], imageIndex, this->graphicsPipeline,
-                                       this->renderPass, this->swapChainFrameBuffers, this->swapChainExtent);
+    CommandBuffer::recordCommandBuffer(this->commandBuffers[frameIndex], imageIndex,
+                                       this->graphicsPipeline, this->renderPass, this->swapChainFrameBuffers,
+                                       this->vertexBuffer, this->swapChainExtent);
 }
 
 void Vulkan::submitCommandBuffer(uint32_t frameIndex) {
@@ -158,8 +158,8 @@ void Vulkan::destroySwapChain() {
 void Vulkan::shutdown() {
     // Destroy the swap chain instances
     this->destroySwapChain();
-    // Destroy the vertex buffer instance
-    vmaDestroyBuffer(this->memoryAllocator, this->vertexBuffer, this->vertexBufferAllocation);
+    // Destroy the vertex buffer instance and free its allocated memory using VMA.
+    vmaDestroyBuffer(this->memoryAllocator, this->vertexBuffer._buffer, this->vertexBuffer._bufferMemory);
     // Destroy VMA memory allocator instance
     vmaDestroyAllocator(this->memoryAllocator);
     // Clean up Pipeline instances

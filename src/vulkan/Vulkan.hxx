@@ -29,6 +29,10 @@
 
 // Prototype declarations
 struct Vertex;
+struct AllocatedBuffer {
+    VkBuffer _buffer;
+    VmaAllocation _bufferMemory;
+};
 
 // ---------- Vulkan.cxx ---------- //
 class Vulkan {
@@ -86,8 +90,8 @@ private:
     VkSemaphore waitSemaphores[1];
     VkSemaphore signalSemaphores[1];
     // Vertex Buffer allocation
-    VkBuffer vertexBuffer;
-    VmaAllocation vertexBufferAllocation;
+    AllocatedBuffer vertexBuffer;
+    VkMemoryRequirements vertexBufferMemoryRequirements;
 };
 
 // ---------- VulkanInstance.cxx ---------- //
@@ -214,7 +218,8 @@ public:
                                     VkDevice logicalDevice, VkCommandPool commandPool);
     static void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex,
                                     VkPipeline graphicsPipeline, VkRenderPass renderPass,
-                                    std::vector<VkFramebuffer> swapFrameBuffers, VkExtent2D swapExtent);
+                                    std::vector<VkFramebuffer> swapFrameBuffers,
+                                    AllocatedBuffer vertexBuffer, VkExtent2D swapExtent);
     static void submitCommandBuffer(VkCommandBuffer *commandBuffer, VkQueue graphicsQueue, VkFence inFlightFence,
                                     VkSemaphore imageAvailableSemaphore, VkSemaphore renderFinishedSemaphore,
                                     VkSemaphore waitSemaphores[], VkSemaphore signalSemaphores[]);
@@ -264,8 +269,8 @@ class VertexBuffer {
 public:
     glm::mat4 matrix;
     glm::vec4 vec;
-    static void createVertexBuffer(VkBuffer *vertexBuffer, VmaAllocation *allocation,
-                                   VmaAllocator allocator, const std::vector<Vertex> vertices);
+    static void createVertexBuffer(AllocatedBuffer *vertexBuffer, VmaAllocator allocator,
+                                   const std::vector<Vertex> vertices);
 };
 
 #endif //VULKRAY_VULKAN_HXX

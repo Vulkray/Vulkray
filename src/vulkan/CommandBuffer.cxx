@@ -15,7 +15,7 @@
 #include <spdlog/spdlog.h>
 
 void CommandBuffer::createCommandPool(VkCommandPool *commandPool, VkDevice logicalDevice,
-                                    VkPhysicalDevice physicalDevice, VkSurfaceKHR surface) {
+                                      VkPhysicalDevice physicalDevice, VkSurfaceKHR surface) {
 
     QueueFamilyIndices queueFamilyIndices = PhysicalDevice::findDeviceQueueFamilies(physicalDevice, surface);
 
@@ -54,7 +54,8 @@ void CommandBuffer::createCommandBuffer(std::vector<VkCommandBuffer> *commandBuf
 
 void CommandBuffer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex,
                                         VkPipeline graphicsPipeline, VkRenderPass renderPass,
-                                        std::vector<VkFramebuffer> swapFrameBuffers, VkExtent2D swapExtent) {
+                                        std::vector<VkFramebuffer> swapFrameBuffers,
+                                        AllocatedBuffer vertexBuffer, VkExtent2D swapExtent) {
 
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -83,6 +84,11 @@ void CommandBuffer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t 
     vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
     // Record binding the graphics pipeline to the command buffer
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+
+    // Bind the Vertex Buffer(s) to the command buffer
+    VkBuffer vertexBuffers[] = { vertexBuffer._buffer };
+    VkDeviceSize offsets[] = {0};
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
     // Record setting the viewport
     VkViewport viewport{};

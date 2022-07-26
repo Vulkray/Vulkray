@@ -14,8 +14,8 @@
 #include <spdlog/spdlog.h>
 #include <vk_mem_alloc.h>
 
-void VertexBuffer::createVertexBuffer(VkBuffer *vertexBuffer, VmaAllocation *allocation,
-                                      VmaAllocator allocator, const std::vector<Vertex> vertices) {
+void VertexBuffer::createVertexBuffer(AllocatedBuffer *vertexBuffer, VmaAllocator allocator,
+                                      const std::vector<Vertex> vertices) {
     // Create vertex buffer create info struct
     VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -24,10 +24,22 @@ void VertexBuffer::createVertexBuffer(VkBuffer *vertexBuffer, VmaAllocation *all
     bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
     VmaAllocationCreateInfo allocInfo = {};
+    allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT; // required for vmaMapMemory()
     allocInfo.usage = VMA_MEMORY_USAGE_AUTO;
 
-    if (vmaCreateBuffer(allocator, &bufferInfo, &allocInfo, vertexBuffer, allocation, nullptr) != VK_SUCCESS) {
+    /* Vulkan Memory Allocator makes allocating the vertex buffer so much easier.
+     * Note: vmaCreateBuffer() doesn't just create the buffer instance, but also allocates the
+     * required memory for the buffer according to its needs and binds the memory to the buffer for you.
+     */
+    VkResult bufferResult = vmaCreateBuffer(allocator, &bufferInfo, &allocInfo,
+                                      &vertexBuffer->_buffer, &vertexBuffer->_bufferMemory, nullptr);
+    if (bufferResult != VK_SUCCESS) {
         spdlog::error("An error occurred after attempting to allocate the Vertex Buffer using VMA.");
         throw std::runtime_error("Failed to create the Vulkan vertex buffer!");
     }
+    // Map the vertex data over to the vertex buffer memory
+    void* data;
+    vmaMapMemory(allocator, vertexBuffer->_bufferMemory, &data);
+    memcpy(data, vertices.data(), (size_t) bufferInfo.size);
+    vmaUnmapMemory(allocator, vertexBuffer->_bufferMemory);
 }

@@ -20,7 +20,15 @@ public:
         initGlfw(); // Initializes GLFW window
         VulkanCore.initialize(WIN_TITLE, glfwWindow); // Initializes Vulkan objects
         mainLoop(); // Main program loop
-        cleanup(); // Destroys GLFW/Vulkan objects
+    }
+    ~Initialize() {
+        spdlog::debug("Cleaning up engine ...");
+        // Cleanup Vulkan
+        VulkanCore.waitForDeviceIdle(); // finish GPUs last process
+        VulkanCore.shutdown();
+        // Cleanup GLFW
+        glfwDestroyWindow(glfwWindow);
+        glfwTerminate();
     }
 private:
     const char* WIN_TITLE = "Vulkray Engine - Alpha";
@@ -60,15 +68,6 @@ private:
             glfwPollEvents(); // Respond to window events (exit, resize, etc.)
             renderFrame(); // Render frame using Vulkan
         }
-        VulkanCore.waitForDeviceIdle(); // finish GPUs last process
-    }
-    void cleanup() {
-        spdlog::debug("Cleaning up engine ...");
-        // Cleanup Vulkan
-        VulkanCore.shutdown();
-        // Cleanup GLFW
-        glfwDestroyWindow(glfwWindow);
-        glfwTerminate();
     }
 
     static void framebufferResizeCallback(GLFWwindow* engineWindow, int width, int height) {
