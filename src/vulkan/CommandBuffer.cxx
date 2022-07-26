@@ -54,8 +54,8 @@ void CommandBuffer::createCommandBuffer(std::vector<VkCommandBuffer> *commandBuf
 
 void CommandBuffer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex,
                                         VkPipeline graphicsPipeline, VkRenderPass renderPass,
-                                        std::vector<VkFramebuffer> swapFrameBuffers,
-                                        AllocatedBuffer vertexBuffer, VkExtent2D swapExtent) {
+                                        std::vector<VkFramebuffer> swapFrameBuffers, AllocatedBuffer vertexBuffer,
+                                        const std::vector<Vertex> vertices, VkExtent2D swapExtent) {
 
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -107,7 +107,7 @@ void CommandBuffer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t 
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
     // Submit (record) the draw command and end the render pass
-    vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+    vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
     vkCmdEndRenderPass(commandBuffer);
 
     // Finish recording to the command buffer

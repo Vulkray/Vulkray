@@ -45,11 +45,11 @@ public:
     const std::vector<const char*> validationLayers = {
             "VK_LAYER_KHRONOS_validation"
     };
-    void initialize(const char* engineName, GLFWwindow *engineWindow); // Initializes the class and its instances.
+    void initialize(const char* engineName, GLFWwindow *engineWindow, const std::vector<Vertex> vertices);
     void waitForDeviceIdle(); // Wrapper for vkDeviceWaitIdle()
     void waitForPreviousFrame(uint32_t frameIndex); // Wrapper for vkWaitForFences()
     void getNextSwapChainImage(uint32_t *imageIndex, uint32_t frameIndex, GLFWwindow *window);
-    void resetCommandBuffer(uint32_t imageIndex, uint32_t frameIndex); // Wrapper for vkResetCommandBuffer()
+    void resetCommandBuffer(uint32_t imageIndex, uint32_t frameIndex, const std::vector<Vertex> vertices);
     void submitCommandBuffer(uint32_t frameIndex); // Wrapper for vkQueueSubmit() via CommandBuffer class
     void presentImageBuffer(uint32_t *imageIndex, GLFWwindow *window, bool *windowResized);
     void shutdown(); // Cleans up & terminates all Vulkan instances.
@@ -218,8 +218,8 @@ public:
                                     VkDevice logicalDevice, VkCommandPool commandPool);
     static void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex,
                                     VkPipeline graphicsPipeline, VkRenderPass renderPass,
-                                    std::vector<VkFramebuffer> swapFrameBuffers,
-                                    AllocatedBuffer vertexBuffer, VkExtent2D swapExtent);
+                                    std::vector<VkFramebuffer> swapFrameBuffers, AllocatedBuffer vertexBuffer,
+                                    const std::vector<Vertex> vertices, VkExtent2D swapExtent);
     static void submitCommandBuffer(VkCommandBuffer *commandBuffer, VkQueue graphicsQueue, VkFence inFlightFence,
                                     VkSemaphore imageAvailableSemaphore, VkSemaphore renderFinishedSemaphore,
                                     VkSemaphore waitSemaphores[], VkSemaphore signalSemaphores[]);

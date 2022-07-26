@@ -18,7 +18,7 @@ class Initialize {
 public:
     void launch() {
         initGlfw(); // Initializes GLFW window
-        VulkanCore.initialize(WIN_TITLE, glfwWindow); // Initializes Vulkan objects
+        VulkanCore.initialize(this->WIN_TITLE, this->glfwWindow, this->vertices);
         mainLoop(); // Main program loop
     }
     ~Initialize() {
@@ -27,7 +27,7 @@ public:
         VulkanCore.waitForDeviceIdle(); // finish GPUs last process
         VulkanCore.shutdown();
         // Cleanup GLFW
-        glfwDestroyWindow(glfwWindow);
+        glfwDestroyWindow(this->glfwWindow);
         glfwTerminate();
     }
 private:
@@ -49,13 +49,19 @@ private:
 
     uint32_t frameIndex = 0;
     bool framebufferResized = false;
+    // TODO: vertex vector for vertex buffer; temporary!
+    const std::vector<Vertex> vertices = {
+            {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+            {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+            {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+    };
 
     void renderFrame() {
         uint32_t imageIndex;
         this->VulkanCore.waitForPreviousFrame(this->frameIndex);
         // Get the next image from the swap chain & reset cmd buffer
         this->VulkanCore.getNextSwapChainImage(&imageIndex, this->frameIndex, this->glfwWindow);
-        this->VulkanCore.resetCommandBuffer(imageIndex, this->frameIndex);
+        this->VulkanCore.resetCommandBuffer(imageIndex, this->frameIndex, this->vertices);
         this->VulkanCore.submitCommandBuffer(this->frameIndex);
         this->VulkanCore.presentImageBuffer(&imageIndex, this->glfwWindow, &this->framebufferResized);
         // Advance index to the next frame

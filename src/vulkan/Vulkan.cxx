@@ -14,7 +14,7 @@
 
 #include <spdlog/spdlog.h>
 
-void Vulkan::initialize(const char* engineName, GLFWwindow *engineWindow) {
+void Vulkan::initialize(const char* engineName, GLFWwindow *engineWindow, const std::vector<Vertex> vertices) {
 
     spdlog::debug("Initializing Vulkan ...");
     VulkanInstance::createInstance(&this->vulkanInstance, engineName,
@@ -38,12 +38,6 @@ void Vulkan::initialize(const char* engineName, GLFWwindow *engineWindow) {
     FrameBuffers::createFrameBuffers(&this->swapChainFrameBuffers, this->swapChainImageViews,
                                      this->logicalDevice, this->renderPass, this->swapChainExtent);
     CommandBuffer::createCommandPool(&this->commandPool, this->logicalDevice, this->physicalDevice, this->surface);
-    // TODO: temporary Vertex vector to test Vertex buffer!
-    const std::vector<Vertex> vertices = {
-            {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-            {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-            {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
-    };;
     VertexBuffer::createVertexBuffer(&this->vertexBuffer, this->memoryAllocator, vertices);
     CommandBuffer::createCommandBuffer(&this->commandBuffers, this->MAX_FRAMES_IN_FLIGHT,
                                        this->logicalDevice, this->commandPool);
@@ -83,11 +77,11 @@ void Vulkan::getNextSwapChainImage(uint32_t *imageIndex, uint32_t frameIndex, GL
     vkResetFences(this->logicalDevice, 1, &this->inFlightFences[frameIndex]);
 }
 
-void Vulkan::resetCommandBuffer(uint32_t imageIndex, uint32_t frameIndex) {
+void Vulkan::resetCommandBuffer(uint32_t imageIndex, uint32_t frameIndex, const std::vector<Vertex> vertices) {
     vkResetCommandBuffer(this->commandBuffers[frameIndex], 0);
     CommandBuffer::recordCommandBuffer(this->commandBuffers[frameIndex], imageIndex,
                                        this->graphicsPipeline, this->renderPass, this->swapChainFrameBuffers,
-                                       this->vertexBuffer, this->swapChainExtent);
+                                       this->vertexBuffer, vertices, this->swapChainExtent);
 }
 
 void Vulkan::submitCommandBuffer(uint32_t frameIndex) {
