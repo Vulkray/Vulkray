@@ -44,7 +44,8 @@ void Vulkan::initialize(const char* engineName, GLFWwindow *engineWindow) {
             {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
             {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
     };;
-    VertexBuffer::createVertexBuffer(&this->vertexBuffer, this->logicalDevice, vertices);
+    VertexBuffer::createVertexBuffer(&this->vertexBuffer, &this->vertexBufferAllocation,
+                                     this->memoryAllocator, vertices);
     CommandBuffer::createCommandBuffer(&this->commandBuffers, this->MAX_FRAMES_IN_FLIGHT,
                                        this->logicalDevice, this->commandPool);
     Synchronization::createSyncObjects(&this->imageAvailableSemaphores, &this->renderFinishedSemaphores,

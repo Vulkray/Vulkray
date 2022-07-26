@@ -52,6 +52,7 @@ public:
 private:
     void recreateSwapChain(GLFWwindow *engineWindow);
     void destroySwapChain();
+
     // Vulkan validation layers
     #ifdef NDEBUG
         const bool enableValidationLayers = false;
@@ -84,8 +85,9 @@ private:
     std::vector<VkFence> inFlightFences;
     VkSemaphore waitSemaphores[1];
     VkSemaphore signalSemaphores[1];
-    // Vertex Buffer
+    // Vertex Buffer allocation
     VkBuffer vertexBuffer;
+    VmaAllocation vertexBufferAllocation;
 };
 
 // ---------- VulkanInstance.cxx ---------- //
@@ -262,8 +264,8 @@ class VertexBuffer {
 public:
     glm::mat4 matrix;
     glm::vec4 vec;
-    static void createVertexBuffer(VkBuffer *vertexBuffer, VkDevice logicalDevice,
-                                   const std::vector<Vertex> vertices);
+    static void createVertexBuffer(VkBuffer *vertexBuffer, VmaAllocation *allocation,
+                                   VmaAllocator allocator, const std::vector<Vertex> vertices);
 };
 
 #endif //VULKRAY_VULKAN_HXX
