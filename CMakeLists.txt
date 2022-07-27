@@ -10,15 +10,17 @@ set(CMAKE_CXX_COMPILER g++)
 set(WARNING_DISABLE_FLAGS "-Wno-error=volatile -Wno-error=unused-variable -Wno-error=parentheses")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror ${WARNING_DISABLE_FLAGS}")
 
-# Workaround for GCC colored terminal output using Ninja build tool
-option (FORCE_COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only)." TRUE)
-if (${FORCE_COLORED_OUTPUT})
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        add_compile_options (-fdiagnostics-color=always)
-    elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-        add_compile_options (-fcolor-diagnostics)
-    endif ()
-endif ()
+# CMake Build Options
+option(FORCE_COLORED_OUTPUT "Always produce ANSI-colored output (GNU/Clang only)." TRUE)
+
+# Enable GCC/clang ANSI-colored terminal output using Ninja build tool
+if (FORCE_COLORED_OUTPUT)
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        add_compile_options(-fdiagnostics-color=always)
+    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        add_compile_options(-fcolor-diagnostics)
+    endif()
+endif()
 
 # Include Conan Package Manager info
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
