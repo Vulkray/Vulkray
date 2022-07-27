@@ -98,16 +98,39 @@ QueueFamilyIndices PhysicalDevice::findDeviceQueueFamilies(VkPhysicalDevice gpuD
 
     // For each queue family in GPU, find the index of each queue type we need.
     int index = 0;
-    for (const auto& queueFamily : queueFamilies) {
-        if (queueIndices.isComplete()) break; // break loop if queue indices struct is complete
+    for (const auto &queueFamily : queueFamilies) {
+        /* break the loop if the queue indices struct is complete (WITH a dedicated transfer family,
+         * or else it will exit early as the graphics family will also pre-fill the transfer family index
+         * before a dedicated one is possibly found. this check prevents that bug.
+         */
+        if (queueIndices.isComplete() && queueIndices.dedicatedTransferFamily) break;
 
         VkBool32 presentSupport = false;
         vkGetPhysicalDeviceSurfaceSupportKHR(gpuDevice, index, surface, &presentSupport);
 
-        if (presentSupport) queueIndices.presentFamily = index; // found present queue index
-
+        if (presentSupport) {
+            queueIndices.presentFamily = index; // found present queue index
+        } else {
+            // most likely a dedicated VK_QUEUE_TRANSFER_BIT capable queue family, check!
+            if (queueFamily.queueFlags & VK_QUEUE_TRANSFER_BIT) {
+                queueIndices.transferFamily = index;
+                queueIndices.dedicatedTransferFamily = true;
+            }
+        }
         if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
             queueIndices.graphicsFamily = index; // found graphics queue index
+
+            /* If a dedicated `VK_QUEUE_TRANSFER_BIT` capable queue family is not found on the GPU,
+             * the transferFamily index will be set to the graphics family, as any queue family with
+             * `VK_QUEUE_GRAPHICS_BIT` or `VK_QUEUE_COMPUTE_BIT` bit flags implicitly supports transfer operations.
+             *
+             * "if (!queueIndices.transferFamily.has_value())" statement makes sure it does not overwrite the
+             * transferFamily property if its index has already been found, because if it has, it was most likely
+             * a dedicated transfer queue family that was found, and we want to keep that separate queue family!
+             */
+            if (!queueIndices.dedicatedTransferFamily) {
+                queueIndices.transferFamily = index;
+            }
         }
         index++;
     }

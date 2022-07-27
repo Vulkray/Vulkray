@@ -115,8 +115,17 @@ public:
 struct QueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;
     std::optional<uint32_t> presentFamily;
+    std::optional<uint32_t> transferFamily;
+    std::optional<bool> dedicatedTransferFamily;
+    /* Note: Queue families with either `VK_QUEUE_GRAPHICS_BIT` or `VK_QUEUE_COMPUTE_BIT` capabilities already
+     * implicitly support `VK_QUEUE_TRANSFER_BIT` operations. Just for the challenge, I've added a dedicated
+     * `transferFamily` property to the indices in case there is a GPU queue family dedicated to transfer operations.
+     * These queue families are queried by PhysicalDevice::findDeviceQueueFamilies() at PhysicalDevice.cxx.
+     */
     bool isComplete() {
-        return graphicsFamily.has_value() && presentFamily.has_value();
+        return graphicsFamily.has_value() &&
+                presentFamily.has_value() &&
+                transferFamily.has_value();
     }
 };
 
