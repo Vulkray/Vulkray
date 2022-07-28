@@ -78,7 +78,8 @@ private:
 // ---------- LogicalDevice.cxx ---------- //
 class LogicalDevice {
 public:
-    static void createLogicalDevice(VkDevice *logicalDevice, VkQueue *graphicsQueue, VkQueue *presentQueue,
+    static void createLogicalDevice(VkDevice *logicalDevice,
+                                    VkQueue *graphicsQueue, VkQueue *presentQueue, VkQueue *transferQueue,
                                     VkPhysicalDevice physicalDevice, QueueFamilyIndices gpuQueueIndices,
                                     const std::vector<const char*> gpuExtensions,
                                     const bool enableVkLayers, const std::vector<const char*> vkLayers);
@@ -272,6 +273,7 @@ private:
     // GPU queue handles
     VkQueue graphicsQueue;
     VkQueue presentQueue;
+    VkQueue transferQueue;
     // Synchronization Objects (semaphores / fences)
     std::vector<VkSemaphore> imageAvailableSemaphores;
     std::vector<VkSemaphore> renderFinishedSemaphores;

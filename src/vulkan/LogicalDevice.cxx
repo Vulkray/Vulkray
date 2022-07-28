@@ -15,7 +15,8 @@
 #include <spdlog/spdlog.h>
 #include <set>
 
-void LogicalDevice::createLogicalDevice(VkDevice *logicalDevice, VkQueue *graphicsQueue, VkQueue *presentQueue,
+void LogicalDevice::createLogicalDevice(VkDevice *logicalDevice,
+                                        VkQueue *graphicsQueue, VkQueue *presentQueue, VkQueue *transferQueue,
                                         VkPhysicalDevice physicalDevice, QueueFamilyIndices gpuQueueIndices,
                                         const std::vector<const char*> gpuExtensions,
                                         const bool enableVkLayers, const std::vector<const char*> vkLayers) {
@@ -24,7 +25,8 @@ void LogicalDevice::createLogicalDevice(VkDevice *logicalDevice, VkQueue *graphi
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
     std::set<uint32_t> uniqueQueueFamilies = {
             gpuQueueIndices.graphicsFamily.value(),
-            gpuQueueIndices.presentFamily.value()
+            gpuQueueIndices.presentFamily.value(),
+            gpuQueueIndices.transferFamily.value()
     };
     VkPhysicalDeviceFeatures deviceFeatures{}; // device features are not configured for now
     VkDeviceCreateInfo createInfo{};
@@ -65,7 +67,8 @@ void LogicalDevice::createLogicalDevice(VkDevice *logicalDevice, VkQueue *graphi
         throw std::runtime_error("Failed to create the logical device!");
     }
 
-    // Create handles for Graphics and Present queues using given handle pointers
+    // Create handles for Graphics, Present, and Transfer queues using given handle pointers
     vkGetDeviceQueue(*logicalDevice, gpuQueueIndices.graphicsFamily.value(), 0, graphicsQueue);
     vkGetDeviceQueue(*logicalDevice, gpuQueueIndices.presentFamily.value(), 0, presentQueue);
+    vkGetDeviceQueue(*logicalDevice, gpuQueueIndices.transferFamily.value(), 0, transferQueue);
 }

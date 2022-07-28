@@ -22,7 +22,8 @@ void Vulkan::initialize(const char* engineName, GLFWwindow *engineWindow, const 
     WindowSurface::createSurfaceKHR(&this->surface, this->vulkanInstance, engineWindow);
     PhysicalDevice::selectPhysicalDevice(&this->physicalDevice, &this->queueFamilies, this->vulkanInstance,
                                          this->surface, this->requiredExtensions);
-    LogicalDevice::createLogicalDevice(&this->logicalDevice, &this->graphicsQueue, &this->presentQueue,
+    LogicalDevice::createLogicalDevice(&this->logicalDevice,
+                                       &this->graphicsQueue, &this->presentQueue, &this->transferQueue,
                                        this->physicalDevice, this->queueFamilies, this->requiredExtensions,
                                        this->enableValidationLayers, this->validationLayers);
     VulkanMemoryAllocator::initializeMemoryAllocator(&this->memoryAllocator, this->physicalDevice,
