@@ -16,12 +16,9 @@
 #include <set>
 
 void LogicalDevice::createLogicalDevice(VkDevice *logicalDevice, VkQueue *graphicsQueue, VkQueue *presentQueue,
-                                        VkPhysicalDevice physicalDevice, VkSurfaceKHR surface,
-                                        const std::vector<const char*> gpuExtensions,
+                                        VkPhysicalDevice physicalDevice, QueueFamilyIndices gpuQueueIndices,
+                                        VkSurfaceKHR surface, const std::vector<const char*> gpuExtensions,
                                         const bool enableVkLayers, const std::vector<const char*> vkLayers) {
-
-    // get GPU queue family indices
-    QueueFamilyIndices gpuQueueIndices = PhysicalDevice::findDeviceQueueFamilies(physicalDevice, surface);
 
     // Logical device create info structs
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;

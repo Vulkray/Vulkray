@@ -27,73 +27,6 @@
 #include <string>
 #include <optional>
 
-// Prototype declarations
-struct Vertex;
-struct AllocatedBuffer {
-    VkBuffer _buffer;
-    VmaAllocation _bufferMemory;
-};
-
-// ---------- Vulkan.cxx ---------- //
-class Vulkan {
-public:
-    // Vulkan configuration
-    const int MAX_FRAMES_IN_FLIGHT = 2;
-    const std::vector<const char*> requiredExtensions = {
-            VK_KHR_SWAPCHAIN_EXTENSION_NAME
-    };
-    const std::vector<const char*> validationLayers = {
-            "VK_LAYER_KHRONOS_validation"
-    };
-    void initialize(const char* engineName, GLFWwindow *engineWindow, const std::vector<Vertex> vertices);
-    void waitForDeviceIdle(); // Wrapper for vkDeviceWaitIdle()
-    void waitForPreviousFrame(uint32_t frameIndex); // Wrapper for vkWaitForFences()
-    void getNextSwapChainImage(uint32_t *imageIndex, uint32_t frameIndex, GLFWwindow *window);
-    void resetCommandBuffer(uint32_t imageIndex, uint32_t frameIndex, const std::vector<Vertex> vertices);
-    void submitCommandBuffer(uint32_t frameIndex); // Wrapper for vkQueueSubmit() via CommandBuffer class
-    void presentImageBuffer(uint32_t *imageIndex, GLFWwindow *window, bool *windowResized);
-    void shutdown(); // Cleans up & terminates all Vulkan instances.
-private:
-    void recreateSwapChain(GLFWwindow *engineWindow);
-    void destroySwapChain();
-
-    // Vulkan validation layers
-    #ifdef NDEBUG
-        const bool enableValidationLayers = false;
-    #else
-        const bool enableValidationLayers = true;
-    #endif
-    // Vulkan instances
-    VkInstance vulkanInstance{};
-    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-    VkDevice logicalDevice = VK_NULL_HANDLE;
-    VmaAllocator memoryAllocator; // VMA allocator
-    VkSurfaceKHR surface;
-    VkSwapchainKHR swapChain;
-    std::vector<VkImage> swapChainImages;
-    VkFormat swapChainImageFormat;
-    VkExtent2D swapChainExtent;
-    std::vector<VkImageView> swapChainImageViews;
-    VkRenderPass renderPass;
-    VkPipelineLayout pipelineLayout;
-    VkPipeline graphicsPipeline;
-    std::vector<VkFramebuffer> swapChainFrameBuffers;
-    VkCommandPool commandPool;
-    std::vector<VkCommandBuffer> commandBuffers;
-    // GPU queue handles
-    VkQueue graphicsQueue;
-    VkQueue presentQueue;
-    // Synchronization Objects (semaphores / fences)
-    std::vector<VkSemaphore> imageAvailableSemaphores;
-    std::vector<VkSemaphore> renderFinishedSemaphores;
-    std::vector<VkFence> inFlightFences;
-    VkSemaphore waitSemaphores[1];
-    VkSemaphore signalSemaphores[1];
-    // Vertex Buffer allocation
-    AllocatedBuffer vertexBuffer;
-    VkMemoryRequirements vertexBufferMemoryRequirements;
-};
-
 // ---------- VulkanInstance.cxx ---------- //
 class VulkanInstance {
 public:
@@ -131,11 +64,13 @@ struct QueueFamilyIndices {
 
 class PhysicalDevice {
 public:
-    static void selectPhysicalDevice(VkPhysicalDevice *physicalDevice, VkInstance vulkanInstance,
-                                     VkSurfaceKHR surface, const std::vector<const char*> extensions);
-    static QueueFamilyIndices findDeviceQueueFamilies(VkPhysicalDevice gpuDevice, VkSurfaceKHR surface);
+    static void selectPhysicalDevice(VkPhysicalDevice *physicalDevice, QueueFamilyIndices *queueFamilies,
+                                     VkInstance vulkanInstance, VkSurfaceKHR surface,
+                                     const std::vector<const char*> extensions);
 private:
+    static QueueFamilyIndices findDeviceQueueFamilies(VkPhysicalDevice gpuDevice, VkSurfaceKHR surface);
     static int rateGPUSuitability(VkPhysicalDevice gpuDevice, VkSurfaceKHR surface,
+                                  QueueFamilyIndices gpuQueueIndices,
                                   const std::vector<const char*> extensions);
     static bool checkGPUExtensionSupport(VkPhysicalDevice gpuDevice, const std::vector<const char*> extensions);
 };
@@ -144,12 +79,16 @@ private:
 class LogicalDevice {
 public:
     static void createLogicalDevice(VkDevice *logicalDevice, VkQueue *graphicsQueue, VkQueue *presentQueue,
-                                    VkPhysicalDevice physicalDevice, VkSurfaceKHR surface,
-                                    const std::vector<const char*> gpuExtensions,
+                                    VkPhysicalDevice physicalDevice, QueueFamilyIndices gpuQueueIndices,
+                                    VkSurfaceKHR surface, const std::vector<const char*> gpuExtensions,
                                     const bool enableVkLayers, const std::vector<const char*> vkLayers);
 };
 
 // ---------- VulkanMemoryAllocator.cxx ---------- //
+struct AllocatedBuffer {
+    VkBuffer _buffer;
+    VmaAllocation _bufferMemory;
+};
 class VulkanMemoryAllocator {
 public:
     static void initializeMemoryAllocator(VmaAllocator *memoryAllocator, VkPhysicalDevice physicalDevice,
@@ -175,7 +114,8 @@ class SwapChain {
 public:
     static void createSwapChain(VkSwapchainKHR *swapChain, std::vector<VkImage> *swapImages,
                                 VkFormat *format, VkExtent2D *extent, VkDevice logicalDevice,
-                                VkPhysicalDevice gpuDevice, VkSurfaceKHR surface, GLFWwindow *window);
+                                VkPhysicalDevice gpuDevice, VkSurfaceKHR surface,
+                                QueueFamilyIndices queueIndices, GLFWwindow *window);
 
     static SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
 private:
@@ -218,31 +158,6 @@ public:
                                    VkDevice logicalDevice, VkRenderPass renderPass, VkExtent2D swapChainExtent);
 };
 
-// ---------- CommandBuffer.cxx ---------- //
-class CommandBuffer {
-public:
-    static void createCommandPool(VkCommandPool *commandPool, VkDevice logicalDevice,
-                                  VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
-    static void createCommandBuffer(std::vector<VkCommandBuffer> *commandBuffers, const int MAX_FRAMES_IN_FLIGHT,
-                                    VkDevice logicalDevice, VkCommandPool commandPool);
-    static void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex,
-                                    VkPipeline graphicsPipeline, VkRenderPass renderPass,
-                                    std::vector<VkFramebuffer> swapFrameBuffers, AllocatedBuffer vertexBuffer,
-                                    const std::vector<Vertex> vertices, VkExtent2D swapExtent);
-    static void submitCommandBuffer(VkCommandBuffer *commandBuffer, VkQueue graphicsQueue, VkFence inFlightFence,
-                                    VkSemaphore imageAvailableSemaphore, VkSemaphore renderFinishedSemaphore,
-                                    VkSemaphore waitSemaphores[], VkSemaphore signalSemaphores[]);
-};
-
-// ---------- Synchronization.cxx ---------- //
-class Synchronization {
-public:
-    static void createSyncObjects(std::vector<VkSemaphore> *imageAvailableSemaphores,
-                                  std::vector<VkSemaphore> *renderFinishedSemaphores,
-                                  std::vector<VkFence> *inFlightFences, VkDevice logicalDevice,
-                                  const int MAX_FRAMES_IN_FLIGHT);
-};
-
 // ---------- VertexBuffer.cxx ---------- //
 struct Vertex {
     glm::vec2 pos;
@@ -280,6 +195,92 @@ public:
     glm::vec4 vec;
     static void createVertexBuffer(AllocatedBuffer *vertexBuffer, VmaAllocator allocator,
                                    const std::vector<Vertex> vertices);
+};
+
+// ---------- CommandBuffer.cxx ---------- //
+class CommandBuffer {
+public:
+    static void createCommandPool(VkCommandPool *commandPool, VkDevice logicalDevice,
+                                  QueueFamilyIndices queueFamilyIndices);
+    static void createCommandBuffer(std::vector<VkCommandBuffer> *commandBuffers, const int MAX_FRAMES_IN_FLIGHT,
+                                    VkDevice logicalDevice, VkCommandPool commandPool);
+    static void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex,
+                                    VkPipeline graphicsPipeline, VkRenderPass renderPass,
+                                    std::vector<VkFramebuffer> swapFrameBuffers, AllocatedBuffer vertexBuffer,
+                                    const std::vector<Vertex> vertices, VkExtent2D swapExtent);
+    static void submitCommandBuffer(VkCommandBuffer *commandBuffer, VkQueue graphicsQueue, VkFence inFlightFence,
+                                    VkSemaphore imageAvailableSemaphore, VkSemaphore renderFinishedSemaphore,
+                                    VkSemaphore waitSemaphores[], VkSemaphore signalSemaphores[]);
+};
+
+// ---------- Synchronization.cxx ---------- //
+class Synchronization {
+public:
+    static void createSyncObjects(std::vector<VkSemaphore> *imageAvailableSemaphores,
+                                  std::vector<VkSemaphore> *renderFinishedSemaphores,
+                                  std::vector<VkFence> *inFlightFences, VkDevice logicalDevice,
+                                  const int MAX_FRAMES_IN_FLIGHT);
+};
+
+// ---------- Vulkan.cxx ---------- //
+class Vulkan {
+public:
+    // Vulkan configuration
+    const int MAX_FRAMES_IN_FLIGHT = 2;
+    const std::vector<const char*> requiredExtensions = {
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME
+    };
+    const std::vector<const char*> validationLayers = {
+            "VK_LAYER_KHRONOS_validation"
+    };
+    void initialize(const char* engineName, GLFWwindow *engineWindow, const std::vector<Vertex> vertices);
+    void waitForDeviceIdle(); // Wrapper for vkDeviceWaitIdle()
+    void waitForPreviousFrame(uint32_t frameIndex); // Wrapper for vkWaitForFences()
+    void getNextSwapChainImage(uint32_t *imageIndex, uint32_t frameIndex, GLFWwindow *window);
+    void resetCommandBuffer(uint32_t imageIndex, uint32_t frameIndex, const std::vector<Vertex> vertices);
+    void submitCommandBuffer(uint32_t frameIndex); // Wrapper for vkQueueSubmit() via CommandBuffer class
+    void presentImageBuffer(uint32_t *imageIndex, GLFWwindow *window, bool *windowResized);
+    void shutdown(); // Cleans up & terminates all Vulkan instances.
+private:
+    void recreateSwapChain(GLFWwindow *engineWindow);
+    void destroySwapChain();
+
+    // Vulkan validation layers (debug build only)
+#ifdef NDEBUG
+    const bool enableValidationLayers = false;
+#else
+    const bool enableValidationLayers = true;
+#endif
+    // Vulkan instances
+    VkInstance vulkanInstance{};
+    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+    QueueFamilyIndices queueFamilies;
+    VkDevice logicalDevice = VK_NULL_HANDLE;
+    VmaAllocator memoryAllocator; // VMA allocator
+    VkSurfaceKHR surface;
+    VkSwapchainKHR swapChain;
+    std::vector<VkImage> swapChainImages;
+    VkFormat swapChainImageFormat;
+    VkExtent2D swapChainExtent;
+    std::vector<VkImageView> swapChainImageViews;
+    VkRenderPass renderPass;
+    VkPipelineLayout pipelineLayout;
+    VkPipeline graphicsPipeline;
+    std::vector<VkFramebuffer> swapChainFrameBuffers;
+    VkCommandPool commandPool;
+    std::vector<VkCommandBuffer> commandBuffers;
+    // GPU queue handles
+    VkQueue graphicsQueue;
+    VkQueue presentQueue;
+    // Synchronization Objects (semaphores / fences)
+    std::vector<VkSemaphore> imageAvailableSemaphores;
+    std::vector<VkSemaphore> renderFinishedSemaphores;
+    std::vector<VkFence> inFlightFences;
+    VkSemaphore waitSemaphores[1];
+    VkSemaphore signalSemaphores[1];
+    // Vertex Buffer allocation
+    AllocatedBuffer vertexBuffer;
+    VkMemoryRequirements vertexBufferMemoryRequirements;
 };
 
 #endif //VULKRAY_VULKAN_HXX

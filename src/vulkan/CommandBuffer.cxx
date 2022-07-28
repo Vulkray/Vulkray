@@ -15,9 +15,7 @@
 #include <spdlog/spdlog.h>
 
 void CommandBuffer::createCommandPool(VkCommandPool *commandPool, VkDevice logicalDevice,
-                                      VkPhysicalDevice physicalDevice, VkSurfaceKHR surface) {
-
-    QueueFamilyIndices queueFamilyIndices = PhysicalDevice::findDeviceQueueFamilies(physicalDevice, surface);
+                                      QueueFamilyIndices queueFamilyIndices) {
 
     // Configure & create the command pool instance
     VkCommandPoolCreateInfo poolInfo{};

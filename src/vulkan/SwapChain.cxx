@@ -19,7 +19,8 @@
 
 void SwapChain::createSwapChain(VkSwapchainKHR *swapChain, std::vector<VkImage> *swapImages,
                                 VkFormat *format, VkExtent2D *extent, VkDevice logicalDevice,
-                                VkPhysicalDevice gpuDevice, VkSurfaceKHR surface, GLFWwindow *window) {
+                                VkPhysicalDevice gpuDevice, VkSurfaceKHR surface,
+                                QueueFamilyIndices queueIndices, GLFWwindow *window) {
 
     // Get device swap chain support info
     SwapChainSupportDetails supportDetails = SwapChain::querySwapChainSupport(gpuDevice, surface);
@@ -50,7 +51,6 @@ void SwapChain::createSwapChain(VkSwapchainKHR *swapChain, std::vector<VkImage> 
     swapCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
     // Get GPU device queue indices
-    QueueFamilyIndices queueIndices = PhysicalDevice::findDeviceQueueFamilies(gpuDevice, surface);
     uint32_t queueFamilyIndices[] = {
             queueIndices.graphicsFamily.value(),
             queueIndices.presentFamily.value()

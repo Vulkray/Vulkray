@@ -16,8 +16,9 @@
 #include <map>
 #include <set>
 
-void PhysicalDevice::selectPhysicalDevice(VkPhysicalDevice *physicalDevice, VkInstance vulkanInstance,
-                                          VkSurfaceKHR surface, const std::vector<const char*> extensions) {
+void PhysicalDevice::selectPhysicalDevice(VkPhysicalDevice *physicalDevice, QueueFamilyIndices *queueFamilies,
+                                          VkInstance vulkanInstance, VkSurfaceKHR surface,
+                                          const std::vector<const char*> extensions) {
 
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(vulkanInstance, &deviceCount, nullptr);
@@ -36,7 +37,9 @@ void PhysicalDevice::selectPhysicalDevice(VkPhysicalDevice *physicalDevice, VkIn
     std::multimap<int, VkPhysicalDevice> candidates;
 
     for (auto& device : devices) {
-        int score = PhysicalDevice::rateGPUSuitability(device, surface, extensions);
+        // Initialize `queueFamilies` struct with GPU device queue family indices
+        QueueFamilyIndices queueIndices = PhysicalDevice::findDeviceQueueFamilies(device, surface);
+        int score = PhysicalDevice::rateGPUSuitability(device, surface, queueIndices, extensions);
         candidates.insert(std::make_pair(score, device));
     }
 
@@ -53,16 +56,19 @@ void PhysicalDevice::selectPhysicalDevice(VkPhysicalDevice *physicalDevice, VkIn
     vkGetPhysicalDeviceProperties(*physicalDevice, &gpuProperties);
 
     spdlog::info("Vulkan GPU Selected: {0}", gpuProperties.deviceName);
+
+    // Initialize `queueFamilies` struct with GPU device queue family indices
+    *queueFamilies = PhysicalDevice::findDeviceQueueFamilies(*physicalDevice, surface);
 }
 
 int PhysicalDevice::rateGPUSuitability(VkPhysicalDevice gpuDevice, VkSurfaceKHR surface,
+                                       QueueFamilyIndices gpuQueueIndices,
                                        const std::vector<const char*> extensions) {
     int deviceScore = 0;
 
     // Get GPU device information
     VkPhysicalDeviceProperties gpuProperties;
     VkPhysicalDeviceFeatures gpuFeatures;
-    QueueFamilyIndices gpuQueueIndices = PhysicalDevice::findDeviceQueueFamilies(gpuDevice, surface);
     bool hasRequiredExtensions = PhysicalDevice::checkGPUExtensionSupport(gpuDevice, extensions);
 
     vkGetPhysicalDeviceProperties(gpuDevice, &gpuProperties);

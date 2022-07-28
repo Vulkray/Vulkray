@@ -20,16 +20,16 @@ void Vulkan::initialize(const char* engineName, GLFWwindow *engineWindow, const 
     VulkanInstance::createInstance(&this->vulkanInstance, engineName,
                                    this->enableValidationLayers, this->validationLayers);
     WindowSurface::createSurfaceKHR(&this->surface, this->vulkanInstance, engineWindow);
-    PhysicalDevice::selectPhysicalDevice(&this->physicalDevice, this->vulkanInstance,
+    PhysicalDevice::selectPhysicalDevice(&this->physicalDevice, &this->queueFamilies, this->vulkanInstance,
                                          this->surface, this->requiredExtensions);
     LogicalDevice::createLogicalDevice(&this->logicalDevice, &this->graphicsQueue, &this->presentQueue,
-                                       this->physicalDevice, this->surface, this->requiredExtensions,
-                                       this->enableValidationLayers, this->validationLayers);
+                                       this->physicalDevice, this->queueFamilies, this->surface,
+                                       this->requiredExtensions, this->enableValidationLayers, this->validationLayers);
     VulkanMemoryAllocator::initializeMemoryAllocator(&this->memoryAllocator, this->physicalDevice,
                                                      this->logicalDevice, this->vulkanInstance);
     SwapChain::createSwapChain(&this->swapChain, &this->swapChainImages, &this->swapChainImageFormat,
                                &this->swapChainExtent, this->logicalDevice, this->physicalDevice,
-                               this->surface, engineWindow);
+                               this->surface, this->queueFamilies, engineWindow);
     ImageViews::createImageViews(&this->swapChainImageViews, this->logicalDevice,
                                  this->swapChainImages, this->swapChainImageFormat);
     RenderPass::createRenderPass(&this->renderPass, this->logicalDevice, this->swapChainImageFormat);
@@ -37,7 +37,7 @@ void Vulkan::initialize(const char* engineName, GLFWwindow *engineWindow, const 
                                              this->logicalDevice, this->swapChainExtent);
     FrameBuffers::createFrameBuffers(&this->swapChainFrameBuffers, this->swapChainImageViews,
                                      this->logicalDevice, this->renderPass, this->swapChainExtent);
-    CommandBuffer::createCommandPool(&this->commandPool, this->logicalDevice, this->physicalDevice, this->surface);
+    CommandBuffer::createCommandPool(&this->commandPool, this->logicalDevice, this->queueFamilies);
     VertexBuffer::createVertexBuffer(&this->vertexBuffer, this->memoryAllocator, vertices);
     CommandBuffer::createCommandBuffer(&this->commandBuffers, this->MAX_FRAMES_IN_FLIGHT,
                                        this->logicalDevice, this->commandPool);
@@ -131,7 +131,7 @@ void Vulkan::recreateSwapChain(GLFWwindow *engineWindow) {
 
     SwapChain::createSwapChain(&this->swapChain, &this->swapChainImages, &this->swapChainImageFormat,
                                &this->swapChainExtent, this->logicalDevice, this->physicalDevice,
-                               this->surface, engineWindow);
+                               this->surface, this->queueFamilies, engineWindow);
     ImageViews::createImageViews(&this->swapChainImageViews, this->logicalDevice,
                                  this->swapChainImages, this->swapChainImageFormat);
     FrameBuffers::createFrameBuffers(&this->swapChainFrameBuffers, this->swapChainImageViews,
