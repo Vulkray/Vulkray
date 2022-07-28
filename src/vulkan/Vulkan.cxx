@@ -23,8 +23,8 @@ void Vulkan::initialize(const char* engineName, GLFWwindow *engineWindow, const 
     PhysicalDevice::selectPhysicalDevice(&this->physicalDevice, &this->queueFamilies, this->vulkanInstance,
                                          this->surface, this->requiredExtensions);
     LogicalDevice::createLogicalDevice(&this->logicalDevice, &this->graphicsQueue, &this->presentQueue,
-                                       this->physicalDevice, this->queueFamilies, this->surface,
-                                       this->requiredExtensions, this->enableValidationLayers, this->validationLayers);
+                                       this->physicalDevice, this->queueFamilies, this->requiredExtensions,
+                                       this->enableValidationLayers, this->validationLayers);
     VulkanMemoryAllocator::initializeMemoryAllocator(&this->memoryAllocator, this->physicalDevice,
                                                      this->logicalDevice, this->vulkanInstance);
     SwapChain::createSwapChain(&this->swapChain, &this->swapChainImages, &this->swapChainImageFormat,
@@ -141,10 +141,12 @@ void Vulkan::destroySwapChain() {
     // Destroy the frame buffer instances
     for (size_t i = 0; i < this->swapChainFrameBuffers.size(); i++) {
         vkDestroyFramebuffer(this->logicalDevice, this->swapChainFrameBuffers[i], nullptr);
+        this->swapChainFrameBuffers[i] = VK_NULL_HANDLE; // less validation layer errors on clean up after crash
     }
     // Destroy the swap chain image view instances
     for (size_t i = 0; i < this->swapChainImageViews.size(); i++) {
         vkDestroyImageView(this->logicalDevice, this->swapChainImageViews[i], nullptr);
+        this->swapChainImageViews[i] = VK_NULL_HANDLE; // less validation layer errors on clean up after crash
     }
     vkDestroySwapchainKHR(this->logicalDevice, this->swapChain, nullptr);
 }

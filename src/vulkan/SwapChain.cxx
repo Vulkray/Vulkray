@@ -79,6 +79,7 @@ void SwapChain::createSwapChain(VkSwapchainKHR *swapChain, std::vector<VkImage> 
     VkResult result = vkCreateSwapchainKHR(logicalDevice, &swapCreateInfo, nullptr, swapChain);
     if (result != VK_SUCCESS) {
         spdlog::error("An issue was encountered while trying to create the Vulkan swap chain.");
+        *swapChain = VK_NULL_HANDLE; // less validation layer errors on clean up after error
         throw std::runtime_error("Failed to initialize the swap chain!");
     }
 
