@@ -15,13 +15,20 @@
 #include <vk_mem_alloc.h>
 
 void VertexBuffer::createVertexBuffer(AllocatedBuffer *vertexBuffer, VmaAllocator allocator,
-                                      const std::vector<Vertex> vertices) {
+                                      QueueFamilyIndices queueIndices, const std::vector<Vertex> vertices) {
     // Create vertex buffer create info struct
     VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bufferInfo.size = sizeof(vertices[0]) * vertices.size();
     bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT; // using both graphics and transfer queues
+    const unsigned int uniqueQueueFamilies[] = {
+            queueIndices.graphicsFamily.value(),
+            queueIndices.transferFamily.value()
+    };
+    bufferInfo.pQueueFamilyIndices = uniqueQueueFamilies;
+    bufferInfo.queueFamilyIndexCount = 2;
 
     VmaAllocationCreateInfo allocInfo = {};
     allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT; // required for vmaMapMemory()

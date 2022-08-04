@@ -42,7 +42,8 @@ void Vulkan::initialize(const char* engineName, GLFWwindow *engineWindow, const 
                                      this->queueFamilies.graphicsFamily.value());
     CommandBuffer::createCommandPool(&this->transferCommandPool, this->logicalDevice,
                                      this->queueFamilies.transferFamily.value());
-    VertexBuffer::createVertexBuffer(&this->vertexBuffer, this->memoryAllocator, vertices);
+    VertexBuffer::createVertexBuffer(&this->vertexBuffer, this->memoryAllocator,
+                                     this->queueFamilies, vertices);
     CommandBuffer::createCommandBuffer(&this->graphicsCommandBuffers, this->MAX_FRAMES_IN_FLIGHT,
                                        this->logicalDevice, this->graphicsCommandPool);
     CommandBuffer::createCommandBuffer(&this->transferCommandBuffers, this->MAX_FRAMES_IN_FLIGHT,
@@ -83,14 +84,14 @@ void Vulkan::getNextSwapChainImage(uint32_t *imageIndex, uint32_t frameIndex, GL
     vkResetFences(this->logicalDevice, 1, &this->inFlightFences[frameIndex]);
 }
 
-void Vulkan::resetCommandBuffer(uint32_t imageIndex, uint32_t frameIndex, const std::vector<Vertex> vertices) {
+void Vulkan::resetGraphicsCmdBuffer(uint32_t imageIndex, uint32_t frameIndex, const std::vector<Vertex> vertices) {
     vkResetCommandBuffer(this->graphicsCommandBuffers[frameIndex], 0);
-    CommandBuffer::recordCommandBuffer(this->graphicsCommandBuffers[frameIndex], imageIndex,
+    CommandBuffer::recordGraphicsCommands(this->graphicsCommandBuffers[frameIndex], imageIndex,
                                        this->graphicsPipeline, this->renderPass, this->swapChainFrameBuffers,
                                        this->vertexBuffer, vertices, this->swapChainExtent);
 }
 
-void Vulkan::submitCommandBuffer(uint32_t frameIndex) {
+void Vulkan::submitGraphicsCmdBuffer(uint32_t frameIndex) {
     CommandBuffer::submitCommandBuffer(&this->graphicsCommandBuffers[frameIndex], this->graphicsQueue,
                                        this->inFlightFences[frameIndex], this->imageAvailableSemaphores[frameIndex],
                                        this->renderFinishedSemaphores[frameIndex],

@@ -61,8 +61,8 @@ private:
         this->VulkanCore.waitForPreviousFrame(this->frameIndex);
         // Get the next image from the swap chain & reset cmd buffer
         this->VulkanCore.getNextSwapChainImage(&imageIndex, this->frameIndex, this->glfwWindow);
-        this->VulkanCore.resetCommandBuffer(imageIndex, this->frameIndex, this->vertices);
-        this->VulkanCore.submitCommandBuffer(this->frameIndex);
+        this->VulkanCore.resetGraphicsCmdBuffer(imageIndex, this->frameIndex, this->vertices);
+        this->VulkanCore.submitGraphicsCmdBuffer(this->frameIndex);
         this->VulkanCore.presentImageBuffer(&imageIndex, this->glfwWindow, &this->framebufferResized);
         // Advance index to the next frame
         this->frameIndex = (this->frameIndex + 1) % VulkanCore.MAX_FRAMES_IN_FLIGHT;

@@ -49,7 +49,7 @@ void CommandBuffer::createCommandBuffer(std::vector<VkCommandBuffer> *commandBuf
     }
 }
 
-void CommandBuffer::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex,
+void CommandBuffer::recordGraphicsCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex,
                                         VkPipeline graphicsPipeline, VkRenderPass renderPass,
                                         std::vector<VkFramebuffer> swapFrameBuffers, AllocatedBuffer vertexBuffer,
                                         const std::vector<Vertex> vertices, VkExtent2D swapExtent) {

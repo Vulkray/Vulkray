@@ -195,7 +195,7 @@ public:
     glm::mat4 matrix;
     glm::vec4 vec;
     static void createVertexBuffer(AllocatedBuffer *vertexBuffer, VmaAllocator allocator,
-                                   const std::vector<Vertex> vertices);
+                                   QueueFamilyIndices queueIndices, const std::vector<Vertex> vertices);
 };
 
 // ---------- CommandBuffer.cxx ---------- //
@@ -204,7 +204,7 @@ public:
     static void createCommandPool(VkCommandPool *commandPool, VkDevice logicalDevice, uint32_t queueIndex);
     static void createCommandBuffer(std::vector<VkCommandBuffer> *commandBuffers, const int MAX_FRAMES_IN_FLIGHT,
                                     VkDevice logicalDevice, VkCommandPool commandPool);
-    static void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex,
+    static void recordGraphicsCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex,
                                     VkPipeline graphicsPipeline, VkRenderPass renderPass,
                                     std::vector<VkFramebuffer> swapFrameBuffers, AllocatedBuffer vertexBuffer,
                                     const std::vector<Vertex> vertices, VkExtent2D swapExtent);
@@ -237,8 +237,8 @@ public:
     void waitForDeviceIdle(); // Wrapper for vkDeviceWaitIdle()
     void waitForPreviousFrame(uint32_t frameIndex); // Wrapper for vkWaitForFences()
     void getNextSwapChainImage(uint32_t *imageIndex, uint32_t frameIndex, GLFWwindow *window);
-    void resetCommandBuffer(uint32_t imageIndex, uint32_t frameIndex, const std::vector<Vertex> vertices);
-    void submitCommandBuffer(uint32_t frameIndex); // Wrapper for vkQueueSubmit() via CommandBuffer class
+    void resetGraphicsCmdBuffer(uint32_t imageIndex, uint32_t frameIndex, const std::vector<Vertex> vertices);
+    void submitGraphicsCmdBuffer(uint32_t frameIndex); // Wrapper for vkQueueSubmit() via CommandBuffer class
     void presentImageBuffer(uint32_t *imageIndex, GLFWwindow *window, bool *windowResized);
     void shutdown(); // Cleans up & terminates all Vulkan instances.
 private:
