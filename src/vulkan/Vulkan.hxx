@@ -201,8 +201,7 @@ public:
 // ---------- CommandBuffer.cxx ---------- //
 class CommandBuffer {
 public:
-    static void createCommandPool(VkCommandPool *commandPool, VkDevice logicalDevice,
-                                  QueueFamilyIndices queueFamilyIndices);
+    static void createCommandPool(VkCommandPool *commandPool, VkDevice logicalDevice, uint32_t queueIndex);
     static void createCommandBuffer(std::vector<VkCommandBuffer> *commandBuffers, const int MAX_FRAMES_IN_FLIGHT,
                                     VkDevice logicalDevice, VkCommandPool commandPool);
     static void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex,
@@ -268,8 +267,10 @@ private:
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
     std::vector<VkFramebuffer> swapChainFrameBuffers;
-    VkCommandPool commandPool;
-    std::vector<VkCommandBuffer> commandBuffers;
+    VkCommandPool graphicsCommandPool;
+    VkCommandPool transferCommandPool;
+    std::vector<VkCommandBuffer> graphicsCommandBuffers;
+    std::vector<VkCommandBuffer> transferCommandBuffers;
     // GPU queue handles
     VkQueue graphicsQueue;
     VkQueue presentQueue;

@@ -114,16 +114,18 @@ QueueFamilyIndices PhysicalDevice::findDeviceQueueFamilies(VkPhysicalDevice gpuD
         VkBool32 presentSupport = false;
         vkGetPhysicalDeviceSurfaceSupportKHR(gpuDevice, index, surface, &presentSupport);
 
+        VkQueueFlags queueFlags = queueFamily.queueFlags;
+
         if (presentSupport) {
             queueIndices.presentFamily = index; // found present queue index
         } else {
             // most likely a dedicated VK_QUEUE_TRANSFER_BIT capable queue family, check!
-            if (queueFamily.queueFlags & VK_QUEUE_TRANSFER_BIT) {
+            if ((queueFlags & VK_QUEUE_TRANSFER_BIT) && !(queueFlags & VK_QUEUE_GRAPHICS_BIT)) {
                 queueIndices.transferFamily = index;
                 queueIndices.dedicatedTransferFamily = true;
             }
         }
-        if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+        if (queueFlags & VK_QUEUE_GRAPHICS_BIT) {
             queueIndices.graphicsFamily = index; // found graphics queue index
 
             /* If a dedicated `VK_QUEUE_TRANSFER_BIT` capable queue family is not found on the GPU,

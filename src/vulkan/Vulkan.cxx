@@ -38,10 +38,15 @@ void Vulkan::initialize(const char* engineName, GLFWwindow *engineWindow, const 
                                              this->logicalDevice, this->swapChainExtent);
     FrameBuffers::createFrameBuffers(&this->swapChainFrameBuffers, this->swapChainImageViews,
                                      this->logicalDevice, this->renderPass, this->swapChainExtent);
-    CommandBuffer::createCommandPool(&this->commandPool, this->logicalDevice, this->queueFamilies);
+    CommandBuffer::createCommandPool(&this->graphicsCommandPool, this->logicalDevice,
+                                     this->queueFamilies.graphicsFamily.value());
+    CommandBuffer::createCommandPool(&this->transferCommandPool, this->logicalDevice,
+                                     this->queueFamilies.transferFamily.value());
     VertexBuffer::createVertexBuffer(&this->vertexBuffer, this->memoryAllocator, vertices);
-    CommandBuffer::createCommandBuffer(&this->commandBuffers, this->MAX_FRAMES_IN_FLIGHT,
-                                       this->logicalDevice, this->commandPool);
+    CommandBuffer::createCommandBuffer(&this->graphicsCommandBuffers, this->MAX_FRAMES_IN_FLIGHT,
+                                       this->logicalDevice, this->graphicsCommandPool);
+    CommandBuffer::createCommandBuffer(&this->transferCommandBuffers, this->MAX_FRAMES_IN_FLIGHT,
+                                       this->logicalDevice, this->transferCommandPool);
     Synchronization::createSyncObjects(&this->imageAvailableSemaphores, &this->renderFinishedSemaphores,
                                        &this->inFlightFences, this->logicalDevice, this->MAX_FRAMES_IN_FLIGHT);
     spdlog::debug("Initialized Vulkan instances.");
@@ -79,14 +84,14 @@ void Vulkan::getNextSwapChainImage(uint32_t *imageIndex, uint32_t frameIndex, GL
 }
 
 void Vulkan::resetCommandBuffer(uint32_t imageIndex, uint32_t frameIndex, const std::vector<Vertex> vertices) {
-    vkResetCommandBuffer(this->commandBuffers[frameIndex], 0);
-    CommandBuffer::recordCommandBuffer(this->commandBuffers[frameIndex], imageIndex,
+    vkResetCommandBuffer(this->graphicsCommandBuffers[frameIndex], 0);
+    CommandBuffer::recordCommandBuffer(this->graphicsCommandBuffers[frameIndex], imageIndex,
                                        this->graphicsPipeline, this->renderPass, this->swapChainFrameBuffers,
                                        this->vertexBuffer, vertices, this->swapChainExtent);
 }
 
 void Vulkan::submitCommandBuffer(uint32_t frameIndex) {
-    CommandBuffer::submitCommandBuffer(&this->commandBuffers[frameIndex], this->graphicsQueue,
+    CommandBuffer::submitCommandBuffer(&this->graphicsCommandBuffers[frameIndex], this->graphicsQueue,
                                        this->inFlightFences[frameIndex], this->imageAvailableSemaphores[frameIndex],
                                        this->renderFinishedSemaphores[frameIndex],
                                        this->waitSemaphores, this->signalSemaphores);
@@ -170,7 +175,8 @@ void Vulkan::shutdown() {
         vkDestroyFence(this->logicalDevice, this->inFlightFences.at(i), nullptr);
     }
     // Clean up Command Buffers, Logical & Physical devices, & VK instance
-    vkDestroyCommandPool(this->logicalDevice, this->commandPool, nullptr);
+    vkDestroyCommandPool(this->logicalDevice, this->transferCommandPool, nullptr);
+    vkDestroyCommandPool(this->logicalDevice, this->graphicsCommandPool, nullptr);
     vkDestroyDevice(this->logicalDevice, nullptr);
     vkDestroySurfaceKHR(this->vulkanInstance, this->surface, nullptr);
     vkDestroyInstance(this->vulkanInstance, nullptr);
