@@ -38,15 +38,14 @@ void Vulkan::initialize(const char* engineName, GLFWwindow *engineWindow, const 
                                              this->logicalDevice, this->swapChainExtent);
     FrameBuffers::createFrameBuffers(&this->swapChainFrameBuffers, this->swapChainImageViews,
                                      this->logicalDevice, this->renderPass, this->swapChainExtent);
-    CommandBuffer::createCommandPool(&this->graphicsCommandPool, this->logicalDevice,
-                                     this->queueFamilies.graphicsFamily.value());
-    CommandBuffer::createCommandPool(&this->transferCommandPool, this->logicalDevice,
-                                     this->queueFamilies.transferFamily.value());
-    Buffers::createVertexBuffer(&this->vertexBuffer, this->memoryAllocator, this->queueFamilies, vertices);
+    CommandBuffer::createCommandPool(&this->graphicsCommandPool, (VkCommandPoolCreateFlags) 0,
+                                     this->logicalDevice, this->queueFamilies.graphicsFamily.value());
+    CommandBuffer::createCommandPool(&this->transferCommandPool, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT,
+                                     this->logicalDevice, this->queueFamilies.transferFamily.value());
+    Buffers::createVertexBuffer(&this->vertexBuffer, this->memoryAllocator, this->queueFamilies, vertices,
+                                this->logicalDevice, this->transferCommandPool, this->transferQueue);
     CommandBuffer::createCommandBuffer(&this->graphicsCommandBuffers, this->MAX_FRAMES_IN_FLIGHT,
                                        this->logicalDevice, this->graphicsCommandPool);
-    CommandBuffer::createCommandBuffer(&this->transferCommandBuffers, this->MAX_FRAMES_IN_FLIGHT,
-                                       this->logicalDevice, this->transferCommandPool);
     Synchronization::createSyncObjects(&this->imageAvailableSemaphores, &this->renderFinishedSemaphores,
                                        &this->inFlightFences, this->logicalDevice, this->MAX_FRAMES_IN_FLIGHT);
     spdlog::debug("Initialized Vulkan instances.");

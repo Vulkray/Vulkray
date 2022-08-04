@@ -195,16 +195,21 @@ public:
     glm::mat4 matrix;
     glm::vec4 vec;
     static void createVertexBuffer(AllocatedBuffer *vertexBuffer, VmaAllocator allocator,
-                                   QueueFamilyIndices queueIndices, const std::vector<Vertex> vertices);
+                                   QueueFamilyIndices queueIndices, const std::vector<Vertex> vertices,
+                                   VkDevice logicalDevice, VkCommandPool transferPool, VkQueue transferQueue);
 private:
-    static void allocateBuffer(AllocatedBuffer *buffer, VmaAllocator allocator, VkBufferUsageFlagBits usageTypeBit,
+    static void allocateBuffer(AllocatedBuffer *buffer, VmaAllocator allocator, VkBufferUsageFlags usageTypeBit,
+                               VmaAllocationCreateFlags allocationFlags,
                                VkDeviceSize bufferSize, QueueFamilyIndices queueIndices);
+    static void copyBuffer(AllocatedBuffer srcBuffer, AllocatedBuffer dstBuffer, VkDeviceSize bufferSize,
+                           VkDevice logicalDevice, VkCommandPool commandPool, VkQueue transferQueue);
 };
 
 // ---------- CommandBuffer.cxx ---------- //
 class CommandBuffer {
 public:
-    static void createCommandPool(VkCommandPool *commandPool, VkDevice logicalDevice, uint32_t queueIndex);
+    static void createCommandPool(VkCommandPool *commandPool, VkCommandPoolCreateFlags additionalFlags,
+                                  VkDevice logicalDevice, uint32_t queueIndex);
     static void createCommandBuffer(std::vector<VkCommandBuffer> *commandBuffers, const int MAX_FRAMES_IN_FLIGHT,
                                     VkDevice logicalDevice, VkCommandPool commandPool);
     static void recordGraphicsCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex,
