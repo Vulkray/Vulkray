@@ -159,7 +159,7 @@ public:
                                    VkDevice logicalDevice, VkRenderPass renderPass, VkExtent2D swapChainExtent);
 };
 
-// ---------- VertexBuffer.cxx ---------- //
+// ---------- Buffers.cxx ---------- //
 struct Vertex {
     glm::vec2 pos;
     glm::vec3 color;
@@ -190,12 +190,15 @@ struct Vertex {
     }
 };
 
-class VertexBuffer {
+class Buffers {
 public:
     glm::mat4 matrix;
     glm::vec4 vec;
     static void createVertexBuffer(AllocatedBuffer *vertexBuffer, VmaAllocator allocator,
                                    QueueFamilyIndices queueIndices, const std::vector<Vertex> vertices);
+private:
+    static void allocateBuffer(AllocatedBuffer *buffer, VmaAllocator allocator, VkBufferUsageFlagBits usageTypeBit,
+                               VkDeviceSize bufferSize, QueueFamilyIndices queueIndices);
 };
 
 // ---------- CommandBuffer.cxx ---------- //

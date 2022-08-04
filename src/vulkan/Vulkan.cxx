@@ -42,8 +42,7 @@ void Vulkan::initialize(const char* engineName, GLFWwindow *engineWindow, const 
                                      this->queueFamilies.graphicsFamily.value());
     CommandBuffer::createCommandPool(&this->transferCommandPool, this->logicalDevice,
                                      this->queueFamilies.transferFamily.value());
-    VertexBuffer::createVertexBuffer(&this->vertexBuffer, this->memoryAllocator,
-                                     this->queueFamilies, vertices);
+    Buffers::createVertexBuffer(&this->vertexBuffer, this->memoryAllocator, this->queueFamilies, vertices);
     CommandBuffer::createCommandBuffer(&this->graphicsCommandBuffers, this->MAX_FRAMES_IN_FLIGHT,
                                        this->logicalDevice, this->graphicsCommandPool);
     CommandBuffer::createCommandBuffer(&this->transferCommandBuffers, this->MAX_FRAMES_IN_FLIGHT,

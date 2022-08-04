@@ -32,7 +32,7 @@ set(sources src/global_definitions.hxx src/Initialize.cxx
         src/vulkan/PhysicalDevice.cxx src/vulkan/LogicalDevice.cxx
         src/vulkan/VulkanMemoryAllocator.cxx src/vulkan/SwapChain.cxx
         src/vulkan/ImageViews.cxx src/vulkan/RenderPass.cxx
-        src/vulkan/VertexBuffer.cxx src/vulkan/GraphicsPipeline.cxx
+        src/vulkan/Buffers.cxx src/vulkan/GraphicsPipeline.cxx
         src/vulkan/FrameBuffers.cxx src/vulkan/CommandBuffer.cxx
         src/vulkan/Synchronization.cxx src/vulkan/Vulkan.cxx src/vulkan/Vulkan.hxx)
 

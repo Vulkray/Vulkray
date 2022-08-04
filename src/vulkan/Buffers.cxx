@@ -1,6 +1,6 @@
 /*
- * VertexBuffer.cxx
- * Allocates the Vertex Buffer for the vertex shader using the VMA allocator.
+ * Buffers.cxx
+ * Allocates the engine buffers for feeding the graphics pipeline using the VMA allocator.
  *
  * VULKRAY ENGINE SOFTWARE
  * Copyright (c) 2022, Max Rodriguez. All rights reserved.
@@ -14,13 +14,26 @@
 #include <spdlog/spdlog.h>
 #include <vk_mem_alloc.h>
 
-void VertexBuffer::createVertexBuffer(AllocatedBuffer *vertexBuffer, VmaAllocator allocator,
-                                      QueueFamilyIndices queueIndices, const std::vector<Vertex> vertices) {
+void Buffers::createVertexBuffer(AllocatedBuffer *vertexBuffer, VmaAllocator allocator,
+                                 QueueFamilyIndices queueIndices, const std::vector <Vertex> vertices) {
+    // Allocate the vertex buffer using the allocateBuffer() helper function
+    Buffers::allocateBuffer(vertexBuffer, allocator, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                            sizeof(vertices[0]) * vertices.size(), queueIndices);
+
+    // Map the vertex data over to the vertex buffer memory
+    void* data;
+    vmaMapMemory(allocator, vertexBuffer->_bufferMemory, &data);
+    memcpy(data, vertices.data(), (size_t) sizeof(vertices[0]) * vertices.size());
+    vmaUnmapMemory(allocator, vertexBuffer->_bufferMemory);
+}
+
+void Buffers::allocateBuffer(AllocatedBuffer *buffer, VmaAllocator allocator, VkBufferUsageFlagBits usageTypeBit,
+                             VkDeviceSize bufferSize, QueueFamilyIndices queueIndices) {
     // Create vertex buffer create info struct
     VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.size = sizeof(vertices[0]) * vertices.size();
-    bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    bufferInfo.size = bufferSize;
+    bufferInfo.usage = usageTypeBit;
 
     bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT; // using both graphics and transfer queues
     const unsigned int uniqueQueueFamilies[] = {
@@ -39,14 +52,9 @@ void VertexBuffer::createVertexBuffer(AllocatedBuffer *vertexBuffer, VmaAllocato
      * required memory for the buffer according to its needs and binds the memory to the buffer for you.
      */
     VkResult bufferResult = vmaCreateBuffer(allocator, &bufferInfo, &allocInfo,
-                                      &vertexBuffer->_buffer, &vertexBuffer->_bufferMemory, nullptr);
+                                      &buffer->_buffer, &buffer->_bufferMemory, nullptr);
     if (bufferResult != VK_SUCCESS) {
         spdlog::error("An error occurred after attempting to allocate the Vertex Buffer using VMA.");
         throw std::runtime_error("Failed to create the Vulkan vertex buffer!");
     }
-    // Map the vertex data over to the vertex buffer memory
-    void* data;
-    vmaMapMemory(allocator, vertexBuffer->_bufferMemory, &data);
-    memcpy(data, vertices.data(), (size_t) bufferInfo.size);
-    vmaUnmapMemory(allocator, vertexBuffer->_bufferMemory);
 }
