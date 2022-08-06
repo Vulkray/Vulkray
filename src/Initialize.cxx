@@ -18,14 +18,14 @@ class Initialize {
 public:
     void launch() {
         initGlfw(); // Initializes GLFW window
-        VulkanCore.initialize(this->WIN_TITLE, this->glfwWindow, this->vertices);
+        this->VulkanCore.initialize(this->WIN_TITLE, this->glfwWindow, this->vertices, this->indices);
         mainLoop(); // Main program loop
     }
     ~Initialize() {
         spdlog::debug("Cleaning up engine ...");
         // Cleanup Vulkan
-        VulkanCore.waitForDeviceIdle(); // finish GPUs last process
-        VulkanCore.shutdown();
+        this->VulkanCore.waitForDeviceIdle(); // finish GPUs last process
+        this->VulkanCore.shutdown();
         // Cleanup GLFW
         glfwDestroyWindow(this->glfwWindow);
         glfwTerminate();
@@ -51,9 +51,14 @@ private:
     bool framebufferResized = false;
     // TODO: vertex vector for vertex buffer; temporary!
     const std::vector<Vertex> vertices = {
-            {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-            {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-            {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+            {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+            {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+            {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+            {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+    };
+    // TODO: index buffer; temporary!
+    const std::vector<uint32_t> indices = {
+            0, 1, 2, 2, 3, 0
     };
 
     void renderFrame() {

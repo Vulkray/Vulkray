@@ -14,7 +14,8 @@
 
 #include <spdlog/spdlog.h>
 
-void Vulkan::initialize(const char* engineName, GLFWwindow *engineWindow, const std::vector<Vertex> vertices) {
+void Vulkan::initialize(const char* engineName, GLFWwindow *engineWindow,
+                        const std::vector<Vertex> vertices, const std::vector<uint32_t> indices) {
 
     spdlog::debug("Initializing Vulkan ...");
     VulkanInstance::createInstance(&this->vulkanInstance, engineName,
@@ -44,6 +45,8 @@ void Vulkan::initialize(const char* engineName, GLFWwindow *engineWindow, const 
                                      this->logicalDevice, this->queueFamilies.transferFamily.value());
     Buffers::createVertexBuffer(&this->vertexBuffer, this->memoryAllocator, this->queueFamilies, vertices,
                                 this->logicalDevice, this->transferCommandPool, this->transferQueue);
+    Buffers::createIndexBuffer(&this->indexBuffer, this->memoryAllocator, this->queueFamilies, indices,
+                               this->logicalDevice, this->transferCommandPool, this->transferQueue);
     CommandBuffer::createCommandBuffer(&this->graphicsCommandBuffers, this->MAX_FRAMES_IN_FLIGHT,
                                        this->logicalDevice, this->graphicsCommandPool);
     Synchronization::createSyncObjects(&this->imageAvailableSemaphores, &this->renderFinishedSemaphores,
@@ -159,8 +162,9 @@ void Vulkan::destroySwapChain() {
 void Vulkan::shutdown() {
     // Destroy the swap chain instances
     this->destroySwapChain();
-    // Destroy the vertex buffer instance and free its allocated memory using VMA.
+    // Destroy the engine's buffer instances and free all allocated memory using VMA.
     vmaDestroyBuffer(this->memoryAllocator, this->vertexBuffer._buffer, this->vertexBuffer._bufferMemory);
+    vmaDestroyBuffer(this->memoryAllocator, this->indexBuffer._buffer, this->indexBuffer._bufferMemory);
     // Destroy VMA memory allocator instance
     vmaDestroyAllocator(this->memoryAllocator);
     // Clean up Pipeline instances

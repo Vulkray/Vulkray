@@ -197,6 +197,9 @@ public:
     static void createVertexBuffer(AllocatedBuffer *vertexBuffer, VmaAllocator allocator,
                                    QueueFamilyIndices queueIndices, const std::vector<Vertex> vertices,
                                    VkDevice logicalDevice, VkCommandPool transferPool, VkQueue transferQueue);
+    static void createIndexBuffer(AllocatedBuffer *indexBuffer, VmaAllocator allocator,
+                                  QueueFamilyIndices queueIndices, const std::vector<uint32_t> indices,
+                                  VkDevice logicalDevice, VkCommandPool transferPool, VkQueue transferQueue);
 private:
     static void allocateBuffer(AllocatedBuffer *buffer, VmaAllocator allocator, VkBufferUsageFlags usageTypeBit,
                                VmaAllocationCreateFlags allocationFlags,
@@ -241,7 +244,8 @@ public:
     const std::vector<const char*> validationLayers = {
             "VK_LAYER_KHRONOS_validation"
     };
-    void initialize(const char* engineName, GLFWwindow *engineWindow, const std::vector<Vertex> vertices);
+    void initialize(const char* engineName, GLFWwindow *engineWindow,
+                    const std::vector<Vertex> vertices, const std::vector<uint32_t> indices);
     void waitForDeviceIdle(); // Wrapper for vkDeviceWaitIdle()
     void waitForPreviousFrame(uint32_t frameIndex); // Wrapper for vkWaitForFences()
     void getNextSwapChainImage(uint32_t *imageIndex, uint32_t frameIndex, GLFWwindow *window);
@@ -289,9 +293,9 @@ private:
     std::vector<VkFence> inFlightFences;
     VkSemaphore waitSemaphores[1];
     VkSemaphore signalSemaphores[1];
-    // Vertex Buffer allocation
+    // Buffer allocations
     AllocatedBuffer vertexBuffer;
-    VkMemoryRequirements vertexBufferMemoryRequirements;
+    AllocatedBuffer indexBuffer;
 };
 
 #endif //VULKRAY_VULKAN_HXX

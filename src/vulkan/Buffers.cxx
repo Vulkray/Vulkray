@@ -44,6 +44,36 @@ void Buffers::createVertexBuffer(AllocatedBuffer *vertexBuffer, VmaAllocator all
     vmaDestroyBuffer(allocator, stagingBuffer._buffer, stagingBuffer._bufferMemory);
 }
 
+void Buffers::createIndexBuffer(AllocatedBuffer *indexBuffer, VmaAllocator allocator,
+                                QueueFamilyIndices queueIndices, const std::vector<uint32_t> indices,
+                                VkDevice logicalDevice, VkCommandPool transferPool, VkQueue transferQueue) {
+
+    VkDeviceSize indexBufferSize = sizeof(indices[0]) * indices.size();
+
+    // Allocate the staging buffer using the allocateBuffer() helper function
+    AllocatedBuffer stagingBuffer;
+    Buffers::allocateBuffer(&stagingBuffer, allocator,
+                            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                            VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
+                            indexBufferSize, queueIndices);
+
+    // Map the vertex data over to the vertex buffer memory
+    void* data;
+    vmaMapMemory(allocator, stagingBuffer._bufferMemory, &data);
+    memcpy(data, indices.data(), (size_t) indexBufferSize);
+    vmaUnmapMemory(allocator, stagingBuffer._bufferMemory);
+
+    // Allocate the device local (GPU) vertex buffer
+    Buffers::allocateBuffer(indexBuffer, allocator,
+                            VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                            (VmaAllocationCreateFlagBits) 0, // VMA allocates device local memory on auto
+                            indexBufferSize, queueIndices);
+
+    // Copy the staging buffer on host RAM to the vertex buffer on GPU memory
+    copyBuffer(stagingBuffer, *indexBuffer, indexBufferSize, logicalDevice, transferPool, transferQueue);
+    vmaDestroyBuffer(allocator, stagingBuffer._buffer, stagingBuffer._bufferMemory);
+}
+
 void Buffers::allocateBuffer(AllocatedBuffer *buffer, VmaAllocator allocator, VkBufferUsageFlags usageTypeBit,
                              VmaAllocationCreateFlags allocationFlags,
                              VkDeviceSize bufferSize, QueueFamilyIndices queueIndices) {
