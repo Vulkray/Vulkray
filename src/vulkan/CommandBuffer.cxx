@@ -52,8 +52,9 @@ void CommandBuffer::createCommandBuffer(std::vector<VkCommandBuffer> *commandBuf
 
 void CommandBuffer::recordGraphicsCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex,
                                         VkPipeline graphicsPipeline, VkRenderPass renderPass,
-                                        std::vector<VkFramebuffer> swapFrameBuffers, AllocatedBuffer vertexBuffer,
-                                        const std::vector<Vertex> vertices, VkExtent2D swapExtent) {
+                                        std::vector<VkFramebuffer> swapFrameBuffers,
+                                        AllocatedBuffer vertexBuffer, AllocatedBuffer indexBuffer,
+                                        GraphicsInput graphicsInput, VkExtent2D swapExtent) {
 
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -74,19 +75,19 @@ void CommandBuffer::recordGraphicsCommands(VkCommandBuffer commandBuffer, uint32
     renderPassInfo.framebuffer = swapFrameBuffers[imageIndex];
     renderPassInfo.renderArea.offset = {0, 0};
     renderPassInfo.renderArea.extent = swapExtent;
-    VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
     renderPassInfo.clearValueCount = 1;
-    renderPassInfo.pClearValues = &clearColor;
+    renderPassInfo.pClearValues = &graphicsInput.bufferClearColor;
 
     // Submit (record) command to begin render pass
     vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
     // Record binding the graphics pipeline to the command buffer
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 
-    // Bind the Vertex Buffer(s) to the command buffer
+    // Bind the geometry buffers to the command buffer
     VkBuffer vertexBuffers[] = { vertexBuffer._buffer };
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+    vkCmdBindIndexBuffer(commandBuffer, indexBuffer._buffer, 0, VK_INDEX_TYPE_UINT32);
 
     // Record setting the viewport
     VkViewport viewport{};
@@ -105,7 +106,7 @@ void CommandBuffer::recordGraphicsCommands(VkCommandBuffer commandBuffer, uint32
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
     // Submit (record) the draw command and end the render pass
-    vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
+    vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(graphicsInput.indices.size()), 1, 0, 0, 0);
     vkCmdEndRenderPass(commandBuffer);
 
     // Finish recording to the command buffer

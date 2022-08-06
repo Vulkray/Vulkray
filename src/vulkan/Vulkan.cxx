@@ -14,8 +14,7 @@
 
 #include <spdlog/spdlog.h>
 
-void Vulkan::initialize(const char* engineName, GLFWwindow *engineWindow,
-                        const std::vector<Vertex> vertices, const std::vector<uint32_t> indices) {
+void Vulkan::initialize(const char* engineName, GLFWwindow *engineWindow, GraphicsInput graphicsInput) {
 
     spdlog::debug("Initializing Vulkan ...");
     VulkanInstance::createInstance(&this->vulkanInstance, engineName,
@@ -43,9 +42,9 @@ void Vulkan::initialize(const char* engineName, GLFWwindow *engineWindow,
                                      this->logicalDevice, this->queueFamilies.graphicsFamily.value());
     CommandBuffer::createCommandPool(&this->transferCommandPool, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT,
                                      this->logicalDevice, this->queueFamilies.transferFamily.value());
-    Buffers::createVertexBuffer(&this->vertexBuffer, this->memoryAllocator, this->queueFamilies, vertices,
+    Buffers::createVertexBuffer(&this->vertexBuffer, this->memoryAllocator, this->queueFamilies, graphicsInput.vertices,
                                 this->logicalDevice, this->transferCommandPool, this->transferQueue);
-    Buffers::createIndexBuffer(&this->indexBuffer, this->memoryAllocator, this->queueFamilies, indices,
+    Buffers::createIndexBuffer(&this->indexBuffer, this->memoryAllocator, this->queueFamilies, graphicsInput.indices,
                                this->logicalDevice, this->transferCommandPool, this->transferQueue);
     CommandBuffer::createCommandBuffer(&this->graphicsCommandBuffers, this->MAX_FRAMES_IN_FLIGHT,
                                        this->logicalDevice, this->graphicsCommandPool);
@@ -85,11 +84,11 @@ void Vulkan::getNextSwapChainImage(uint32_t *imageIndex, uint32_t frameIndex, GL
     vkResetFences(this->logicalDevice, 1, &this->inFlightFences[frameIndex]);
 }
 
-void Vulkan::resetGraphicsCmdBuffer(uint32_t imageIndex, uint32_t frameIndex, const std::vector<Vertex> vertices) {
+void Vulkan::resetGraphicsCmdBuffer(uint32_t imageIndex, uint32_t frameIndex, GraphicsInput graphicsInput) {
     vkResetCommandBuffer(this->graphicsCommandBuffers[frameIndex], 0);
     CommandBuffer::recordGraphicsCommands(this->graphicsCommandBuffers[frameIndex], imageIndex,
                                        this->graphicsPipeline, this->renderPass, this->swapChainFrameBuffers,
-                                       this->vertexBuffer, vertices, this->swapChainExtent);
+                                       this->vertexBuffer, this->indexBuffer, graphicsInput, this->swapChainExtent);
 }
 
 void Vulkan::submitGraphicsCmdBuffer(uint32_t frameIndex) {

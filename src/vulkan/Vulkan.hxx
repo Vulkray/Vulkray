@@ -209,6 +209,12 @@ private:
 };
 
 // ---------- CommandBuffer.cxx ---------- //
+struct GraphicsInput {
+    const std::vector<Vertex> vertices;
+    const std::vector<uint32_t> indices;
+    VkClearValue bufferClearColor;
+};
+
 class CommandBuffer {
 public:
     static void createCommandPool(VkCommandPool *commandPool, VkCommandPoolCreateFlags additionalFlags,
@@ -217,8 +223,9 @@ public:
                                     VkDevice logicalDevice, VkCommandPool commandPool);
     static void recordGraphicsCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex,
                                     VkPipeline graphicsPipeline, VkRenderPass renderPass,
-                                    std::vector<VkFramebuffer> swapFrameBuffers, AllocatedBuffer vertexBuffer,
-                                    const std::vector<Vertex> vertices, VkExtent2D swapExtent);
+                                    std::vector<VkFramebuffer> swapFrameBuffers,
+                                    AllocatedBuffer vertexBuffer, AllocatedBuffer indexBuffer,
+                                    GraphicsInput graphicsInput, VkExtent2D swapExtent);
     static void submitCommandBuffer(VkCommandBuffer *commandBuffer, VkQueue graphicsQueue, VkFence inFlightFence,
                                     VkSemaphore imageAvailableSemaphore, VkSemaphore renderFinishedSemaphore,
                                     VkSemaphore waitSemaphores[], VkSemaphore signalSemaphores[]);
@@ -244,12 +251,11 @@ public:
     const std::vector<const char*> validationLayers = {
             "VK_LAYER_KHRONOS_validation"
     };
-    void initialize(const char* engineName, GLFWwindow *engineWindow,
-                    const std::vector<Vertex> vertices, const std::vector<uint32_t> indices);
+    void initialize(const char* engineName, GLFWwindow *engineWindow, GraphicsInput graphicsInput);
     void waitForDeviceIdle(); // Wrapper for vkDeviceWaitIdle()
     void waitForPreviousFrame(uint32_t frameIndex); // Wrapper for vkWaitForFences()
     void getNextSwapChainImage(uint32_t *imageIndex, uint32_t frameIndex, GLFWwindow *window);
-    void resetGraphicsCmdBuffer(uint32_t imageIndex, uint32_t frameIndex, const std::vector<Vertex> vertices);
+    void resetGraphicsCmdBuffer(uint32_t imageIndex, uint32_t frameIndex, GraphicsInput graphicsInput);
     void submitGraphicsCmdBuffer(uint32_t frameIndex); // Wrapper for vkQueueSubmit() via CommandBuffer class
     void presentImageBuffer(uint32_t *imageIndex, GLFWwindow *window, bool *windowResized);
     void shutdown(); // Cleans up & terminates all Vulkan instances.

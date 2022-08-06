@@ -11,6 +11,7 @@
 
 #include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
+#include <vector>
 
 #include "vulkan/Vulkan.hxx"
 
@@ -18,7 +19,7 @@ class Initialize {
 public:
     void launch() {
         initGlfw(); // Initializes GLFW window
-        this->VulkanCore.initialize(this->WIN_TITLE, this->glfwWindow, this->vertices, this->indices);
+        this->VulkanCore.initialize(this->WIN_TITLE, this->glfwWindow, this->graphicsInput);
         mainLoop(); // Main program loop
     }
     ~Initialize() {
@@ -49,16 +50,16 @@ private:
 
     uint32_t frameIndex = 0;
     bool framebufferResized = false;
-    // TODO: vertex vector for vertex buffer; temporary!
-    const std::vector<Vertex> vertices = {
+    // TODO: Vulkan graphics input struct; temporary location!
+    GraphicsInput graphicsInput = {
+        .vertices = {
             {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
             {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
             {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
             {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
-    };
-    // TODO: index buffer; temporary!
-    const std::vector<uint32_t> indices = {
-            0, 1, 2, 2, 3, 0
+        },
+        .indices = {0, 1, 2, 2, 3, 0},
+        .bufferClearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}}
     };
 
     void renderFrame() {
@@ -66,7 +67,7 @@ private:
         this->VulkanCore.waitForPreviousFrame(this->frameIndex);
         // Get the next image from the swap chain & reset cmd buffer
         this->VulkanCore.getNextSwapChainImage(&imageIndex, this->frameIndex, this->glfwWindow);
-        this->VulkanCore.resetGraphicsCmdBuffer(imageIndex, this->frameIndex, this->vertices);
+        this->VulkanCore.resetGraphicsCmdBuffer(imageIndex, this->frameIndex, this->graphicsInput);
         this->VulkanCore.submitGraphicsCmdBuffer(this->frameIndex);
         this->VulkanCore.presentImageBuffer(&imageIndex, this->glfwWindow, &this->framebufferResized);
         // Advance index to the next frame
