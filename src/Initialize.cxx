@@ -11,6 +11,7 @@
 
 #include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
+#include <memory>
 #include <vector>
 
 #include "vulkan/Vulkan.hxx"
@@ -19,24 +20,21 @@ class Initialize {
 public:
     void launch() {
         initGlfw(); // Initializes GLFW window
-        this->VulkanCore.initialize(this->WIN_TITLE, this->glfwWindow, this->graphicsInput);
+        this->m_Vulkan = std::make_unique<Vulkan>(this->WIN_TITLE, this->glfwWindow, this->graphicsInput);
         mainLoop(); // Main program loop
     }
     ~Initialize() {
         spdlog::debug("Cleaning up engine ...");
-        // Cleanup Vulkan
-        this->VulkanCore.waitForDeviceIdle(); // finish GPUs last process
-        this->VulkanCore.shutdown();
         // Cleanup GLFW
         glfwDestroyWindow(this->glfwWindow);
         glfwTerminate();
     }
 private:
-    const char* WIN_TITLE = "Vulkray Engine - Alpha";
+    const char* WIN_TITLE = "Vulkray Engine";
     const int WIN_WIDTH = 900;
     const int WIN_HEIGHT = 600;
     GLFWwindow *glfwWindow{};
-    Vulkan VulkanCore;
+    std::unique_ptr<Vulkan> m_Vulkan;
 
     void initGlfw() {
         glfwInit();
@@ -64,14 +62,14 @@ private:
 
     void renderFrame() {
         uint32_t imageIndex;
-        this->VulkanCore.waitForPreviousFrame(this->frameIndex);
+        this->m_Vulkan->waitForPreviousFrame(this->frameIndex);
         // Get the next image from the swap chain & reset cmd buffer
-        this->VulkanCore.getNextSwapChainImage(&imageIndex, this->frameIndex, this->glfwWindow);
-        this->VulkanCore.resetGraphicsCmdBuffer(imageIndex, this->frameIndex, this->graphicsInput);
-        this->VulkanCore.submitGraphicsCmdBuffer(this->frameIndex);
-        this->VulkanCore.presentImageBuffer(&imageIndex, this->glfwWindow, &this->framebufferResized);
+        this->m_Vulkan->getNextSwapChainImage(&imageIndex, this->frameIndex, this->glfwWindow);
+        this->m_Vulkan->resetGraphicsCmdBuffer(imageIndex, this->frameIndex, this->graphicsInput);
+        this->m_Vulkan->submitGraphicsCmdBuffer(this->frameIndex);
+        this->m_Vulkan->presentImageBuffer(&imageIndex, this->glfwWindow, &this->framebufferResized);
         // Advance index to the next frame
-        this->frameIndex = (this->frameIndex + 1) % VulkanCore.MAX_FRAMES_IN_FLIGHT;
+        this->frameIndex = (this->frameIndex + 1) % m_Vulkan->MAX_FRAMES_IN_FLIGHT;
     }
 
     void mainLoop() {

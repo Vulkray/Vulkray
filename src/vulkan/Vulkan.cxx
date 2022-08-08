@@ -14,20 +14,26 @@
 
 #include <spdlog/spdlog.h>
 
-void Vulkan::initialize(const char* engineName, GLFWwindow *engineWindow, GraphicsInput graphicsInput) {
+Vulkan::Vulkan(const char* engineName, GLFWwindow *engineWindow, GraphicsInput graphicsInput) {
+
+    this->engineName = engineName;
+    this->engineWindow = engineWindow;
+    this->graphicsInput = graphicsInput;
 
     spdlog::debug("Initializing Vulkan ...");
-    VulkanInstance::createInstance(&this->vulkanInstance, engineName,
-                                   this->enableValidationLayers, this->validationLayers);
-    WindowSurface::createSurfaceKHR(&this->surface, this->vulkanInstance, engineWindow);
-    PhysicalDevice::selectPhysicalDevice(&this->physicalDevice, &this->queueFamilies, this->vulkanInstance,
+    // initialize modules using smart pointers and store as class properties
+    this->m_vulkanInstance = std::make_unique<VulkanInstance>(this);
+
+    WindowSurface::createSurfaceKHR(&this->surface, this->m_vulkanInstance->vulkanInstance, engineWindow);
+    PhysicalDevice::selectPhysicalDevice(&this->physicalDevice, &this->queueFamilies,
+                                         this->m_vulkanInstance->vulkanInstance,
                                          this->surface, this->requiredExtensions);
     LogicalDevice::createLogicalDevice(&this->logicalDevice,
                                        &this->graphicsQueue, &this->presentQueue, &this->transferQueue,
                                        this->physicalDevice, this->queueFamilies, this->requiredExtensions,
                                        this->enableValidationLayers, this->validationLayers);
     VulkanMemoryAllocator::initializeMemoryAllocator(&this->memoryAllocator, this->physicalDevice,
-                                                     this->logicalDevice, this->vulkanInstance);
+                                                     this->logicalDevice, this->m_vulkanInstance->vulkanInstance);
     SwapChain::createSwapChain(&this->swapChain, &this->swapChainImages, &this->swapChainImageFormat,
                                &this->swapChainExtent, this->logicalDevice, this->physicalDevice,
                                this->surface, this->queueFamilies, engineWindow);
@@ -158,8 +164,8 @@ void Vulkan::destroySwapChain() {
     vkDestroySwapchainKHR(this->logicalDevice, this->swapChain, nullptr);
 }
 
-void Vulkan::shutdown() {
-    // Destroy the swap chain instances
+Vulkan::~Vulkan() {
+    this->waitForDeviceIdle();
     this->destroySwapChain();
     // Destroy the engine's buffer instances and free all allocated memory using VMA.
     vmaDestroyBuffer(this->memoryAllocator, this->vertexBuffer._buffer, this->vertexBuffer._bufferMemory);
@@ -176,10 +182,9 @@ void Vulkan::shutdown() {
         vkDestroySemaphore(this->logicalDevice, this->renderFinishedSemaphores.at(i), nullptr);
         vkDestroyFence(this->logicalDevice, this->inFlightFences.at(i), nullptr);
     }
-    // Clean up Command Buffers, Logical & Physical devices, & VK instance
+    // Clean up Command Buffers, Logical & Physical devices
     vkDestroyCommandPool(this->logicalDevice, this->transferCommandPool, nullptr);
     vkDestroyCommandPool(this->logicalDevice, this->graphicsCommandPool, nullptr);
     vkDestroyDevice(this->logicalDevice, nullptr);
-    vkDestroySurfaceKHR(this->vulkanInstance, this->surface, nullptr);
-    vkDestroyInstance(this->vulkanInstance, nullptr);
+    vkDestroySurfaceKHR(this->m_vulkanInstance->vulkanInstance, this->surface, nullptr);
 }

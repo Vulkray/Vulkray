@@ -15,12 +15,11 @@
 #include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
 
-void VulkanInstance::createInstance(VkInstance* vkInstance, const char* appName,
-                                    const bool enableVkLayers, const std::vector<const char*> vkLayers) {
+VulkanInstance::VulkanInstance(Vulkan *m_Vulkan) {
 
     VkApplicationInfo applicationInfo{};
     applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    applicationInfo.pApplicationName = appName;
+    applicationInfo.pApplicationName = m_Vulkan->engineName;
     applicationInfo.applicationVersion = VK_MAKE_VERSION(0, 1, 0);
     applicationInfo.pEngineName = "No Engine";
     applicationInfo.engineVersion = VK_MAKE_VERSION(0, 0, 0);
@@ -39,7 +38,7 @@ void VulkanInstance::createInstance(VkInstance* vkInstance, const char* appName,
     createInfo.enabledLayerCount = 0;
 
     // Modify createInfo if vulkan validation layers requested
-    if (enableVkLayers) {
+    if (m_Vulkan->enableValidationLayers) {
         /*
          * On DEBUG cmake build, a warning may be printed by the driver.
          * This is NORMAL as it's simply highlighting that validation layers are enabled.
@@ -48,21 +47,21 @@ void VulkanInstance::createInstance(VkInstance* vkInstance, const char* appName,
          *  Update: hold on, it's happening without validation layers too... I don't know why lol
          */
         spdlog::info("Enabling validation layers..");
-        createInfo.enabledLayerCount = static_cast<uint32_t>(vkLayers.size());
-        createInfo.ppEnabledLayerNames = vkLayers.data();
+        createInfo.enabledLayerCount = static_cast<uint32_t>(m_Vulkan->validationLayers.size());
+        createInfo.ppEnabledLayerNames = m_Vulkan->validationLayers.data();
     }
 
     /*
      * Check supported vulkan validation layers, if requested.
      *  Ensures vkCreateInstance() never returns 'VK_ERROR_LAYER_NOT_PRESENT' enum.
      */
-    if (enableVkLayers && !checkValidationLayerSupport(vkLayers)) {
+    if (m_Vulkan->enableValidationLayers && !checkValidationLayerSupport(m_Vulkan->validationLayers)) {
         spdlog::error("Vulkan Validation layers requested, but not available!");
         throw std::runtime_error("Failed required validation layers check.");
     }
 
     // Create the Vulkan instance
-    VkResult result = vkCreateInstance(&createInfo, nullptr, vkInstance);
+    VkResult result = vkCreateInstance(&createInfo, nullptr, &this->vulkanInstance);
 
     if (result != VK_SUCCESS) {
         spdlog::error("An error occurred while creating the Vulkan instance:");
@@ -100,6 +99,9 @@ void VulkanInstance::createInstance(VkInstance* vkInstance, const char* appName,
         spdlog::error("System Vulkan API version does not provide required GLFW extensions.");
         throw std::runtime_error("Failed required extensions check.");
     }
+}
+VulkanInstance::~VulkanInstance() {
+    vkDestroyInstance(this->vulkanInstance, nullptr);
 }
 
 int VulkanInstance::checkRequiredExtensions(const char** glfwExtensions, uint32_t glfwCount,

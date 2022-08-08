@@ -22,16 +22,21 @@
 #include <GLFW/glfw3.h>
 #include <vk_mem_alloc.h>
 
+#include <memory>
 #include <array>
 #include <vector>
 #include <string>
 #include <optional>
 
+// Core Vulkan module prototype
+class Vulkan;
+
 // ---------- VulkanInstance.cxx ---------- //
 class VulkanInstance {
 public:
-    static void createInstance(VkInstance* vkInstance, const char* appName,
-                               const bool enableVkLayers, const std::vector<const char*> vkLayers);
+    VkInstance vulkanInstance{};
+    VulkanInstance(Vulkan *m_Vulkan);
+    ~VulkanInstance();
 private:
     static int checkRequiredExtensions(const char** glfwExtensions, uint32_t glfwCount,
                                        std::vector<VkExtensionProperties> extensions);
@@ -210,8 +215,8 @@ private:
 
 // ---------- CommandBuffer.cxx ---------- //
 struct GraphicsInput {
-    const std::vector<Vertex> vertices;
-    const std::vector<uint32_t> indices;
+    std::vector<Vertex> vertices;
+    std::vector<uint32_t> indices;
     VkClearValue bufferClearColor;
 };
 
@@ -244,6 +249,10 @@ public:
 class Vulkan {
 public:
     // Vulkan configuration
+    const char *engineName;
+    GLFWwindow *engineWindow;
+    GraphicsInput graphicsInput;
+
     const int MAX_FRAMES_IN_FLIGHT = 2;
     const std::vector<const char*> requiredExtensions = {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME
@@ -251,26 +260,15 @@ public:
     const std::vector<const char*> validationLayers = {
             "VK_LAYER_KHRONOS_validation"
     };
-    void initialize(const char* engineName, GLFWwindow *engineWindow, GraphicsInput graphicsInput);
-    void waitForDeviceIdle(); // Wrapper for vkDeviceWaitIdle()
-    void waitForPreviousFrame(uint32_t frameIndex); // Wrapper for vkWaitForFences()
-    void getNextSwapChainImage(uint32_t *imageIndex, uint32_t frameIndex, GLFWwindow *window);
-    void resetGraphicsCmdBuffer(uint32_t imageIndex, uint32_t frameIndex, GraphicsInput graphicsInput);
-    void submitGraphicsCmdBuffer(uint32_t frameIndex); // Wrapper for vkQueueSubmit() via CommandBuffer class
-    void presentImageBuffer(uint32_t *imageIndex, GLFWwindow *window, bool *windowResized);
-    void shutdown(); // Cleans up & terminates all Vulkan instances.
-private:
-    void recreateSwapChain(GLFWwindow *engineWindow);
-    void destroySwapChain();
 
     // Vulkan validation layers (debug build only)
-#ifdef NDEBUG
-    const bool enableValidationLayers = false;
-#else
-    const bool enableValidationLayers = true;
-#endif
-    // Vulkan instances
-    VkInstance vulkanInstance{};
+    #ifdef NDEBUG
+        const bool enableValidationLayers = false;
+    #else
+        const bool enableValidationLayers = true;
+    #endif
+    // Vulkan instance modules (RAII)
+    std::unique_ptr<VulkanInstance> m_vulkanInstance;
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
     QueueFamilyIndices queueFamilies;
     VkDevice logicalDevice = VK_NULL_HANDLE;
@@ -302,6 +300,18 @@ private:
     // Buffer allocations
     AllocatedBuffer vertexBuffer;
     AllocatedBuffer indexBuffer;
+
+    Vulkan(const char* engineName, GLFWwindow *engineWindow, GraphicsInput graphicsInput);
+    void waitForDeviceIdle(); // Wrapper for vkDeviceWaitIdle()
+    void waitForPreviousFrame(uint32_t frameIndex); // Wrapper for vkWaitForFences()
+    void getNextSwapChainImage(uint32_t *imageIndex, uint32_t frameIndex, GLFWwindow *window);
+    void resetGraphicsCmdBuffer(uint32_t imageIndex, uint32_t frameIndex, GraphicsInput graphicsInput);
+    void submitGraphicsCmdBuffer(uint32_t frameIndex); // Wrapper for vkQueueSubmit() via CommandBuffer class
+    void presentImageBuffer(uint32_t *imageIndex, GLFWwindow *window, bool *windowResized);
+    ~Vulkan();
+private:
+    void recreateSwapChain(GLFWwindow *engineWindow);
+    void destroySwapChain();
 };
 
 #endif //VULKRAY_VULKAN_HXX
