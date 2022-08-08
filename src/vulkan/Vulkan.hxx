@@ -74,17 +74,15 @@ struct QueueFamilyIndices {
     }
 };
 
-class PhysicalDevice {
+class PhysicalDevice: public VkModuleBase {
 public:
-    static void selectPhysicalDevice(VkPhysicalDevice *physicalDevice, QueueFamilyIndices *queueFamilies,
-                                     VkInstance vulkanInstance, VkSurfaceKHR surface,
-                                     const std::vector<const char*> extensions);
+    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+    QueueFamilyIndices queueFamilies;
+    PhysicalDevice(Vulkan *m_vulkan);
 private:
-    static QueueFamilyIndices findDeviceQueueFamilies(VkPhysicalDevice gpuDevice, VkSurfaceKHR surface);
-    static int rateGPUSuitability(VkPhysicalDevice gpuDevice, VkSurfaceKHR surface,
-                                  QueueFamilyIndices gpuQueueIndices,
-                                  const std::vector<const char*> extensions);
-    static bool checkGPUExtensionSupport(VkPhysicalDevice gpuDevice, const std::vector<const char*> extensions);
+    QueueFamilyIndices findDeviceQueueFamilies();
+    int rateGPUSuitability();
+    bool checkGPUExtensionSupport();
 };
 
 // ---------- LogicalDevice.cxx ---------- //
@@ -277,8 +275,7 @@ public:
     // Vulkan instance modules (RAII)
     std::unique_ptr<VulkanInstance> m_vulkanInstance;
     std::unique_ptr<WindowSurface> m_windowSurface;
-    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-    QueueFamilyIndices queueFamilies;
+    std::unique_ptr<PhysicalDevice> m_physicalDevice;
     VkDevice logicalDevice = VK_NULL_HANDLE;
     VmaAllocator memoryAllocator; // VMA allocator
     VkSwapchainKHR swapChain;
