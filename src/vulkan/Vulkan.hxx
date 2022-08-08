@@ -44,8 +44,8 @@ public:
     ~VulkanInstance();
 private:
     static int checkRequiredExtensions(const char** glfwExtensions, uint32_t glfwCount,
-                                       std::vector<VkExtensionProperties> extensions);
-    static bool checkValidationLayerSupport(const std::vector<const char*> vkLayers);
+                                std::vector<VkExtensionProperties> extensions);
+    bool checkValidationLayerSupport();
 };
 
 // ---------- WindowSurface.cxx ---------- //
@@ -86,13 +86,15 @@ private:
 };
 
 // ---------- LogicalDevice.cxx ---------- //
-class LogicalDevice {
+class LogicalDevice: public VkModuleBase {
 public:
-    static void createLogicalDevice(VkDevice *logicalDevice,
-                                    VkQueue *graphicsQueue, VkQueue *presentQueue, VkQueue *transferQueue,
-                                    VkPhysicalDevice physicalDevice, QueueFamilyIndices gpuQueueIndices,
-                                    const std::vector<const char*> gpuExtensions,
-                                    const bool enableVkLayers, const std::vector<const char*> vkLayers);
+    VkDevice logicalDevice = VK_NULL_HANDLE;
+    // GPU queue handles
+    VkQueue graphicsQueue;
+    VkQueue presentQueue;
+    VkQueue transferQueue;
+    LogicalDevice(Vulkan *m_vulkan);
+    ~LogicalDevice();
 };
 
 // ---------- VulkanMemoryAllocator.cxx ---------- //
@@ -276,7 +278,7 @@ public:
     std::unique_ptr<VulkanInstance> m_vulkanInstance;
     std::unique_ptr<WindowSurface> m_windowSurface;
     std::unique_ptr<PhysicalDevice> m_physicalDevice;
-    VkDevice logicalDevice = VK_NULL_HANDLE;
+    std::unique_ptr<LogicalDevice> m_logicalDevice;
     VmaAllocator memoryAllocator; // VMA allocator
     VkSwapchainKHR swapChain;
     std::vector<VkImage> swapChainImages;
@@ -291,10 +293,6 @@ public:
     VkCommandPool transferCommandPool;
     std::vector<VkCommandBuffer> graphicsCommandBuffers;
     std::vector<VkCommandBuffer> transferCommandBuffers;
-    // GPU queue handles
-    VkQueue graphicsQueue;
-    VkQueue presentQueue;
-    VkQueue transferQueue;
     // Synchronization Objects (semaphores / fences)
     std::vector<VkSemaphore> imageAvailableSemaphores;
     std::vector<VkSemaphore> renderFinishedSemaphores;

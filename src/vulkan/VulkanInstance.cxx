@@ -55,7 +55,7 @@ VulkanInstance::VulkanInstance(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
      * Check supported vulkan validation layers, if requested.
      *  Ensures vkCreateInstance() never returns 'VK_ERROR_LAYER_NOT_PRESENT' enum.
      */
-    if (this->m_vulkan->enableValidationLayers && !checkValidationLayerSupport(this->m_vulkan->validationLayers)) {
+    if (this->m_vulkan->enableValidationLayers && !this->checkValidationLayerSupport()) {
         spdlog::error("Vulkan Validation layers requested, but not available!");
         throw std::runtime_error("Failed required validation layers check.");
     }
@@ -120,14 +120,14 @@ int VulkanInstance::checkRequiredExtensions(const char** glfwExtensions, uint32_
     return 1;
 }
 
-bool VulkanInstance::checkValidationLayerSupport(const std::vector<const char*> vkLayers) {
+bool VulkanInstance::checkValidationLayerSupport() {
     uint32_t layerCount;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
     std::vector<VkLayerProperties> availableLayers(layerCount);
     vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-    for (const char* layerName : vkLayers) {
+    for (const char* layerName : this->m_vulkan->validationLayers) {
         bool layerFound = false;
 
         for (const auto& layerProperties : availableLayers) {

@@ -15,18 +15,15 @@
 #include <spdlog/spdlog.h>
 #include <set>
 
-void LogicalDevice::createLogicalDevice(VkDevice *logicalDevice,
-                                        VkQueue *graphicsQueue, VkQueue *presentQueue, VkQueue *transferQueue,
-                                        VkPhysicalDevice physicalDevice, QueueFamilyIndices gpuQueueIndices,
-                                        const std::vector<const char*> gpuExtensions,
-                                        const bool enableVkLayers, const std::vector<const char*> vkLayers) {
+LogicalDevice::LogicalDevice(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
+    QueueFamilyIndices queueFamilies = this->m_vulkan->m_physicalDevice->queueFamilies;
 
     // Logical device create info structs
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
     std::set<uint32_t> uniqueQueueFamilies = {
-            gpuQueueIndices.graphicsFamily.value(),
-            gpuQueueIndices.presentFamily.value(),
-            gpuQueueIndices.transferFamily.value()
+            queueFamilies.graphicsFamily.value(),
+            queueFamilies.presentFamily.value(),
+            queueFamilies.transferFamily.value()
     };
     VkPhysicalDeviceFeatures deviceFeatures{}; // device features are not configured for now
     VkDeviceCreateInfo createInfo{};
@@ -50,25 +47,30 @@ void LogicalDevice::createLogicalDevice(VkDevice *logicalDevice,
     createInfo.pQueueCreateInfos = queueCreateInfos.data();
     createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
     createInfo.pEnabledFeatures = &deviceFeatures;
-    createInfo.enabledExtensionCount = static_cast<uint32_t>(gpuExtensions.size());
-    createInfo.ppEnabledExtensionNames = gpuExtensions.data();
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(this->m_vulkan->requiredExtensions.size());
+    createInfo.ppEnabledExtensionNames = this->m_vulkan->requiredExtensions.data();
 
     // Validation layer fields are ignored by newer Vk implementations; set for compatibility
-    if (enableVkLayers) {
-        createInfo.enabledLayerCount = static_cast<uint32_t>(vkLayers.size());
-        createInfo.ppEnabledLayerNames = vkLayers.data();
+    if (this->m_vulkan->enableValidationLayers) {
+        createInfo.enabledLayerCount = static_cast<uint32_t>(this->m_vulkan->validationLayers.size());
+        createInfo.ppEnabledLayerNames = this->m_vulkan->validationLayers.data();
     } else {
         createInfo.enabledLayerCount = 0;
     }
 
     // Create the Vulkan logical device
-    if (vkCreateDevice(physicalDevice, &createInfo, nullptr, logicalDevice) != VK_SUCCESS) {
+    if (vkCreateDevice(this->m_vulkan->m_physicalDevice->physicalDevice,
+                       &createInfo, nullptr, &this->logicalDevice) != VK_SUCCESS) {
         spdlog::error("Failed to create the Vulkan logical device object!");
         throw std::runtime_error("Failed to create the logical device!");
     }
 
     // Create handles for Graphics, Present, and Transfer queues using given handle pointers
-    vkGetDeviceQueue(*logicalDevice, gpuQueueIndices.graphicsFamily.value(), 0, graphicsQueue);
-    vkGetDeviceQueue(*logicalDevice, gpuQueueIndices.presentFamily.value(), 0, presentQueue);
-    vkGetDeviceQueue(*logicalDevice, gpuQueueIndices.transferFamily.value(), 0, transferQueue);
+    vkGetDeviceQueue(this->logicalDevice, queueFamilies.graphicsFamily.value(), 0, &this->graphicsQueue);
+    vkGetDeviceQueue(this->logicalDevice, queueFamilies.presentFamily.value(), 0, &this->presentQueue);
+    vkGetDeviceQueue(this->logicalDevice, queueFamilies.transferFamily.value(), 0, &this->transferQueue);
+}
+
+LogicalDevice::~LogicalDevice() {
+    vkDestroyDevice(this->logicalDevice, nullptr);
 }

@@ -15,7 +15,7 @@
 #include <spdlog/spdlog.h>
 
 Vulkan::Vulkan(const char* engineName, GLFWwindow *engineWindow, GraphicsInput graphicsInput) {
-
+    // store as class properties for modules to access
     this->engineName = engineName;
     this->engineWindow = engineWindow;
     this->graphicsInput = graphicsInput;
@@ -25,53 +25,55 @@ Vulkan::Vulkan(const char* engineName, GLFWwindow *engineWindow, GraphicsInput g
     this->m_vulkanInstance = std::make_unique<VulkanInstance>(this);
     this->m_windowSurface = std::make_unique<WindowSurface>(this);
     this->m_physicalDevice = std::make_unique<PhysicalDevice>(this);
+    this->m_logicalDevice = std::make_unique<LogicalDevice>(this);
 
-    LogicalDevice::createLogicalDevice(&this->logicalDevice,
-                                       &this->graphicsQueue, &this->presentQueue, &this->transferQueue,
-                                       this->m_physicalDevice->physicalDevice, this->m_physicalDevice->queueFamilies,
-                                       this->requiredExtensions, this->enableValidationLayers, this->validationLayers);
     VulkanMemoryAllocator::initializeMemoryAllocator(&this->memoryAllocator, this->m_physicalDevice->physicalDevice,
-                                                     this->logicalDevice, this->m_vulkanInstance->vulkanInstance);
+                                                     this->m_logicalDevice->logicalDevice,
+                                                     this->m_vulkanInstance->vulkanInstance);
     SwapChain::createSwapChain(&this->swapChain, &this->swapChainImages, &this->swapChainImageFormat,
-                               &this->swapChainExtent, this->logicalDevice, this->m_physicalDevice->physicalDevice,
-                               this->m_windowSurface->surface, this->m_physicalDevice->queueFamilies, engineWindow);
-    ImageViews::createImageViews(&this->swapChainImageViews, this->logicalDevice,
+                               &this->swapChainExtent, this->m_logicalDevice->logicalDevice,
+                               this->m_physicalDevice->physicalDevice, this->m_windowSurface->surface,
+                               this->m_physicalDevice->queueFamilies, engineWindow);
+    ImageViews::createImageViews(&this->swapChainImageViews, this->m_logicalDevice->logicalDevice,
                                  this->swapChainImages, this->swapChainImageFormat);
-    RenderPass::createRenderPass(&this->renderPass, this->logicalDevice, this->swapChainImageFormat);
+    RenderPass::createRenderPass(&this->renderPass, this->m_logicalDevice->logicalDevice, this->swapChainImageFormat);
     GraphicsPipeline::createGraphicsPipeline(&this->graphicsPipeline, &this->pipelineLayout, this->renderPass,
-                                             this->logicalDevice, this->swapChainExtent);
+                                             this->m_logicalDevice->logicalDevice, this->swapChainExtent);
     FrameBuffers::createFrameBuffers(&this->swapChainFrameBuffers, this->swapChainImageViews,
-                                     this->logicalDevice, this->renderPass, this->swapChainExtent);
+                                     this->m_logicalDevice->logicalDevice, this->renderPass, this->swapChainExtent);
     CommandBuffer::createCommandPool(&this->graphicsCommandPool, (VkCommandPoolCreateFlags) 0,
-                                     this->logicalDevice, this->m_physicalDevice->queueFamilies.graphicsFamily.value());
+                                     this->m_logicalDevice->logicalDevice,
+                                     this->m_physicalDevice->queueFamilies.graphicsFamily.value());
     CommandBuffer::createCommandPool(&this->transferCommandPool, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT,
-                                     this->logicalDevice, this->m_physicalDevice->queueFamilies.transferFamily.value());
+                                     this->m_logicalDevice->logicalDevice,
+                                     this->m_physicalDevice->queueFamilies.transferFamily.value());
     Buffers::createVertexBuffer(&this->vertexBuffer, this->memoryAllocator, this->m_physicalDevice->queueFamilies,
-                                graphicsInput.vertices, this->logicalDevice,
-                                this->transferCommandPool, this->transferQueue);
+                                graphicsInput.vertices, this->m_logicalDevice->logicalDevice,
+                                this->transferCommandPool, this->m_logicalDevice->transferQueue);
     Buffers::createIndexBuffer(&this->indexBuffer, this->memoryAllocator, this->m_physicalDevice->queueFamilies,
-                               graphicsInput.indices, this->logicalDevice,
-                               this->transferCommandPool, this->transferQueue);
+                               graphicsInput.indices, this->m_logicalDevice->logicalDevice,
+                               this->transferCommandPool, this->m_logicalDevice->transferQueue);
     CommandBuffer::createCommandBuffer(&this->graphicsCommandBuffers, this->MAX_FRAMES_IN_FLIGHT,
-                                       this->logicalDevice, this->graphicsCommandPool);
+                                       this->m_logicalDevice->logicalDevice, this->graphicsCommandPool);
     Synchronization::createSyncObjects(&this->imageAvailableSemaphores, &this->renderFinishedSemaphores,
-                                       &this->inFlightFences, this->logicalDevice, this->MAX_FRAMES_IN_FLIGHT);
+                                       &this->inFlightFences, this->m_logicalDevice->logicalDevice,
+                                       this->MAX_FRAMES_IN_FLIGHT);
     spdlog::debug("Initialized Vulkan instances.");
 }
 
 // Synchronization / Command Buffer wrappers
 void Vulkan::waitForDeviceIdle() {
-    vkDeviceWaitIdle(this->logicalDevice);
+    vkDeviceWaitIdle(this->m_logicalDevice->logicalDevice);
 }
 
 void Vulkan::waitForPreviousFrame(uint32_t frameIndex) {
-    vkWaitForFences(this->logicalDevice, 1, &this->inFlightFences[frameIndex], VK_TRUE, UINT64_MAX);
+    vkWaitForFences(this->m_logicalDevice->logicalDevice, 1, &this->inFlightFences[frameIndex], VK_TRUE, UINT64_MAX);
 }
 
 void Vulkan::getNextSwapChainImage(uint32_t *imageIndex, uint32_t frameIndex, GLFWwindow *window) {
 
     // acquire next image view, also get swap chain status
-    VkResult result = vkAcquireNextImageKHR(this->logicalDevice, this->swapChain, UINT64_MAX,
+    VkResult result = vkAcquireNextImageKHR(this->m_logicalDevice->logicalDevice, this->swapChain, UINT64_MAX,
                           this->imageAvailableSemaphores[frameIndex], VK_NULL_HANDLE, imageIndex);
 
     /* check if vkAcquireNextImageKHR returned an out of date framebuffer flag
@@ -87,7 +89,7 @@ void Vulkan::getNextSwapChainImage(uint32_t *imageIndex, uint32_t frameIndex, GL
         throw std::runtime_error("Failed to acquire swap chain image!");
     }
     // reset fence only if we know we're submitting work
-    vkResetFences(this->logicalDevice, 1, &this->inFlightFences[frameIndex]);
+    vkResetFences(this->m_logicalDevice->logicalDevice, 1, &this->inFlightFences[frameIndex]);
 }
 
 void Vulkan::resetGraphicsCmdBuffer(uint32_t imageIndex, uint32_t frameIndex, GraphicsInput graphicsInput) {
@@ -98,7 +100,7 @@ void Vulkan::resetGraphicsCmdBuffer(uint32_t imageIndex, uint32_t frameIndex, Gr
 }
 
 void Vulkan::submitGraphicsCmdBuffer(uint32_t frameIndex) {
-    CommandBuffer::submitCommandBuffer(&this->graphicsCommandBuffers[frameIndex], this->graphicsQueue,
+    CommandBuffer::submitCommandBuffer(&this->graphicsCommandBuffers[frameIndex], this->m_logicalDevice->graphicsQueue,
                                        this->inFlightFences[frameIndex], this->imageAvailableSemaphores[frameIndex],
                                        this->renderFinishedSemaphores[frameIndex],
                                        this->waitSemaphores, this->signalSemaphores);
@@ -117,7 +119,7 @@ void Vulkan::presentImageBuffer(uint32_t *imageIndex, GLFWwindow *window, bool *
     presentInfo.pImageIndices = imageIndex;
     presentInfo.pResults = nullptr; // optional
 
-    VkResult result = vkQueuePresentKHR(this->presentQueue, &presentInfo);
+    VkResult result = vkQueuePresentKHR(this->m_logicalDevice->presentQueue, &presentInfo);
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || *windowResized) {
         *windowResized = false; // reset GLFW triggered framebuffer resized flag
@@ -143,25 +145,26 @@ void Vulkan::recreateSwapChain(GLFWwindow *engineWindow) {
     this->destroySwapChain(); // destroy the previous swap chain
 
     SwapChain::createSwapChain(&this->swapChain, &this->swapChainImages, &this->swapChainImageFormat,
-                               &this->swapChainExtent, this->logicalDevice, this->m_physicalDevice->physicalDevice,
-                               this->m_windowSurface->surface, this->m_physicalDevice->queueFamilies, engineWindow);
-    ImageViews::createImageViews(&this->swapChainImageViews, this->logicalDevice,
+                               &this->swapChainExtent, this->m_logicalDevice->logicalDevice,
+                               this->m_physicalDevice->physicalDevice, this->m_windowSurface->surface,
+                               this->m_physicalDevice->queueFamilies, engineWindow);
+    ImageViews::createImageViews(&this->swapChainImageViews, this->m_logicalDevice->logicalDevice,
                                  this->swapChainImages, this->swapChainImageFormat);
     FrameBuffers::createFrameBuffers(&this->swapChainFrameBuffers, this->swapChainImageViews,
-                                     this->logicalDevice, this->renderPass, this->swapChainExtent);
+                                     this->m_logicalDevice->logicalDevice, this->renderPass, this->swapChainExtent);
 }
 void Vulkan::destroySwapChain() {
     // Destroy the frame buffer instances
     for (size_t i = 0; i < this->swapChainFrameBuffers.size(); i++) {
-        vkDestroyFramebuffer(this->logicalDevice, this->swapChainFrameBuffers[i], nullptr);
+        vkDestroyFramebuffer(this->m_logicalDevice->logicalDevice, this->swapChainFrameBuffers[i], nullptr);
         this->swapChainFrameBuffers[i] = VK_NULL_HANDLE; // less validation layer errors on clean up after crash
     }
     // Destroy the swap chain image view instances
     for (size_t i = 0; i < this->swapChainImageViews.size(); i++) {
-        vkDestroyImageView(this->logicalDevice, this->swapChainImageViews[i], nullptr);
+        vkDestroyImageView(this->m_logicalDevice->logicalDevice, this->swapChainImageViews[i], nullptr);
         this->swapChainImageViews[i] = VK_NULL_HANDLE; // less validation layer errors on clean up after crash
     }
-    vkDestroySwapchainKHR(this->logicalDevice, this->swapChain, nullptr);
+    vkDestroySwapchainKHR(this->m_logicalDevice->logicalDevice, this->swapChain, nullptr);
 }
 
 Vulkan::~Vulkan() {
@@ -173,19 +176,18 @@ Vulkan::~Vulkan() {
     // Destroy VMA memory allocator instance
     vmaDestroyAllocator(this->memoryAllocator);
     // Clean up Pipeline instances
-    vkDestroyPipeline(this->logicalDevice, this->graphicsPipeline, nullptr);
-    vkDestroyPipelineLayout(this->logicalDevice, this->pipelineLayout, nullptr);
-    vkDestroyRenderPass(this->logicalDevice, this->renderPass, nullptr);
+    vkDestroyPipeline(this->m_logicalDevice->logicalDevice, this->graphicsPipeline, nullptr);
+    vkDestroyPipelineLayout(this->m_logicalDevice->logicalDevice, this->pipelineLayout, nullptr);
+    vkDestroyRenderPass(this->m_logicalDevice->logicalDevice, this->renderPass, nullptr);
     // Clean up synchronization objects
     for (int i = 0; i < this->MAX_FRAMES_IN_FLIGHT; i++) {
-        vkDestroySemaphore(this->logicalDevice, this->imageAvailableSemaphores.at(i), nullptr);
-        vkDestroySemaphore(this->logicalDevice, this->renderFinishedSemaphores.at(i), nullptr);
-        vkDestroyFence(this->logicalDevice, this->inFlightFences.at(i), nullptr);
+        vkDestroySemaphore(this->m_logicalDevice->logicalDevice, this->imageAvailableSemaphores.at(i), nullptr);
+        vkDestroySemaphore(this->m_logicalDevice->logicalDevice, this->renderFinishedSemaphores.at(i), nullptr);
+        vkDestroyFence(this->m_logicalDevice->logicalDevice, this->inFlightFences.at(i), nullptr);
     }
     // Clean up Command Buffers, Logical & Physical devices
-    vkDestroyCommandPool(this->logicalDevice, this->transferCommandPool, nullptr);
-    vkDestroyCommandPool(this->logicalDevice, this->graphicsCommandPool, nullptr);
-    vkDestroyDevice(this->logicalDevice, nullptr);
+    vkDestroyCommandPool(this->m_logicalDevice->logicalDevice, this->transferCommandPool, nullptr);
+    vkDestroyCommandPool(this->m_logicalDevice->logicalDevice, this->graphicsCommandPool, nullptr);
 }
 
 // Module base class constructor
