@@ -23,11 +23,11 @@ Vulkan::Vulkan(const char* engineName, GLFWwindow *engineWindow, GraphicsInput g
     spdlog::debug("Initializing Vulkan ...");
     // initialize modules using smart pointers and store as class properties
     this->m_vulkanInstance = std::make_unique<VulkanInstance>(this);
+    this->m_windowSurface = std::make_unique<WindowSurface>(this);
 
-    WindowSurface::createSurfaceKHR(&this->surface, this->m_vulkanInstance->vulkanInstance, engineWindow);
     PhysicalDevice::selectPhysicalDevice(&this->physicalDevice, &this->queueFamilies,
                                          this->m_vulkanInstance->vulkanInstance,
-                                         this->surface, this->requiredExtensions);
+                                         this->m_windowSurface->surface, this->requiredExtensions);
     LogicalDevice::createLogicalDevice(&this->logicalDevice,
                                        &this->graphicsQueue, &this->presentQueue, &this->transferQueue,
                                        this->physicalDevice, this->queueFamilies, this->requiredExtensions,
@@ -36,7 +36,7 @@ Vulkan::Vulkan(const char* engineName, GLFWwindow *engineWindow, GraphicsInput g
                                                      this->logicalDevice, this->m_vulkanInstance->vulkanInstance);
     SwapChain::createSwapChain(&this->swapChain, &this->swapChainImages, &this->swapChainImageFormat,
                                &this->swapChainExtent, this->logicalDevice, this->physicalDevice,
-                               this->surface, this->queueFamilies, engineWindow);
+                               this->m_windowSurface->surface, this->queueFamilies, engineWindow);
     ImageViews::createImageViews(&this->swapChainImageViews, this->logicalDevice,
                                  this->swapChainImages, this->swapChainImageFormat);
     RenderPass::createRenderPass(&this->renderPass, this->logicalDevice, this->swapChainImageFormat);
@@ -144,7 +144,7 @@ void Vulkan::recreateSwapChain(GLFWwindow *engineWindow) {
 
     SwapChain::createSwapChain(&this->swapChain, &this->swapChainImages, &this->swapChainImageFormat,
                                &this->swapChainExtent, this->logicalDevice, this->physicalDevice,
-                               this->surface, this->queueFamilies, engineWindow);
+                               this->m_windowSurface->surface, this->queueFamilies, engineWindow);
     ImageViews::createImageViews(&this->swapChainImageViews, this->logicalDevice,
                                  this->swapChainImages, this->swapChainImageFormat);
     FrameBuffers::createFrameBuffers(&this->swapChainFrameBuffers, this->swapChainImageViews,
@@ -186,5 +186,9 @@ Vulkan::~Vulkan() {
     vkDestroyCommandPool(this->logicalDevice, this->transferCommandPool, nullptr);
     vkDestroyCommandPool(this->logicalDevice, this->graphicsCommandPool, nullptr);
     vkDestroyDevice(this->logicalDevice, nullptr);
-    vkDestroySurfaceKHR(this->m_vulkanInstance->vulkanInstance, this->surface, nullptr);
+}
+
+// Module base class constructor
+VkModuleBase::VkModuleBase(Vulkan *m_vulkan) {
+    this->m_vulkan = m_vulkan; // store pointer to core Vulkan class instance in every module
 }

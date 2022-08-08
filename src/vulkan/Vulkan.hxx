@@ -28,14 +28,19 @@
 #include <string>
 #include <optional>
 
-// Core Vulkan module prototype
+// Class prototypes
 class Vulkan;
+class VkModuleBase {
+public:
+    Vulkan *m_vulkan; // every module has a pointer to the core Vulkan class instance
+    VkModuleBase(Vulkan *m_vulkan);
+};
 
 // ---------- VulkanInstance.cxx ---------- //
-class VulkanInstance {
+class VulkanInstance: public VkModuleBase {
 public:
-    VkInstance vulkanInstance{};
-    VulkanInstance(Vulkan *m_Vulkan);
+    VkInstance vulkanInstance;
+    VulkanInstance(Vulkan *m_vulkan);
     ~VulkanInstance();
 private:
     static int checkRequiredExtensions(const char** glfwExtensions, uint32_t glfwCount,
@@ -44,9 +49,11 @@ private:
 };
 
 // ---------- WindowSurface.cxx ---------- //
-class WindowSurface {
+class WindowSurface: public VkModuleBase {
 public:
-    static void createSurfaceKHR(VkSurfaceKHR *surface, VkInstance vulkanInstance, GLFWwindow *window);
+    VkSurfaceKHR surface;
+    WindowSurface(Vulkan *m_vulkan);
+    ~WindowSurface();
 };
 
 // ---------- PhysicalDevice.cxx ---------- //
@@ -269,11 +276,11 @@ public:
     #endif
     // Vulkan instance modules (RAII)
     std::unique_ptr<VulkanInstance> m_vulkanInstance;
+    std::unique_ptr<WindowSurface> m_windowSurface;
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
     QueueFamilyIndices queueFamilies;
     VkDevice logicalDevice = VK_NULL_HANDLE;
     VmaAllocator memoryAllocator; // VMA allocator
-    VkSurfaceKHR surface;
     VkSwapchainKHR swapChain;
     std::vector<VkImage> swapChainImages;
     VkFormat swapChainImageFormat;

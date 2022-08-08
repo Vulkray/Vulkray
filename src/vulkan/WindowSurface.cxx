@@ -21,22 +21,25 @@
     #include <GLFW/glfw3native.h>
 #endif
 
-void WindowSurface::createSurfaceKHR(VkSurfaceKHR *surface, VkInstance vulkanInstance, GLFWwindow *window) {
+WindowSurface::WindowSurface(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
 
     // Windows platform-specific window
     #ifdef _WIN32
         VkWin32SurfaceCreateInfoKHR createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-        createInfo.hwnd = glfwGetWin32Window(window);
+        createInfo.hwnd = glfwGetWin32Window(this->m_vulkan->engineWindow);
         createInfo.hinstance = GetModuleHandle(nullptr);
 
-        if (vkCreateWin32SurfaceKHR(vulkanInstance, &createInfo, nullptr, surface) != VK_SUCCESS) {
+        VkResult result = vkCreateWin32SurfaceKHR(this->m_vulkan->m_vulkanInstance->vulkanInstance,
+                                                  &createInfo, nullptr, this->surface);
+        if (result != VK_SUCCESS) {
             spdlog::error("Failed to create Vulkan window surface instance.");
             throw std::runtime_error("Failed to create window surface!");
         }
     // GLFW window surface
     #elifdef __unix__
-        VkResult result = glfwCreateWindowSurface(vulkanInstance, window, nullptr, surface);
+        VkResult result = glfwCreateWindowSurface(this->m_vulkan->m_vulkanInstance->vulkanInstance,
+                                                  this->m_vulkan->engineWindow, nullptr, &this->surface);
 
         if (result != VK_SUCCESS) {
             // Check if it's a GLFW error or a Vulkan error
@@ -60,4 +63,8 @@ void WindowSurface::createSurfaceKHR(VkSurfaceKHR *surface, VkInstance vulkanIns
             throw std::runtime_error("Failed to create the Vulkan window surface!");
         }
     #endif
+}
+
+WindowSurface::~WindowSurface() {
+    vkDestroySurfaceKHR(this->m_vulkan->m_vulkanInstance->vulkanInstance, this->surface, nullptr);
 }

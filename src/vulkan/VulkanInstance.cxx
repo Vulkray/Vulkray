@@ -15,11 +15,11 @@
 #include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
 
-VulkanInstance::VulkanInstance(Vulkan *m_Vulkan) {
+VulkanInstance::VulkanInstance(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
 
     VkApplicationInfo applicationInfo{};
     applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    applicationInfo.pApplicationName = m_Vulkan->engineName;
+    applicationInfo.pApplicationName = this->m_vulkan->engineName;
     applicationInfo.applicationVersion = VK_MAKE_VERSION(0, 1, 0);
     applicationInfo.pEngineName = "No Engine";
     applicationInfo.engineVersion = VK_MAKE_VERSION(0, 0, 0);
@@ -38,7 +38,7 @@ VulkanInstance::VulkanInstance(Vulkan *m_Vulkan) {
     createInfo.enabledLayerCount = 0;
 
     // Modify createInfo if vulkan validation layers requested
-    if (m_Vulkan->enableValidationLayers) {
+    if (this->m_vulkan->enableValidationLayers) {
         /*
          * On DEBUG cmake build, a warning may be printed by the driver.
          * This is NORMAL as it's simply highlighting that validation layers are enabled.
@@ -47,15 +47,15 @@ VulkanInstance::VulkanInstance(Vulkan *m_Vulkan) {
          *  Update: hold on, it's happening without validation layers too... I don't know why lol
          */
         spdlog::info("Enabling validation layers..");
-        createInfo.enabledLayerCount = static_cast<uint32_t>(m_Vulkan->validationLayers.size());
-        createInfo.ppEnabledLayerNames = m_Vulkan->validationLayers.data();
+        createInfo.enabledLayerCount = static_cast<uint32_t>(this->m_vulkan->validationLayers.size());
+        createInfo.ppEnabledLayerNames = this->m_vulkan->validationLayers.data();
     }
 
     /*
      * Check supported vulkan validation layers, if requested.
      *  Ensures vkCreateInstance() never returns 'VK_ERROR_LAYER_NOT_PRESENT' enum.
      */
-    if (m_Vulkan->enableValidationLayers && !checkValidationLayerSupport(m_Vulkan->validationLayers)) {
+    if (this->m_vulkan->enableValidationLayers && !checkValidationLayerSupport(this->m_vulkan->validationLayers)) {
         spdlog::error("Vulkan Validation layers requested, but not available!");
         throw std::runtime_error("Failed required validation layers check.");
     }
