@@ -26,10 +26,8 @@ Vulkan::Vulkan(const char* engineName, GLFWwindow *engineWindow, GraphicsInput g
     this->m_windowSurface = std::make_unique<WindowSurface>(this);
     this->m_physicalDevice = std::make_unique<PhysicalDevice>(this);
     this->m_logicalDevice = std::make_unique<LogicalDevice>(this);
+    this->m_VMA = std::make_unique<VulkanMemoryAllocator>(this);
 
-    VulkanMemoryAllocator::initializeMemoryAllocator(&this->memoryAllocator, this->m_physicalDevice->physicalDevice,
-                                                     this->m_logicalDevice->logicalDevice,
-                                                     this->m_vulkanInstance->vulkanInstance);
     SwapChain::createSwapChain(&this->swapChain, &this->swapChainImages, &this->swapChainImageFormat,
                                &this->swapChainExtent, this->m_logicalDevice->logicalDevice,
                                this->m_physicalDevice->physicalDevice, this->m_windowSurface->surface,
@@ -47,10 +45,12 @@ Vulkan::Vulkan(const char* engineName, GLFWwindow *engineWindow, GraphicsInput g
     CommandBuffer::createCommandPool(&this->transferCommandPool, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT,
                                      this->m_logicalDevice->logicalDevice,
                                      this->m_physicalDevice->queueFamilies.transferFamily.value());
-    Buffers::createVertexBuffer(&this->vertexBuffer, this->memoryAllocator, this->m_physicalDevice->queueFamilies,
+    Buffers::createVertexBuffer(&this->vertexBuffer, this->m_VMA->memoryAllocator,
+                                this->m_physicalDevice->queueFamilies,
                                 graphicsInput.vertices, this->m_logicalDevice->logicalDevice,
                                 this->transferCommandPool, this->m_logicalDevice->transferQueue);
-    Buffers::createIndexBuffer(&this->indexBuffer, this->memoryAllocator, this->m_physicalDevice->queueFamilies,
+    Buffers::createIndexBuffer(&this->indexBuffer, this->m_VMA->memoryAllocator,
+                               this->m_physicalDevice->queueFamilies,
                                graphicsInput.indices, this->m_logicalDevice->logicalDevice,
                                this->transferCommandPool, this->m_logicalDevice->transferQueue);
     CommandBuffer::createCommandBuffer(&this->graphicsCommandBuffers, this->MAX_FRAMES_IN_FLIGHT,
@@ -171,10 +171,8 @@ Vulkan::~Vulkan() {
     this->waitForDeviceIdle();
     this->destroySwapChain();
     // Destroy the engine's buffer instances and free all allocated memory using VMA.
-    vmaDestroyBuffer(this->memoryAllocator, this->vertexBuffer._buffer, this->vertexBuffer._bufferMemory);
-    vmaDestroyBuffer(this->memoryAllocator, this->indexBuffer._buffer, this->indexBuffer._bufferMemory);
-    // Destroy VMA memory allocator instance
-    vmaDestroyAllocator(this->memoryAllocator);
+    vmaDestroyBuffer(this->m_VMA->memoryAllocator, this->vertexBuffer._buffer, this->vertexBuffer._bufferMemory);
+    vmaDestroyBuffer(this->m_VMA->memoryAllocator, this->indexBuffer._buffer, this->indexBuffer._bufferMemory);
     // Clean up Pipeline instances
     vkDestroyPipeline(this->m_logicalDevice->logicalDevice, this->graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(this->m_logicalDevice->logicalDevice, this->pipelineLayout, nullptr);

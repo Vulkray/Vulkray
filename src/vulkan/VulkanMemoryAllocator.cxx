@@ -13,18 +13,20 @@
 #include <vk_mem_alloc.h>
 #include "Vulkan.hxx"
 
-void VulkanMemoryAllocator::initializeMemoryAllocator(VmaAllocator *memoryAllocator, VkPhysicalDevice physicalDevice,
-                                                      VkDevice logicalDevice, VkInstance vulkanInstance) {
+VulkanMemoryAllocator::VulkanMemoryAllocator(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
     VmaVulkanFunctions vulkanFunctions = {};
     vulkanFunctions.vkGetInstanceProcAddr = &vkGetInstanceProcAddr;
     vulkanFunctions.vkGetDeviceProcAddr = &vkGetDeviceProcAddr;
 
     VmaAllocatorCreateInfo allocatorCreateInfo = {};
     allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_3;
-    allocatorCreateInfo.physicalDevice = physicalDevice;
-    allocatorCreateInfo.device = logicalDevice;
-    allocatorCreateInfo.instance = vulkanInstance;
+    allocatorCreateInfo.physicalDevice = this->m_vulkan->m_physicalDevice->physicalDevice;
+    allocatorCreateInfo.device = this->m_vulkan->m_logicalDevice->logicalDevice;
+    allocatorCreateInfo.instance = this->m_vulkan->m_vulkanInstance->vulkanInstance;
     allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
 
-    vmaCreateAllocator(&allocatorCreateInfo, memoryAllocator);
+    vmaCreateAllocator(&allocatorCreateInfo, &this->memoryAllocator);
+}
+VulkanMemoryAllocator::~VulkanMemoryAllocator() {
+    vmaDestroyAllocator(this->memoryAllocator);
 }

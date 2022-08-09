@@ -102,10 +102,11 @@ struct AllocatedBuffer {
     VkBuffer _buffer;
     VmaAllocation _bufferMemory;
 };
-class VulkanMemoryAllocator {
+class VulkanMemoryAllocator: public VkModuleBase {
 public:
-    static void initializeMemoryAllocator(VmaAllocator *memoryAllocator, VkPhysicalDevice physicalDevice,
-                                   VkDevice logicalDevice, VkInstance vulkanInstance);
+    VmaAllocator memoryAllocator;
+    VulkanMemoryAllocator(Vulkan *m_vulkan);
+    ~VulkanMemoryAllocator();
 };
 
 // ---------- SwapChain.cxx ---------- //
@@ -279,7 +280,7 @@ public:
     std::unique_ptr<WindowSurface> m_windowSurface;
     std::unique_ptr<PhysicalDevice> m_physicalDevice;
     std::unique_ptr<LogicalDevice> m_logicalDevice;
-    VmaAllocator memoryAllocator; // VMA allocator
+    std::unique_ptr<VulkanMemoryAllocator> m_VMA;
     VkSwapchainKHR swapChain;
     std::vector<VkImage> swapChainImages;
     VkFormat swapChainImageFormat;
