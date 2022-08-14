@@ -27,14 +27,14 @@ include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
 # Source code files
-set(sources src/global_definitions.hxx src/Initialize.cxx
-        src/vulkan/VulkanInstance.cxx src/vulkan/WindowSurface.cxx
+set(sources src/global_definitions.hxx src/vulkan/Vulkan.hxx src/Initialize.cxx
+        src/vulkan/VulkanInstance.cxx src/vulkan/Window.cxx
         src/vulkan/PhysicalDevice.cxx src/vulkan/LogicalDevice.cxx
         src/vulkan/VulkanMemoryAllocator.cxx src/vulkan/SwapChain.cxx
         src/vulkan/ImageViews.cxx src/vulkan/RenderPass.cxx
         src/vulkan/Buffers.cxx src/vulkan/GraphicsPipeline.cxx
         src/vulkan/FrameBuffers.cxx src/vulkan/CommandBuffer.cxx
-        src/vulkan/Synchronization.cxx src/vulkan/Vulkan.cxx src/vulkan/Vulkan.hxx)
+        src/vulkan/Synchronization.cxx src/vulkan/Vulkan.cxx)
 
 # Executable targets
 add_executable(${name} ${sources})

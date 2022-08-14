@@ -17,18 +17,15 @@
 #include <limits>
 #include <algorithm>
 
-void SwapChain::createSwapChain(VkSwapchainKHR *swapChain, std::vector<VkImage> *swapImages,
-                                VkFormat *format, VkExtent2D *extent, VkDevice logicalDevice,
-                                VkPhysicalDevice gpuDevice, VkSurfaceKHR surface,
-                                QueueFamilyIndices queueIndices, GLFWwindow *window) {
-
+SwapChain::SwapChain(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
     // Get device swap chain support info
-    SwapChainSupportDetails supportDetails = SwapChain::querySwapChainSupport(gpuDevice, surface);
+    SwapChainSupportDetails supportDetails = SwapChain::querySwapChainSupport(
+            this->m_vulkan->m_physicalDevice->physicalDevice, this->m_vulkan->m_window->surface);
 
     // Choose swap chain configuration
     VkSurfaceFormatKHR surfaceFormat = SwapChain::chooseSurfaceFormat(supportDetails.formats);
     VkPresentModeKHR presentMode = SwapChain::choosePresentMode(supportDetails.presentModes);
-    VkExtent2D swapExtent = SwapChain::chooseSwapExtent(supportDetails.capabilities, window);
+    VkExtent2D swapExtent = SwapChain::chooseSwapExtent(supportDetails.capabilities, this->m_vulkan->m_window->window);
     uint32_t imageCount = supportDetails.capabilities.minImageCount + 1;
 
     // fallback to maximum image count if variable above exceeds it
@@ -38,7 +35,7 @@ void SwapChain::createSwapChain(VkSwapchainKHR *swapChain, std::vector<VkImage> 
 
     VkSwapchainCreateInfoKHR swapCreateInfo{};
     swapCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    swapCreateInfo.surface = surface;
+    swapCreateInfo.surface = this->m_vulkan->m_window->surface;
     swapCreateInfo.minImageCount = imageCount;
     swapCreateInfo.imageFormat = surfaceFormat.format;
     swapCreateInfo.imageColorSpace = surfaceFormat.colorSpace;
@@ -49,6 +46,8 @@ void SwapChain::createSwapChain(VkSwapchainKHR *swapChain, std::vector<VkImage> 
      * If we want to implement post-processing rendering, switch to VK_IMAGE_USAGE_TRANSFER_DST_BIT instead.
      */
     swapCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+    QueueFamilyIndices queueIndices = this->m_vulkan->m_physicalDevice->queueFamilies;
 
     // Get GPU device queue indices
     uint32_t queueFamilyIndices[] = {
@@ -76,20 +75,37 @@ void SwapChain::createSwapChain(VkSwapchainKHR *swapChain, std::vector<VkImage> 
     swapCreateInfo.oldSwapchain = VK_NULL_HANDLE; // swap recreation not yet implemented; temporary!
 
     // Initialize the Vulkan swap chain instance
-    VkResult result = vkCreateSwapchainKHR(logicalDevice, &swapCreateInfo, nullptr, swapChain);
+    VkResult result = vkCreateSwapchainKHR(this->m_vulkan->m_logicalDevice->logicalDevice,
+                                           &swapCreateInfo, nullptr, &this->swapChain);
     if (result != VK_SUCCESS) {
         spdlog::error("An issue was encountered while trying to create the Vulkan swap chain.");
-        *swapChain = VK_NULL_HANDLE; // less validation layer errors on clean up after error
+        this->swapChain = VK_NULL_HANDLE; // less validation layer errors on clean up after error
         throw std::runtime_error("Failed to initialize the swap chain!");
     }
 
     // Get the swap chain images handles
-    vkGetSwapchainImagesKHR(logicalDevice, *swapChain, &imageCount, nullptr);
-    swapImages->resize(imageCount); // resize swap chain images vector to expected image count
-    vkGetSwapchainImagesKHR(logicalDevice, *swapChain, &imageCount, swapImages->data());
+    vkGetSwapchainImagesKHR(this->m_vulkan->m_logicalDevice->logicalDevice,
+                            this->swapChain, &imageCount, nullptr);
+    this->swapChainImages.resize(imageCount); // resize swap chain images vector to expected image count
+    vkGetSwapchainImagesKHR(this->m_vulkan->m_logicalDevice->logicalDevice,
+                            this->swapChain, &imageCount, this->swapChainImages.data());
     // Store swap format & extent in variable pointers for global use
-    *format = surfaceFormat.format;
-    *extent = swapExtent;
+    this->swapChainImageFormat = surfaceFormat.format;
+    this->swapChainExtent = swapExtent;
+}
+
+SwapChain::~SwapChain() {
+    for (size_t i = 0; i < this->m_vulkan->swapChainFrameBuffers.size(); i++) {
+        vkDestroyFramebuffer(this->m_vulkan->m_logicalDevice->logicalDevice,
+                             this->m_vulkan->swapChainFrameBuffers[i], nullptr);
+        this->m_vulkan->swapChainFrameBuffers[i] = VK_NULL_HANDLE; // less validation layer errors on clean up
+    }
+    for (size_t i = 0; i < this->m_vulkan->swapChainImageViews.size(); i++) {
+        vkDestroyImageView(this->m_vulkan->m_logicalDevice->logicalDevice,
+                           this->m_vulkan->swapChainImageViews[i], nullptr);
+        this->m_vulkan->swapChainImageViews[i] = VK_NULL_HANDLE; // less validation layer errors on clean up
+    }
+    vkDestroySwapchainKHR(this->m_vulkan->m_logicalDevice->logicalDevice, this->swapChain, nullptr);
 }
 
 SwapChainSupportDetails SwapChain::querySwapChainSupport(VkPhysicalDevice gpuDevice, VkSurfaceKHR surface) {

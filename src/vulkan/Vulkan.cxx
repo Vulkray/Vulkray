@@ -11,34 +11,30 @@
  */
 
 #include "Vulkan.hxx"
-
 #include <spdlog/spdlog.h>
 
-Vulkan::Vulkan(const char* engineName, GLFWwindow *engineWindow, GraphicsInput graphicsInput) {
-    // store as class properties for modules to access
-    this->engineName = engineName;
-    this->engineWindow = engineWindow;
+Vulkan::Vulkan(GraphicsInput graphicsInput) {
+    // store as class attribute for modules to access
     this->graphicsInput = graphicsInput;
 
-    spdlog::debug("Initializing Vulkan ...");
     // initialize modules using smart pointers and store as class properties
+    spdlog::debug("Initializing Vulkan ...");
     this->m_vulkanInstance = std::make_unique<VulkanInstance>(this);
-    this->m_windowSurface = std::make_unique<WindowSurface>(this);
+    this->m_window = std::make_unique<Window>(this);
     this->m_physicalDevice = std::make_unique<PhysicalDevice>(this);
     this->m_logicalDevice = std::make_unique<LogicalDevice>(this);
     this->m_VMA = std::make_unique<VulkanMemoryAllocator>(this);
+    this->m_swapChain = std::make_unique<SwapChain>(this);
 
-    SwapChain::createSwapChain(&this->swapChain, &this->swapChainImages, &this->swapChainImageFormat,
-                               &this->swapChainExtent, this->m_logicalDevice->logicalDevice,
-                               this->m_physicalDevice->physicalDevice, this->m_windowSurface->surface,
-                               this->m_physicalDevice->queueFamilies, engineWindow);
     ImageViews::createImageViews(&this->swapChainImageViews, this->m_logicalDevice->logicalDevice,
-                                 this->swapChainImages, this->swapChainImageFormat);
-    RenderPass::createRenderPass(&this->renderPass, this->m_logicalDevice->logicalDevice, this->swapChainImageFormat);
+                                 this->m_swapChain->swapChainImages, this->m_swapChain->swapChainImageFormat);
+    RenderPass::createRenderPass(&this->renderPass, this->m_logicalDevice->logicalDevice,
+                                 this->m_swapChain->swapChainImageFormat);
     GraphicsPipeline::createGraphicsPipeline(&this->graphicsPipeline, &this->pipelineLayout, this->renderPass,
-                                             this->m_logicalDevice->logicalDevice, this->swapChainExtent);
+                                             this->m_logicalDevice->logicalDevice, this->m_swapChain->swapChainExtent);
     FrameBuffers::createFrameBuffers(&this->swapChainFrameBuffers, this->swapChainImageViews,
-                                     this->m_logicalDevice->logicalDevice, this->renderPass, this->swapChainExtent);
+                                     this->m_logicalDevice->logicalDevice, this->renderPass,
+                                     this->m_swapChain->swapChainExtent);
     CommandBuffer::createCommandPool(&this->graphicsCommandPool, (VkCommandPoolCreateFlags) 0,
                                      this->m_logicalDevice->logicalDevice,
                                      this->m_physicalDevice->queueFamilies.graphicsFamily.value());
@@ -58,7 +54,24 @@ Vulkan::Vulkan(const char* engineName, GLFWwindow *engineWindow, GraphicsInput g
     Synchronization::createSyncObjects(&this->imageAvailableSemaphores, &this->renderFinishedSemaphores,
                                        &this->inFlightFences, this->m_logicalDevice->logicalDevice,
                                        this->MAX_FRAMES_IN_FLIGHT);
-    spdlog::debug("Initialized Vulkan instances.");
+    spdlog::debug("Running Vulkan renderer ...");
+
+    while(!glfwWindowShouldClose(this->m_window->window)) {
+        glfwPollEvents(); // Respond to window events (exit, resize, etc.)
+        renderFrame();
+    }
+}
+
+void Vulkan::renderFrame() {
+    uint32_t imageIndex;
+    this->waitForPreviousFrame();
+    // Get the next image from the swap chain & reset cmd buffer
+    this->getNextSwapChainImage(&imageIndex);
+    this->resetGraphicsCmdBuffer(imageIndex);
+    this->submitGraphicsCmdBuffer();
+    this->presentImageBuffer(&imageIndex);
+    // Advance index to the next frame
+    this->frameIndex = (this->frameIndex + 1) % this->MAX_FRAMES_IN_FLIGHT;
 }
 
 // Synchronization / Command Buffer wrappers
@@ -66,21 +79,23 @@ void Vulkan::waitForDeviceIdle() {
     vkDeviceWaitIdle(this->m_logicalDevice->logicalDevice);
 }
 
-void Vulkan::waitForPreviousFrame(uint32_t frameIndex) {
-    vkWaitForFences(this->m_logicalDevice->logicalDevice, 1, &this->inFlightFences[frameIndex], VK_TRUE, UINT64_MAX);
+void Vulkan::waitForPreviousFrame() {
+    vkWaitForFences(this->m_logicalDevice->logicalDevice, 1,
+                    &this->inFlightFences[this->frameIndex], VK_TRUE, UINT64_MAX);
 }
 
-void Vulkan::getNextSwapChainImage(uint32_t *imageIndex, uint32_t frameIndex, GLFWwindow *window) {
+void Vulkan::getNextSwapChainImage(uint32_t *imageIndex) {
 
     // acquire next image view, also get swap chain status
-    VkResult result = vkAcquireNextImageKHR(this->m_logicalDevice->logicalDevice, this->swapChain, UINT64_MAX,
-                          this->imageAvailableSemaphores[frameIndex], VK_NULL_HANDLE, imageIndex);
+    VkResult result = vkAcquireNextImageKHR(this->m_logicalDevice->logicalDevice, this->m_swapChain->swapChain,
+                                            UINT64_MAX, this->imageAvailableSemaphores[frameIndex],
+                                            VK_NULL_HANDLE, imageIndex);
 
     /* check if vkAcquireNextImageKHR returned an out of date framebuffer flag
      * Note: this is not a feature on all Vulkan compatible drivers! also checking via GLFW resize callback!
      */
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-        this->recreateSwapChain(window);
+        this->recreateSwapChain();
         return;
 
     // TODO: Handle VK_SUBOPTIMAL_KHR status code
@@ -92,28 +107,30 @@ void Vulkan::getNextSwapChainImage(uint32_t *imageIndex, uint32_t frameIndex, GL
     vkResetFences(this->m_logicalDevice->logicalDevice, 1, &this->inFlightFences[frameIndex]);
 }
 
-void Vulkan::resetGraphicsCmdBuffer(uint32_t imageIndex, uint32_t frameIndex, GraphicsInput graphicsInput) {
+void Vulkan::resetGraphicsCmdBuffer(uint32_t imageIndex) {
     vkResetCommandBuffer(this->graphicsCommandBuffers[frameIndex], 0);
     CommandBuffer::recordGraphicsCommands(this->graphicsCommandBuffers[frameIndex], imageIndex,
                                        this->graphicsPipeline, this->renderPass, this->swapChainFrameBuffers,
-                                       this->vertexBuffer, this->indexBuffer, graphicsInput, this->swapChainExtent);
+                                       this->vertexBuffer, this->indexBuffer, this->graphicsInput,
+                                       this->m_swapChain->swapChainExtent);
 }
 
-void Vulkan::submitGraphicsCmdBuffer(uint32_t frameIndex) {
-    CommandBuffer::submitCommandBuffer(&this->graphicsCommandBuffers[frameIndex], this->m_logicalDevice->graphicsQueue,
-                                       this->inFlightFences[frameIndex], this->imageAvailableSemaphores[frameIndex],
-                                       this->renderFinishedSemaphores[frameIndex],
+void Vulkan::submitGraphicsCmdBuffer() {
+    CommandBuffer::submitCommandBuffer(&this->graphicsCommandBuffers[this->frameIndex],
+                                       this->m_logicalDevice->graphicsQueue, this->inFlightFences[this->frameIndex],
+                                       this->imageAvailableSemaphores[this->frameIndex],
+                                       this->renderFinishedSemaphores[this->frameIndex],
                                        this->waitSemaphores, this->signalSemaphores);
 }
 
-void Vulkan::presentImageBuffer(uint32_t *imageIndex, GLFWwindow *window, bool *windowResized) {
+void Vulkan::presentImageBuffer(uint32_t *imageIndex) {
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 
     presentInfo.waitSemaphoreCount = 1;
     presentInfo.pWaitSemaphores = this->signalSemaphores;
 
-    VkSwapchainKHR swapChains[] = {this->swapChain};
+    VkSwapchainKHR swapChains[] = {this->m_swapChain->swapChain};
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapChains;
     presentInfo.pImageIndices = imageIndex;
@@ -121,9 +138,9 @@ void Vulkan::presentImageBuffer(uint32_t *imageIndex, GLFWwindow *window, bool *
 
     VkResult result = vkQueuePresentKHR(this->m_logicalDevice->presentQueue, &presentInfo);
 
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || *windowResized) {
-        *windowResized = false; // reset GLFW triggered framebuffer resized flag
-        this->recreateSwapChain(window);
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || this->framebufferResized) {
+        this->framebufferResized = false; // reset GLFW triggered framebuffer resized flag
+        this->recreateSwapChain();
 
     } else if (result != VK_SUCCESS) {
         spdlog::error("An error occurred while submitting a swap chain image for presentation.");
@@ -132,44 +149,21 @@ void Vulkan::presentImageBuffer(uint32_t *imageIndex, GLFWwindow *window, bool *
 }
 
 // Swap chain recreation methods
-void Vulkan::recreateSwapChain(GLFWwindow *engineWindow) {
+void Vulkan::recreateSwapChain() {
+    this->m_window->waitForWindowFocus();
+    this->waitForDeviceIdle();
+    this->m_swapChain.reset(); // destroy the previous swap chain
+    this->m_swapChain = std::make_unique<SwapChain>(this);
 
-    int width = 0, height = 0;
-    glfwGetFramebufferSize(engineWindow, &width, &height);
-    while (width == 0 || height == 0) { // pause graphics until window is un-minimized
-        glfwGetFramebufferSize(engineWindow, &width, &height);
-        glfwWaitEvents();
-    }
-
-    this->waitForDeviceIdle(); // finish last GPU render
-    this->destroySwapChain(); // destroy the previous swap chain
-
-    SwapChain::createSwapChain(&this->swapChain, &this->swapChainImages, &this->swapChainImageFormat,
-                               &this->swapChainExtent, this->m_logicalDevice->logicalDevice,
-                               this->m_physicalDevice->physicalDevice, this->m_windowSurface->surface,
-                               this->m_physicalDevice->queueFamilies, engineWindow);
     ImageViews::createImageViews(&this->swapChainImageViews, this->m_logicalDevice->logicalDevice,
-                                 this->swapChainImages, this->swapChainImageFormat);
+                                 this->m_swapChain->swapChainImages, this->m_swapChain->swapChainImageFormat);
     FrameBuffers::createFrameBuffers(&this->swapChainFrameBuffers, this->swapChainImageViews,
-                                     this->m_logicalDevice->logicalDevice, this->renderPass, this->swapChainExtent);
-}
-void Vulkan::destroySwapChain() {
-    // Destroy the frame buffer instances
-    for (size_t i = 0; i < this->swapChainFrameBuffers.size(); i++) {
-        vkDestroyFramebuffer(this->m_logicalDevice->logicalDevice, this->swapChainFrameBuffers[i], nullptr);
-        this->swapChainFrameBuffers[i] = VK_NULL_HANDLE; // less validation layer errors on clean up after crash
-    }
-    // Destroy the swap chain image view instances
-    for (size_t i = 0; i < this->swapChainImageViews.size(); i++) {
-        vkDestroyImageView(this->m_logicalDevice->logicalDevice, this->swapChainImageViews[i], nullptr);
-        this->swapChainImageViews[i] = VK_NULL_HANDLE; // less validation layer errors on clean up after crash
-    }
-    vkDestroySwapchainKHR(this->m_logicalDevice->logicalDevice, this->swapChain, nullptr);
+                                     this->m_logicalDevice->logicalDevice, this->renderPass,
+                                     this->m_swapChain->swapChainExtent);
 }
 
 Vulkan::~Vulkan() {
     this->waitForDeviceIdle();
-    this->destroySwapChain();
     // Destroy the engine's buffer instances and free all allocated memory using VMA.
     vmaDestroyBuffer(this->m_VMA->memoryAllocator, this->vertexBuffer._buffer, this->vertexBuffer._bufferMemory);
     vmaDestroyBuffer(this->m_VMA->memoryAllocator, this->indexBuffer._buffer, this->indexBuffer._bufferMemory);

@@ -1,6 +1,6 @@
 /*
- * SurfaceKHR.cxx
- * Creates the Vulkan Surface instance for presenting to the GLFW window.
+ * Window.cxx
+ * Inits GLFW and the GLFW window instance along with its VkSurfaceKHR instance.
  *
  * VULKRAY ENGINE SOFTWARE
  * Copyright (c) 2022, Max Rodriguez. All rights reserved.
@@ -21,13 +21,24 @@
     #include <GLFW/glfw3native.h>
 #endif
 
-WindowSurface::WindowSurface(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
+Window::Window(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
+    // Initialize the GLFW window object
+    glfwInit();
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+
+    this->title = (char*) this->m_vulkan->engineName;
+    this->window = glfwCreateWindow(this->width, this->height, this->title, nullptr, nullptr);
+
+    glfwSetWindowUserPointer(this->window, this->m_vulkan);
+    glfwSetFramebufferSizeCallback(this->window, Window::framebufferResizeCallback);
+    spdlog::debug("Initialized GLFW window.");
 
     // Windows platform-specific window
     #ifdef _WIN32
         VkWin32SurfaceCreateInfoKHR createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-        createInfo.hwnd = glfwGetWin32Window(this->m_vulkan->engineWindow);
+        createInfo.hwnd = glfwGetWin32Window(this->window);
         createInfo.hinstance = GetModuleHandle(nullptr);
 
         VkResult result = vkCreateWin32SurfaceKHR(this->m_vulkan->m_vulkanInstance->vulkanInstance,
@@ -39,7 +50,7 @@ WindowSurface::WindowSurface(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
     // GLFW window surface
     #elifdef __unix__
         VkResult result = glfwCreateWindowSurface(this->m_vulkan->m_vulkanInstance->vulkanInstance,
-                                                  this->m_vulkan->engineWindow, nullptr, &this->surface);
+                                                  this->window, nullptr, &this->surface);
 
         if (result != VK_SUCCESS) {
             // Check if it's a GLFW error or a Vulkan error
@@ -48,7 +59,7 @@ WindowSurface::WindowSurface(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
 
             if (errorCode != GLFW_NO_ERROR) {
                 spdlog::error("A GLFW error occurred while trying to create the window surface:");
-                spdlog::error("Error: {0}", errorMsg); // print error description
+                spdlog::error("Error: {0}", errorMsg);
             } else {
                 spdlog::error("A Vulkan error occurred while trying to create the window surface:");
                 switch (result) {
@@ -65,6 +76,25 @@ WindowSurface::WindowSurface(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
     #endif
 }
 
-WindowSurface::~WindowSurface() {
+Window::~Window() {
     vkDestroySurfaceKHR(this->m_vulkan->m_vulkanInstance->vulkanInstance, this->surface, nullptr);
+    glfwDestroyWindow(this->window);
+    glfwTerminate();
+}
+
+void Window::waitForWindowFocus() {
+    int width = 0, height = 0;
+    glfwGetFramebufferSize(this->window, &width, &height);
+    while (width == 0 || height == 0) { // freeze thread until window is in focus again (un-minimized)
+        glfwGetFramebufferSize(this->window, &width, &height);
+        glfwWaitEvents();
+    }
+}
+
+void Window::framebufferResizeCallback(GLFWwindow* engineWindow, int width, int height) {
+    auto m_vulkan = reinterpret_cast<Vulkan*>(glfwGetWindowUserPointer(engineWindow));
+    m_vulkan->framebufferResized = true;
+    // Update class instance attributes
+    m_vulkan->m_window->width = width;
+    m_vulkan->m_window->height = height;
 }

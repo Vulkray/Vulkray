@@ -18,36 +18,12 @@
 
 class Initialize {
 public:
+    std::unique_ptr<Vulkan> m_vulkan;
     void launch() {
-        initGlfw(); // Initializes GLFW window
-        this->m_Vulkan = std::make_unique<Vulkan>(this->WIN_TITLE, this->glfwWindow, this->graphicsInput);
-        mainLoop(); // Main program loop
-    }
-    ~Initialize() {
-        spdlog::debug("Cleaning up engine ...");
-        // Cleanup GLFW
-        glfwDestroyWindow(this->glfwWindow);
-        glfwTerminate();
+        // Initialize the Vulkan renderer module
+        this->m_vulkan = std::make_unique<Vulkan>(this->graphicsInput);
     }
 private:
-    const char* WIN_TITLE = "Vulkray Engine";
-    const int WIN_WIDTH = 900;
-    const int WIN_HEIGHT = 600;
-    GLFWwindow *glfwWindow{};
-    std::unique_ptr<Vulkan> m_Vulkan;
-
-    void initGlfw() {
-        glfwInit();
-        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-        this->glfwWindow = glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, WIN_TITLE, nullptr, nullptr);
-        glfwSetWindowUserPointer(this->glfwWindow, this);
-        glfwSetFramebufferSizeCallback(this->glfwWindow, Initialize::framebufferResizeCallback);
-        spdlog::debug("Initialized GLFW window.");
-    }
-
-    uint32_t frameIndex = 0;
-    bool framebufferResized = false;
     // TODO: Vulkan graphics input struct; temporary location!
     GraphicsInput graphicsInput = {
         .vertices = {
@@ -59,31 +35,6 @@ private:
         .indices = {0, 1, 2, 2, 3, 0},
         .bufferClearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}}
     };
-
-    void renderFrame() {
-        uint32_t imageIndex;
-        this->m_Vulkan->waitForPreviousFrame(this->frameIndex);
-        // Get the next image from the swap chain & reset cmd buffer
-        this->m_Vulkan->getNextSwapChainImage(&imageIndex, this->frameIndex, this->glfwWindow);
-        this->m_Vulkan->resetGraphicsCmdBuffer(imageIndex, this->frameIndex, this->graphicsInput);
-        this->m_Vulkan->submitGraphicsCmdBuffer(this->frameIndex);
-        this->m_Vulkan->presentImageBuffer(&imageIndex, this->glfwWindow, &this->framebufferResized);
-        // Advance index to the next frame
-        this->frameIndex = (this->frameIndex + 1) % m_Vulkan->MAX_FRAMES_IN_FLIGHT;
-    }
-
-    void mainLoop() {
-        spdlog::debug("Running engine main loop ...");
-        while(!glfwWindowShouldClose(glfwWindow)) {
-            glfwPollEvents(); // Respond to window events (exit, resize, etc.)
-            renderFrame(); // Render frame using Vulkan
-        }
-    }
-
-    static void framebufferResizeCallback(GLFWwindow* engineWindow, int width, int height) {
-        auto engine = reinterpret_cast<Initialize*>(glfwGetWindowUserPointer(engineWindow));
-        engine->framebufferResized = true;
-    }
 };
 
 int main() {
@@ -97,7 +48,6 @@ int main() {
 
     // ----- Initialize the engine ----- //
     Initialize engineBase;
-
     try {
         engineBase.launch();
     } catch (const std::exception& exception) {

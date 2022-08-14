@@ -48,12 +48,19 @@ private:
     bool checkValidationLayerSupport();
 };
 
-// ---------- WindowSurface.cxx ---------- //
-class WindowSurface: public VkModuleBase {
+// ---------- Window.cxx ---------- //
+class Window: public VkModuleBase {
 public:
+    char* title;
+    int width = 900;
+    int height = 600;
+    GLFWwindow *window{};
     VkSurfaceKHR surface;
-    WindowSurface(Vulkan *m_vulkan);
-    ~WindowSurface();
+    Window(Vulkan *m_vulkan);
+    ~Window();
+    void waitForWindowFocus();
+private:
+    static void framebufferResizeCallback(GLFWwindow* engineWindow, int width, int height);
 };
 
 // ---------- PhysicalDevice.cxx ---------- //
@@ -124,13 +131,14 @@ struct SwapChainSupportDetails {
     std::vector<VkPresentModeKHR> presentModes;
 };
 
-class SwapChain {
+class SwapChain: public VkModuleBase {
 public:
-    static void createSwapChain(VkSwapchainKHR *swapChain, std::vector<VkImage> *swapImages,
-                                VkFormat *format, VkExtent2D *extent, VkDevice logicalDevice,
-                                VkPhysicalDevice gpuDevice, VkSurfaceKHR surface,
-                                QueueFamilyIndices queueIndices, GLFWwindow *window);
-
+    VkSwapchainKHR swapChain;
+    std::vector<VkImage> swapChainImages;
+    VkFormat swapChainImageFormat;
+    VkExtent2D swapChainExtent;
+    SwapChain(Vulkan *m_vulkan);
+    ~SwapChain();
     static SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
 private:
     // Surface format (presentation color depth)
@@ -256,12 +264,13 @@ public:
 // ---------- Vulkan.cxx ---------- //
 class Vulkan {
 public:
-    // Vulkan configuration
-    const char *engineName;
-    GLFWwindow *engineWindow;
+    const char* engineName = "Vulkray Engine";
     GraphicsInput graphicsInput;
-
+    // Render variables
     const int MAX_FRAMES_IN_FLIGHT = 2;
+    uint32_t frameIndex = 0;
+    bool framebufferResized = false;
+
     const std::vector<const char*> requiredExtensions = {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME
     };
@@ -277,14 +286,11 @@ public:
     #endif
     // Vulkan instance modules (RAII)
     std::unique_ptr<VulkanInstance> m_vulkanInstance;
-    std::unique_ptr<WindowSurface> m_windowSurface;
+    std::unique_ptr<Window> m_window;
     std::unique_ptr<PhysicalDevice> m_physicalDevice;
     std::unique_ptr<LogicalDevice> m_logicalDevice;
     std::unique_ptr<VulkanMemoryAllocator> m_VMA;
-    VkSwapchainKHR swapChain;
-    std::vector<VkImage> swapChainImages;
-    VkFormat swapChainImageFormat;
-    VkExtent2D swapChainExtent;
+    std::unique_ptr<SwapChain> m_swapChain;
     std::vector<VkImageView> swapChainImageViews;
     VkRenderPass renderPass;
     VkPipelineLayout pipelineLayout;
@@ -304,17 +310,17 @@ public:
     AllocatedBuffer vertexBuffer;
     AllocatedBuffer indexBuffer;
 
-    Vulkan(const char* engineName, GLFWwindow *engineWindow, GraphicsInput graphicsInput);
-    void waitForDeviceIdle(); // Wrapper for vkDeviceWaitIdle()
-    void waitForPreviousFrame(uint32_t frameIndex); // Wrapper for vkWaitForFences()
-    void getNextSwapChainImage(uint32_t *imageIndex, uint32_t frameIndex, GLFWwindow *window);
-    void resetGraphicsCmdBuffer(uint32_t imageIndex, uint32_t frameIndex, GraphicsInput graphicsInput);
-    void submitGraphicsCmdBuffer(uint32_t frameIndex); // Wrapper for vkQueueSubmit() via CommandBuffer class
-    void presentImageBuffer(uint32_t *imageIndex, GLFWwindow *window, bool *windowResized);
+    Vulkan(GraphicsInput graphicsInput);
     ~Vulkan();
 private:
-    void recreateSwapChain(GLFWwindow *engineWindow);
-    void destroySwapChain();
+    void renderFrame();
+    void waitForDeviceIdle(); // Wrapper for vkDeviceWaitIdle()
+    void waitForPreviousFrame(); // Wrapper for vkWaitForFences()
+    void getNextSwapChainImage(uint32_t *imageIndex);
+    void resetGraphicsCmdBuffer(uint32_t imageIndex);
+    void submitGraphicsCmdBuffer(); // Wrapper for vkQueueSubmit() via CommandBuffer class
+    void presentImageBuffer(uint32_t *imageIndex);
+    void recreateSwapChain();
 };
 
 #endif //VULKRAY_VULKAN_HXX

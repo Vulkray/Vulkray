@@ -76,7 +76,7 @@ int PhysicalDevice::rateGPUSuitability() {
     else {
         // Check GPU swap chain support
         SwapChainSupportDetails swapChainSupport = SwapChain::querySwapChainSupport(
-                this->physicalDevice, this->m_vulkan->m_windowSurface->surface);
+                this->physicalDevice, this->m_vulkan->m_window->surface);
 
         if (swapChainSupport.formats.empty() || swapChainSupport.presentModes.empty()) return 0;
     }
@@ -112,7 +112,7 @@ QueueFamilyIndices PhysicalDevice::findDeviceQueueFamilies() {
 
         VkBool32 presentSupport = false;
         vkGetPhysicalDeviceSurfaceSupportKHR(this->physicalDevice, index,
-                                             this->m_vulkan->m_windowSurface->surface, &presentSupport);
+                                             this->m_vulkan->m_window->surface, &presentSupport);
 
         VkQueueFlags queueFlags = queueFamily.queueFlags;
 
