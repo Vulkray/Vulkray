@@ -23,7 +23,6 @@
 
 Window::Window(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
     // Initialize the GLFW window object
-    glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 

@@ -29,17 +29,14 @@ VulkanInstance::VulkanInstance(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     createInfo.pApplicationInfo = &applicationInfo;
 
+    glfwInit(); // I know it's an odd spot to init GLFW, but it doesn't matter.
     uint32_t glfwExtensionCount = 0;
     const char** glfwExtensions;
     glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
     if (glfwExtensions == NULL) {
         spdlog::error("Fatal! GLFW did not find Vulkan support on this computer.");
         throw std::runtime_error("A Vulkan-compatible GPU driver was not found on this machine.");
-    }
-    // print required GLFW extensions for debug builds
-    spdlog::debug("GLFW required extensions:");
-    for (unsigned int i = 0; i < glfwExtensionCount; i++) {
-        spdlog::debug("\t{0}", glfwExtensions[i]);
     }
 
     createInfo.enabledExtensionCount = glfwExtensionCount;
