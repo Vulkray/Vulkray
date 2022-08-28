@@ -29,23 +29,19 @@ Vulkan::Vulkan(GraphicsInput graphicsInput) {
     this->m_renderPass = std::make_unique<RenderPass>(this);
     this->m_graphicsPipeline = std::make_unique<GraphicsPipeline>(this);
     this->m_frameBuffers = std::make_unique<FrameBuffers>(this);
+    this->m_graphicsCommandPool = std::make_unique<CommandPool>(
+            this, (VkCommandPoolCreateFlags) 0, this->m_physicalDevice->queueFamilies.graphicsFamily.value());
+    this->m_transferCommandPool = std::make_unique<CommandPool>(
+            this, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT, this->m_physicalDevice->queueFamilies.transferFamily.value());
 
-    CommandBuffer::createCommandPool(&this->graphicsCommandPool, (VkCommandPoolCreateFlags) 0,
-                                     this->m_logicalDevice->logicalDevice,
-                                     this->m_physicalDevice->queueFamilies.graphicsFamily.value());
-    CommandBuffer::createCommandPool(&this->transferCommandPool, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT,
-                                     this->m_logicalDevice->logicalDevice,
-                                     this->m_physicalDevice->queueFamilies.transferFamily.value());
     Buffers::createVertexBuffer(&this->vertexBuffer, this->m_VMA->memoryAllocator,
                                 this->m_physicalDevice->queueFamilies,
                                 graphicsInput.vertices, this->m_logicalDevice->logicalDevice,
-                                this->transferCommandPool, this->m_logicalDevice->transferQueue);
+                                this->m_transferCommandPool->commandPool, this->m_logicalDevice->transferQueue);
     Buffers::createIndexBuffer(&this->indexBuffer, this->m_VMA->memoryAllocator,
                                this->m_physicalDevice->queueFamilies,
                                graphicsInput.indices, this->m_logicalDevice->logicalDevice,
-                               this->transferCommandPool, this->m_logicalDevice->transferQueue);
-    CommandBuffer::createCommandBuffer(&this->graphicsCommandBuffers, this->MAX_FRAMES_IN_FLIGHT,
-                                       this->m_logicalDevice->logicalDevice, this->graphicsCommandPool);
+                               this->m_transferCommandPool->commandPool, this->m_logicalDevice->transferQueue);
     Synchronization::createSyncObjects(&this->imageAvailableSemaphores, &this->renderFinishedSemaphores,
                                        &this->inFlightFences, this->m_logicalDevice->logicalDevice,
                                        this->MAX_FRAMES_IN_FLIGHT);
@@ -98,19 +94,22 @@ void Vulkan::getNextSwapChainImage(uint32_t *imageIndex) {
 }
 
 void Vulkan::resetGraphicsCmdBuffer(uint32_t imageIndex) {
-    vkResetCommandBuffer(this->graphicsCommandBuffers[frameIndex], 0);
-    CommandBuffer::recordGraphicsCommands(this->graphicsCommandBuffers[frameIndex], imageIndex,
-                                       this->m_graphicsPipeline->graphicsPipeline, this->m_renderPass->renderPass,
-                                       this->m_frameBuffers->swapChainFrameBuffers, this->vertexBuffer,
-                                       this->indexBuffer, this->graphicsInput, this->m_swapChain->swapChainExtent);
+    vkResetCommandBuffer(this->m_graphicsCommandPool->commandBuffers[frameIndex], 0);
+    this->m_graphicsCommandPool->recordGraphicsCommands(this->m_graphicsCommandPool->commandBuffers[frameIndex],
+                                                        imageIndex, this->m_graphicsPipeline->graphicsPipeline,
+                                                        this->m_renderPass->renderPass,
+                                                        this->m_frameBuffers->swapChainFrameBuffers,
+                                                        this->vertexBuffer, this->indexBuffer, this->graphicsInput,
+                                                        this->m_swapChain->swapChainExtent);
 }
 
 void Vulkan::submitGraphicsCmdBuffer() {
-    CommandBuffer::submitCommandBuffer(&this->graphicsCommandBuffers[this->frameIndex],
-                                       this->m_logicalDevice->graphicsQueue, this->inFlightFences[this->frameIndex],
-                                       this->imageAvailableSemaphores[this->frameIndex],
-                                       this->renderFinishedSemaphores[this->frameIndex],
-                                       this->waitSemaphores, this->signalSemaphores);
+    this->m_graphicsCommandPool->submitCommandBuffer(&this->m_graphicsCommandPool->commandBuffers[this->frameIndex],
+                                                     this->m_logicalDevice->graphicsQueue,
+                                                     this->inFlightFences[this->frameIndex],
+                                                     this->imageAvailableSemaphores[this->frameIndex],
+                                                     this->renderFinishedSemaphores[this->frameIndex],
+                                                     this->waitSemaphores, this->signalSemaphores);
 }
 
 void Vulkan::presentImageBuffer(uint32_t *imageIndex) {
@@ -152,6 +151,7 @@ void Vulkan::recreateSwapChain() {
 }
 
 Vulkan::~Vulkan() {
+    // Sleeps thread until GPU is idle before cleaning up
     this->m_logicalDevice->waitForDeviceIdle();
     // Clean up synchronization objects
     for (int i = 0; i < this->MAX_FRAMES_IN_FLIGHT; i++) {
@@ -159,9 +159,6 @@ Vulkan::~Vulkan() {
         vkDestroySemaphore(this->m_logicalDevice->logicalDevice, this->renderFinishedSemaphores.at(i), nullptr);
         vkDestroyFence(this->m_logicalDevice->logicalDevice, this->inFlightFences.at(i), nullptr);
     }
-    // Clean up Command Buffers, Logical & Physical devices
-    vkDestroyCommandPool(this->m_logicalDevice->logicalDevice, this->transferCommandPool, nullptr);
-    vkDestroyCommandPool(this->m_logicalDevice->logicalDevice, this->graphicsCommandPool, nullptr);
 }
 
 // Module base class constructor

@@ -242,20 +242,25 @@ struct GraphicsInput {
     VkClearValue bufferClearColor;
 };
 
-class CommandBuffer {
+class CommandPool: public VkModuleBase {
 public:
-    static void createCommandPool(VkCommandPool *commandPool, VkCommandPoolCreateFlags additionalFlags,
+    VkCommandPool commandPool;
+    std::vector<VkCommandBuffer> commandBuffers;
+    CommandPool(Vulkan *m_vulkan, VkCommandPoolCreateFlags additionalFlags, uint32_t queueIndex);
+    ~CommandPool();
+    void recordGraphicsCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex,
+                                VkPipeline graphicsPipeline, VkRenderPass renderPass,
+                                std::vector<VkFramebuffer> swapFrameBuffers,
+                                AllocatedBuffer vertexBuffer, AllocatedBuffer indexBuffer,
+                                GraphicsInput graphicsInput, VkExtent2D swapExtent);
+    void submitCommandBuffer(VkCommandBuffer *commandBuffer, VkQueue graphicsQueue, VkFence inFlightFence,
+                             VkSemaphore imageAvailableSemaphore, VkSemaphore renderFinishedSemaphore,
+                             VkSemaphore waitSemaphores[], VkSemaphore signalSemaphores[]);
+private:
+    void createCommandPool(VkCommandPool *commandPool, VkCommandPoolCreateFlags additionalFlags,
                                   VkDevice logicalDevice, uint32_t queueIndex);
-    static void createCommandBuffer(std::vector<VkCommandBuffer> *commandBuffers, const int MAX_FRAMES_IN_FLIGHT,
+    void createCommandBuffer(std::vector<VkCommandBuffer> *commandBuffers, const int MAX_FRAMES_IN_FLIGHT,
                                     VkDevice logicalDevice, VkCommandPool commandPool);
-    static void recordGraphicsCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex,
-                                    VkPipeline graphicsPipeline, VkRenderPass renderPass,
-                                    std::vector<VkFramebuffer> swapFrameBuffers,
-                                    AllocatedBuffer vertexBuffer, AllocatedBuffer indexBuffer,
-                                    GraphicsInput graphicsInput, VkExtent2D swapExtent);
-    static void submitCommandBuffer(VkCommandBuffer *commandBuffer, VkQueue graphicsQueue, VkFence inFlightFence,
-                                    VkSemaphore imageAvailableSemaphore, VkSemaphore renderFinishedSemaphore,
-                                    VkSemaphore waitSemaphores[], VkSemaphore signalSemaphores[]);
 };
 
 // ---------- Synchronization.cxx ---------- //
@@ -301,10 +306,8 @@ public:
     std::unique_ptr<RenderPass> m_renderPass;
     std::unique_ptr<GraphicsPipeline> m_graphicsPipeline;
     std::unique_ptr<FrameBuffers> m_frameBuffers;
-    VkCommandPool graphicsCommandPool;
-    VkCommandPool transferCommandPool;
-    std::vector<VkCommandBuffer> graphicsCommandBuffers;
-    std::vector<VkCommandBuffer> transferCommandBuffers;
+    std::unique_ptr<CommandPool> m_graphicsCommandPool;
+    std::unique_ptr<CommandPool> m_transferCommandPool;
     // Synchronization Objects (semaphores / fences)
     std::vector<VkSemaphore> imageAvailableSemaphores;
     std::vector<VkSemaphore> renderFinishedSemaphores;

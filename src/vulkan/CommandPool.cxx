@@ -11,10 +11,22 @@
  */
 
 #include "Vulkan.h"
-
 #include <spdlog/spdlog.h>
 
-void CommandBuffer::createCommandPool(VkCommandPool *commandPool, VkCommandPoolCreateFlags additionalFlags,
+CommandPool::CommandPool(Vulkan *m_vulkan, VkCommandPoolCreateFlags additionalFlags,
+                         uint32_t queueIndex): VkModuleBase(m_vulkan) {
+
+    this->createCommandPool(&this->commandPool, additionalFlags,
+                            this->m_vulkan->m_logicalDevice->logicalDevice, queueIndex);
+    this->createCommandBuffer(&this->commandBuffers, this->m_vulkan->MAX_FRAMES_IN_FLIGHT,
+                              this->m_vulkan->m_logicalDevice->logicalDevice, this->commandPool);
+}
+
+CommandPool::~CommandPool() {
+    vkDestroyCommandPool(this->m_vulkan->m_logicalDevice->logicalDevice, this->commandPool, nullptr);
+}
+
+void CommandPool::createCommandPool(VkCommandPool *commandPool, VkCommandPoolCreateFlags additionalFlags,
                                       VkDevice logicalDevice, uint32_t queueIndex) {
 
     // Configure & create the command pool instance
@@ -30,7 +42,7 @@ void CommandBuffer::createCommandPool(VkCommandPool *commandPool, VkCommandPoolC
     }
 }
 
-void CommandBuffer::createCommandBuffer(std::vector<VkCommandBuffer> *commandBuffers, const int MAX_FRAMES_IN_FLIGHT,
+void CommandPool::createCommandBuffer(std::vector<VkCommandBuffer> *commandBuffers, const int MAX_FRAMES_IN_FLIGHT,
                                         VkDevice logicalDevice, VkCommandPool commandPool) {
 
     // Resize command buffer vector to max frames in flight value
@@ -50,7 +62,8 @@ void CommandBuffer::createCommandBuffer(std::vector<VkCommandBuffer> *commandBuf
     }
 }
 
-void CommandBuffer::recordGraphicsCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex,
+// Only applies to the graphics command pool instance
+void CommandPool::recordGraphicsCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex,
                                         VkPipeline graphicsPipeline, VkRenderPass renderPass,
                                         std::vector<VkFramebuffer> swapFrameBuffers,
                                         AllocatedBuffer vertexBuffer, AllocatedBuffer indexBuffer,
@@ -117,7 +130,7 @@ void CommandBuffer::recordGraphicsCommands(VkCommandBuffer commandBuffer, uint32
     }
 }
 
-void CommandBuffer::submitCommandBuffer(VkCommandBuffer *commandBuffer, VkQueue graphicsQueue, VkFence inFlightFence,
+void CommandPool::submitCommandBuffer(VkCommandBuffer *commandBuffer, VkQueue graphicsQueue, VkFence inFlightFence,
                                         VkSemaphore imageAvailableSemaphore, VkSemaphore renderFinishedSemaphore,
                                         VkSemaphore waitSemaphores[], VkSemaphore signalSemaphores[]) {
 

@@ -33,7 +33,7 @@ set(sources src/global_definitions.h src/vulkan/Vulkan.h src/Initialize.cxx
         src/vulkan/VulkanMemoryAllocator.cxx src/vulkan/SwapChain.cxx
         src/vulkan/ImageViews.cxx src/vulkan/RenderPass.cxx
         src/vulkan/Buffers.cxx src/vulkan/GraphicsPipeline.cxx
-        src/vulkan/FrameBuffers.cxx src/vulkan/CommandBuffer.cxx
+        src/vulkan/FrameBuffers.cxx src/vulkan/CommandPool.cxx
         src/vulkan/Synchronization.cxx src/vulkan/Vulkan.cxx)
 
 # Executable targets
