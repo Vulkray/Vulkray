@@ -167,10 +167,12 @@ public:
 };
 
 // ---------- GraphicsPipeline.cxx ---------- //
-class GraphicsPipeline {
+class GraphicsPipeline: public VkModuleBase {
 public:
-    static void createGraphicsPipeline(VkPipeline *graphicsPipeline, VkPipelineLayout *pipelineLayout,
-                                       VkRenderPass renderPass, VkDevice logicalDevice, VkExtent2D swapExtent);
+    VkPipelineLayout pipelineLayout;
+    VkPipeline graphicsPipeline;
+    GraphicsPipeline(Vulkan *m_vulkan);
+    ~GraphicsPipeline();
 private:
     static VkShaderModule createShaderModule(const std::vector<char> &shaderBinary, VkDevice logicalDevice);
     static std::vector<char> readSpirVShaderBinary(const std::string &filename);
@@ -297,8 +299,7 @@ public:
     std::unique_ptr<SwapChain> m_swapChain;
     std::unique_ptr<ImageViews> m_imageViews;
     std::unique_ptr<RenderPass> m_renderPass;
-    VkPipelineLayout pipelineLayout;
-    VkPipeline graphicsPipeline;
+    std::unique_ptr<GraphicsPipeline> m_graphicsPipeline;
     std::vector<VkFramebuffer> swapChainFrameBuffers;
     VkCommandPool graphicsCommandPool;
     VkCommandPool transferCommandPool;

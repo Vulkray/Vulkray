@@ -27,10 +27,8 @@ Vulkan::Vulkan(GraphicsInput graphicsInput) {
     this->m_swapChain = std::make_unique<SwapChain>(this);
     this->m_imageViews = std::make_unique<ImageViews>(this);
     this->m_renderPass = std::make_unique<RenderPass>(this);
+    this->m_graphicsPipeline = std::make_unique<GraphicsPipeline>(this);
 
-    GraphicsPipeline::createGraphicsPipeline(&this->graphicsPipeline, &this->pipelineLayout,
-                                             this->m_renderPass->renderPass,
-                                             this->m_logicalDevice->logicalDevice, this->m_swapChain->swapChainExtent);
     FrameBuffers::createFrameBuffers(&this->swapChainFrameBuffers, this->m_imageViews->swapChainImageViews,
                                      this->m_logicalDevice->logicalDevice, this->m_renderPass->renderPass,
                                      this->m_swapChain->swapChainExtent);
@@ -104,7 +102,7 @@ void Vulkan::getNextSwapChainImage(uint32_t *imageIndex) {
 void Vulkan::resetGraphicsCmdBuffer(uint32_t imageIndex) {
     vkResetCommandBuffer(this->graphicsCommandBuffers[frameIndex], 0);
     CommandBuffer::recordGraphicsCommands(this->graphicsCommandBuffers[frameIndex], imageIndex,
-                                       this->graphicsPipeline, this->m_renderPass->renderPass,
+                                       this->m_graphicsPipeline->graphicsPipeline, this->m_renderPass->renderPass,
                                        this->swapChainFrameBuffers, this->vertexBuffer, this->indexBuffer,
                                        this->graphicsInput, this->m_swapChain->swapChainExtent);
 }
@@ -159,9 +157,6 @@ void Vulkan::recreateSwapChain() {
 
 Vulkan::~Vulkan() {
     this->m_logicalDevice->waitForDeviceIdle();
-    // Clean up Pipeline instances
-    vkDestroyPipeline(this->m_logicalDevice->logicalDevice, this->graphicsPipeline, nullptr);
-    vkDestroyPipelineLayout(this->m_logicalDevice->logicalDevice, this->pipelineLayout, nullptr);
     // Clean up synchronization objects
     for (int i = 0; i < this->MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroySemaphore(this->m_logicalDevice->logicalDevice, this->imageAvailableSemaphores.at(i), nullptr);

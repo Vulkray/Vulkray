@@ -15,15 +15,16 @@
 #include <spdlog/spdlog.h>
 #include <fstream>
 
-void GraphicsPipeline::createGraphicsPipeline(VkPipeline *graphicsPipeline, VkPipelineLayout *pipelineLayout,
-                                              VkRenderPass renderPass, VkDevice logicalDevice, VkExtent2D swapExtent) {
+GraphicsPipeline::GraphicsPipeline(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
 
     // read spir-v shader binary files
     auto vertShaderCode = GraphicsPipeline::readSpirVShaderBinary("shaders/engine_basic.vert.spv");
     auto fragShaderCode = GraphicsPipeline::readSpirVShaderBinary("shaders/engine_basic.frag.spv");
     // create shader module instances
-    VkShaderModule vertShaderModule = GraphicsPipeline::createShaderModule(vertShaderCode, logicalDevice);
-    VkShaderModule fragShaderModule = GraphicsPipeline::createShaderModule(fragShaderCode, logicalDevice);
+    VkShaderModule vertShaderModule = GraphicsPipeline::createShaderModule(vertShaderCode,
+                                                                           this->m_vulkan->m_logicalDevice->logicalDevice);
+    VkShaderModule fragShaderModule = GraphicsPipeline::createShaderModule(fragShaderCode,
+                                                                           this->m_vulkan->m_logicalDevice->logicalDevice);
 
     VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
     VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
@@ -74,14 +75,14 @@ void GraphicsPipeline::createGraphicsPipeline(VkPipeline *graphicsPipeline, VkPi
     VkViewport viewport{};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width = (float) swapExtent.width;
-    viewport.height = (float) swapExtent.height;
+    viewport.width = (float) this->m_vulkan->m_swapChain->swapChainExtent.width;
+    viewport.height = (float) this->m_vulkan->m_swapChain->swapChainExtent.height;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
     // scissor should cover the entire buffer
     VkRect2D scissor{};
     scissor.offset = {0, 0};
-    scissor.extent = swapExtent;
+    scissor.extent = this->m_vulkan->m_swapChain->swapChainExtent;
 
     viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     viewportState.viewportCount = 1;
@@ -144,7 +145,8 @@ void GraphicsPipeline::createGraphicsPipeline(VkPipeline *graphicsPipeline, VkPi
     pipelineLayoutInfo.pushConstantRangeCount = 0;
     pipelineLayoutInfo.pPushConstantRanges = nullptr;
 
-    VkResult result = vkCreatePipelineLayout(logicalDevice, &pipelineLayoutInfo, nullptr, pipelineLayout);
+    VkResult result = vkCreatePipelineLayout(this->m_vulkan->m_logicalDevice->logicalDevice,
+                                             &pipelineLayoutInfo, nullptr, &this->pipelineLayout);
     if (result != VK_SUCCESS) {
         spdlog::error("An error occurred when initializing the graphics pipeline layout instance.");
         throw std::runtime_error("Failed to create the graphics pipeline layout!");
@@ -163,21 +165,22 @@ void GraphicsPipeline::createGraphicsPipeline(VkPipeline *graphicsPipeline, VkPi
     pipelineInfo.pDepthStencilState = nullptr; // optional
     pipelineInfo.pColorBlendState = &colorBlending;
     pipelineInfo.pDynamicState = &dynamicState;
-    pipelineInfo.layout = *pipelineLayout;
-    pipelineInfo.renderPass = renderPass;
+    pipelineInfo.layout = this->pipelineLayout;
+    pipelineInfo.renderPass = this->m_vulkan->m_renderPass->renderPass;
     pipelineInfo.subpass = 0;
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // optional
     pipelineInfo.basePipelineIndex = -1; // optional
 
-    result = vkCreateGraphicsPipelines(logicalDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, graphicsPipeline);
+    result = vkCreateGraphicsPipelines(this->m_vulkan->m_logicalDevice->logicalDevice,
+                                       VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &this->graphicsPipeline);
     if (result != VK_SUCCESS) {
         spdlog::error("An error occurred when initializing the Vulkan graphics pipeline instance.");
         throw std::runtime_error("Failed to create the Vulkan graphics pipeline.");
     }
 
     // modules compiled after pipeline creation, so they can be destroyed
-    vkDestroyShaderModule(logicalDevice, fragShaderModule, nullptr);
-    vkDestroyShaderModule(logicalDevice, vertShaderModule, nullptr);
+    vkDestroyShaderModule(this->m_vulkan->m_logicalDevice->logicalDevice, fragShaderModule, nullptr);
+    vkDestroyShaderModule(this->m_vulkan->m_logicalDevice->logicalDevice, vertShaderModule, nullptr);
 }
 
 VkShaderModule GraphicsPipeline::createShaderModule(const std::vector<char> &shaderBinary, VkDevice logicalDevice) {
@@ -214,4 +217,9 @@ std::vector<char> GraphicsPipeline::readSpirVShaderBinary(const std::string &fil
     file.read(buffer.data(), fileSize);
     file.close();
     return buffer; // raw spir-v binary data
+}
+
+GraphicsPipeline::~GraphicsPipeline() {
+    vkDestroyPipeline(this->m_vulkan->m_logicalDevice->logicalDevice, this->graphicsPipeline, nullptr);
+    vkDestroyPipelineLayout(this->m_vulkan->m_logicalDevice->logicalDevice, this->pipelineLayout, nullptr);
 }
