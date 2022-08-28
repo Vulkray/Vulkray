@@ -14,19 +14,18 @@
 
 #include <spdlog/spdlog.h>
 
-void ImageViews::createImageViews(std::vector <VkImageView> *swapChainImageViews, VkDevice logicalDevice,
-                                  std::vector <VkImage> swapChainImages, VkFormat swapImageFormat) {
+ImageViews::ImageViews(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
 
     // Resize image views vector to available swap chain images
-    swapChainImageViews->resize(swapChainImages.size());
+    this->swapChainImageViews.resize(this->m_vulkan->m_swapChain->swapChainImages.size());
 
-    for (size_t i = 0; i < swapChainImages.size(); i++) {
+    for (size_t i = 0; i < this->m_vulkan->m_swapChain->swapChainImages.size(); i++) {
         // Create image view for every swap image
         VkImageViewCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        createInfo.image = swapChainImages[i];
+        createInfo.image = this->m_vulkan->m_swapChain->swapChainImages[i];
         createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        createInfo.format = swapImageFormat;
+        createInfo.format = this->m_vulkan->m_swapChain->swapChainImageFormat;
         // color mapping on images (set default, no special engine feature needs this)
         createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
         createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -40,10 +39,19 @@ void ImageViews::createImageViews(std::vector <VkImageView> *swapChainImageViews
         createInfo.subresourceRange.layerCount = 1;
 
         // Create the image view instance
-        VkResult result = vkCreateImageView(logicalDevice, &createInfo, nullptr, &swapChainImageViews->at(i));
+        VkResult result = vkCreateImageView(this->m_vulkan->m_logicalDevice->logicalDevice,
+                                            &createInfo, nullptr, &this->swapChainImageViews.at(i));
         if (result != VK_SUCCESS) {
             spdlog::error("Failed to create Vulkan swap chain image view instance!");
             throw std::runtime_error("Failed to create Vulkan image views!");
         }
+    }
+}
+
+ImageViews::~ImageViews() {
+    for (size_t i = 0; i < this->swapChainImageViews.size(); i++) {
+        vkDestroyImageView(this->m_vulkan->m_logicalDevice->logicalDevice,
+                           this->swapChainImageViews[i], nullptr);
+        this->swapChainImageViews[i] = VK_NULL_HANDLE; // less validation layer errors on clean up
     }
 }

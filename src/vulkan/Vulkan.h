@@ -151,10 +151,11 @@ private:
 };
 
 // ---------- ImageViews.cxx ---------- //
-class ImageViews {
+class ImageViews: public VkModuleBase {
 public:
-    static void createImageViews(std::vector<VkImageView> *swapChainImageViews, VkDevice logicalDevice,
-                                 std::vector<VkImage> swapChainImages, VkFormat swapImageFormat);
+    std::vector<VkImageView> swapChainImageViews;
+    ImageViews(Vulkan *m_vulkan);
+    ~ImageViews();
 };
 
 // ---------- RenderPass.cxx ---------- //
@@ -292,7 +293,7 @@ public:
     std::unique_ptr<LogicalDevice> m_logicalDevice;
     std::unique_ptr<VulkanMemoryAllocator> m_VMA;
     std::unique_ptr<SwapChain> m_swapChain;
-    std::vector<VkImageView> swapChainImageViews;
+    std::unique_ptr<ImageViews> m_imageViews;
     VkRenderPass renderPass;
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;

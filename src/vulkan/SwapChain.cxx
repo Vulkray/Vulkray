@@ -100,11 +100,6 @@ SwapChain::~SwapChain() {
                              this->m_vulkan->swapChainFrameBuffers[i], nullptr);
         this->m_vulkan->swapChainFrameBuffers[i] = VK_NULL_HANDLE; // less validation layer errors on clean up
     }
-    for (size_t i = 0; i < this->m_vulkan->swapChainImageViews.size(); i++) {
-        vkDestroyImageView(this->m_vulkan->m_logicalDevice->logicalDevice,
-                           this->m_vulkan->swapChainImageViews[i], nullptr);
-        this->m_vulkan->swapChainImageViews[i] = VK_NULL_HANDLE; // less validation layer errors on clean up
-    }
     vkDestroySwapchainKHR(this->m_vulkan->m_logicalDevice->logicalDevice, this->swapChain, nullptr);
 }
 
