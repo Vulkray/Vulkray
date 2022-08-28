@@ -28,5 +28,9 @@ VulkanMemoryAllocator::VulkanMemoryAllocator(Vulkan *m_vulkan): VkModuleBase(m_v
     vmaCreateAllocator(&allocatorCreateInfo, &this->memoryAllocator);
 }
 VulkanMemoryAllocator::~VulkanMemoryAllocator() {
+    vmaDestroyBuffer(this->memoryAllocator, this->m_vulkan->vertexBuffer._buffer,
+                     this->m_vulkan->vertexBuffer._bufferMemory);
+    vmaDestroyBuffer(this->memoryAllocator, this->m_vulkan->indexBuffer._buffer,
+                     this->m_vulkan->indexBuffer._bufferMemory);
     vmaDestroyAllocator(this->memoryAllocator);
 }
