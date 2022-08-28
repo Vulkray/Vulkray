@@ -7,14 +7,14 @@
  * with this source code in a file named "COPYING."
  */
 
-#include "global_definitions.hxx"
+#include "global_definitions.h"
 
 #include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h>
 #include <memory>
 #include <vector>
 
-#include "vulkan/Vulkan.hxx"
+#include "vulkan/Vulkan.h"
 
 class Initialize {
 public:
