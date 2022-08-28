@@ -14,30 +14,37 @@
 
 #include <spdlog/spdlog.h>
 
-void FrameBuffers::createFrameBuffers(std::vector<VkFramebuffer> *swapChainFrameBuffers,
-                                      std::vector<VkImageView> swapChainImageViews,
-                                      VkDevice logicalDevice, VkRenderPass renderPass, VkExtent2D swapChainExtent) {
+FrameBuffers::FrameBuffers(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
 
     // resize frame buffer vector to image views count
-    swapChainFrameBuffers->resize(swapChainImageViews.size());
+    this->swapChainFrameBuffers.resize(this->m_vulkan->m_imageViews->swapChainImageViews.size());
 
-    for (size_t i = 0; i < swapChainImageViews.size(); i++) {
+    for (size_t i = 0; i < this->m_vulkan->m_imageViews->swapChainImageViews.size(); i++) {
 
-        VkImageView attachments[] = {swapChainImageViews[i]};
+        VkImageView attachments[] = {this->m_vulkan->m_imageViews->swapChainImageViews[i]};
         VkFramebufferCreateInfo framebufferInfo{};
 
         framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebufferInfo.renderPass = renderPass;
+        framebufferInfo.renderPass = this->m_vulkan->m_renderPass->renderPass;
         framebufferInfo.attachmentCount = 1;
         framebufferInfo.pAttachments = attachments;
-        framebufferInfo.width = swapChainExtent.width;
-        framebufferInfo.height = swapChainExtent.height;
+        framebufferInfo.width = this->m_vulkan->m_swapChain->swapChainExtent.width;
+        framebufferInfo.height = this->m_vulkan->m_swapChain->swapChainExtent.height;
         framebufferInfo.layers = 1;
 
-        VkResult result = vkCreateFramebuffer(logicalDevice, &framebufferInfo, nullptr, &swapChainFrameBuffers->at(i));
+        VkResult result = vkCreateFramebuffer(this->m_vulkan->m_logicalDevice->logicalDevice,
+                                              &framebufferInfo, nullptr, &this->swapChainFrameBuffers.at(i));
         if (result != VK_SUCCESS) {
             spdlog::error("Failed to create the Vulkan framebuffer instances; Exiting.");
             throw std::runtime_error("Failed to create the framebuffer instances!");
         }
+    }
+}
+
+FrameBuffers::~FrameBuffers() {
+    for (size_t i = 0; i < this->swapChainFrameBuffers.size(); i++) {
+        vkDestroyFramebuffer(this->m_vulkan->m_logicalDevice->logicalDevice,
+                             this->swapChainFrameBuffers[i], nullptr);
+        this->swapChainFrameBuffers[i] = VK_NULL_HANDLE; // less validation layer errors on clean up
     }
 }

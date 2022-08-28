@@ -174,16 +174,16 @@ public:
     GraphicsPipeline(Vulkan *m_vulkan);
     ~GraphicsPipeline();
 private:
-    static VkShaderModule createShaderModule(const std::vector<char> &shaderBinary, VkDevice logicalDevice);
+    VkShaderModule createShaderModule(const std::vector<char> &shaderBinary);
     static std::vector<char> readSpirVShaderBinary(const std::string &filename);
 };
 
 // ---------- FrameBuffers.cxx ---------- //
-class FrameBuffers {
+class FrameBuffers: public VkModuleBase {
 public:
-    static void createFrameBuffers(std::vector<VkFramebuffer> *swapChainFrameBuffers,
-                                   std::vector<VkImageView> swapChainImageViews,
-                                   VkDevice logicalDevice, VkRenderPass renderPass, VkExtent2D swapChainExtent);
+    std::vector<VkFramebuffer> swapChainFrameBuffers;
+    FrameBuffers(Vulkan *m_vulkan);
+    ~FrameBuffers();
 };
 
 // ---------- Buffers.cxx ---------- //
@@ -300,7 +300,7 @@ public:
     std::unique_ptr<ImageViews> m_imageViews;
     std::unique_ptr<RenderPass> m_renderPass;
     std::unique_ptr<GraphicsPipeline> m_graphicsPipeline;
-    std::vector<VkFramebuffer> swapChainFrameBuffers;
+    std::unique_ptr<FrameBuffers> m_frameBuffers;
     VkCommandPool graphicsCommandPool;
     VkCommandPool transferCommandPool;
     std::vector<VkCommandBuffer> graphicsCommandBuffers;

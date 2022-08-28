@@ -28,10 +28,8 @@ Vulkan::Vulkan(GraphicsInput graphicsInput) {
     this->m_imageViews = std::make_unique<ImageViews>(this);
     this->m_renderPass = std::make_unique<RenderPass>(this);
     this->m_graphicsPipeline = std::make_unique<GraphicsPipeline>(this);
+    this->m_frameBuffers = std::make_unique<FrameBuffers>(this);
 
-    FrameBuffers::createFrameBuffers(&this->swapChainFrameBuffers, this->m_imageViews->swapChainImageViews,
-                                     this->m_logicalDevice->logicalDevice, this->m_renderPass->renderPass,
-                                     this->m_swapChain->swapChainExtent);
     CommandBuffer::createCommandPool(&this->graphicsCommandPool, (VkCommandPoolCreateFlags) 0,
                                      this->m_logicalDevice->logicalDevice,
                                      this->m_physicalDevice->queueFamilies.graphicsFamily.value());
@@ -103,8 +101,8 @@ void Vulkan::resetGraphicsCmdBuffer(uint32_t imageIndex) {
     vkResetCommandBuffer(this->graphicsCommandBuffers[frameIndex], 0);
     CommandBuffer::recordGraphicsCommands(this->graphicsCommandBuffers[frameIndex], imageIndex,
                                        this->m_graphicsPipeline->graphicsPipeline, this->m_renderPass->renderPass,
-                                       this->swapChainFrameBuffers, this->vertexBuffer, this->indexBuffer,
-                                       this->graphicsInput, this->m_swapChain->swapChainExtent);
+                                       this->m_frameBuffers->swapChainFrameBuffers, this->vertexBuffer,
+                                       this->indexBuffer, this->graphicsInput, this->m_swapChain->swapChainExtent);
 }
 
 void Vulkan::submitGraphicsCmdBuffer() {
@@ -140,19 +138,17 @@ void Vulkan::presentImageBuffer(uint32_t *imageIndex) {
     }
 }
 
-// Swap chain recreation methods
+// Swap chain recreation (m_swapChain, m_imageViews, m_frameBuffers)
 void Vulkan::recreateSwapChain() {
     this->m_window->waitForWindowFocus();
     this->m_logicalDevice->waitForDeviceIdle();
     // destroy the previous swap chain / dependent modules
     this->m_swapChain.reset();
     this->m_imageViews.reset();
+    this->m_frameBuffers.reset();
     this->m_swapChain = std::make_unique<SwapChain>(this);
     this->m_imageViews = std::make_unique<ImageViews>(this);
-
-    FrameBuffers::createFrameBuffers(&this->swapChainFrameBuffers, this->m_imageViews->swapChainImageViews,
-                                     this->m_logicalDevice->logicalDevice, this->m_renderPass->renderPass,
-                                     this->m_swapChain->swapChainExtent);
+    this->m_frameBuffers = std::make_unique<FrameBuffers>(this);
 }
 
 Vulkan::~Vulkan() {

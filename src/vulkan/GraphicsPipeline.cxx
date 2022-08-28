@@ -21,10 +21,8 @@ GraphicsPipeline::GraphicsPipeline(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
     auto vertShaderCode = GraphicsPipeline::readSpirVShaderBinary("shaders/engine_basic.vert.spv");
     auto fragShaderCode = GraphicsPipeline::readSpirVShaderBinary("shaders/engine_basic.frag.spv");
     // create shader module instances
-    VkShaderModule vertShaderModule = GraphicsPipeline::createShaderModule(vertShaderCode,
-                                                                           this->m_vulkan->m_logicalDevice->logicalDevice);
-    VkShaderModule fragShaderModule = GraphicsPipeline::createShaderModule(fragShaderCode,
-                                                                           this->m_vulkan->m_logicalDevice->logicalDevice);
+    VkShaderModule vertShaderModule = GraphicsPipeline::createShaderModule(vertShaderCode);
+    VkShaderModule fragShaderModule = GraphicsPipeline::createShaderModule(fragShaderCode);
 
     VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
     VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
@@ -183,7 +181,7 @@ GraphicsPipeline::GraphicsPipeline(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
     vkDestroyShaderModule(this->m_vulkan->m_logicalDevice->logicalDevice, vertShaderModule, nullptr);
 }
 
-VkShaderModule GraphicsPipeline::createShaderModule(const std::vector<char> &shaderBinary, VkDevice logicalDevice) {
+VkShaderModule GraphicsPipeline::createShaderModule(const std::vector<char> &shaderBinary) {
 
     VkShaderModule shaderModule;
     VkShaderModuleCreateInfo createInfo{};
@@ -192,7 +190,8 @@ VkShaderModule GraphicsPipeline::createShaderModule(const std::vector<char> &sha
     createInfo.codeSize = shaderBinary.size();
     createInfo.pCode = reinterpret_cast<const uint32_t*>(shaderBinary.data());
 
-    VkResult result = vkCreateShaderModule(logicalDevice, &createInfo, nullptr, &shaderModule);
+    VkResult result = vkCreateShaderModule(this->m_vulkan->m_logicalDevice->logicalDevice,
+                                           &createInfo, nullptr, &shaderModule);
     if (result != VK_SUCCESS) {
         spdlog::error("An issue was encountered when initializing a shader module instance.");
         throw std::runtime_error("Failed to create a shader module!");

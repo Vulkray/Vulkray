@@ -95,11 +95,6 @@ SwapChain::SwapChain(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
 }
 
 SwapChain::~SwapChain() {
-    for (size_t i = 0; i < this->m_vulkan->swapChainFrameBuffers.size(); i++) {
-        vkDestroyFramebuffer(this->m_vulkan->m_logicalDevice->logicalDevice,
-                             this->m_vulkan->swapChainFrameBuffers[i], nullptr);
-        this->m_vulkan->swapChainFrameBuffers[i] = VK_NULL_HANDLE; // less validation layer errors on clean up
-    }
     vkDestroySwapchainKHR(this->m_vulkan->m_logicalDevice->logicalDevice, this->swapChain, nullptr);
 }
 
