@@ -102,6 +102,7 @@ public:
     VkQueue transferQueue;
     LogicalDevice(Vulkan *m_vulkan);
     ~LogicalDevice();
+    void waitForDeviceIdle();
 };
 
 // ---------- VulkanMemoryAllocator.cxx ---------- //
@@ -314,7 +315,6 @@ public:
     ~Vulkan();
 private:
     void renderFrame();
-    void waitForDeviceIdle(); // Wrapper for vkDeviceWaitIdle()
     void waitForPreviousFrame(); // Wrapper for vkWaitForFences()
     void getNextSwapChainImage(uint32_t *imageIndex);
     void resetGraphicsCmdBuffer(uint32_t imageIndex);

@@ -74,11 +74,6 @@ void Vulkan::renderFrame() {
     this->frameIndex = (this->frameIndex + 1) % this->MAX_FRAMES_IN_FLIGHT;
 }
 
-// Synchronization / Command Buffer wrappers
-void Vulkan::waitForDeviceIdle() {
-    vkDeviceWaitIdle(this->m_logicalDevice->logicalDevice);
-}
-
 void Vulkan::waitForPreviousFrame() {
     vkWaitForFences(this->m_logicalDevice->logicalDevice, 1,
                     &this->inFlightFences[this->frameIndex], VK_TRUE, UINT64_MAX);
@@ -151,7 +146,7 @@ void Vulkan::presentImageBuffer(uint32_t *imageIndex) {
 // Swap chain recreation methods
 void Vulkan::recreateSwapChain() {
     this->m_window->waitForWindowFocus();
-    this->waitForDeviceIdle();
+    this->m_logicalDevice->waitForDeviceIdle();
     this->m_swapChain.reset(); // destroy the previous swap chain
     this->m_swapChain = std::make_unique<SwapChain>(this);
 
@@ -163,7 +158,7 @@ void Vulkan::recreateSwapChain() {
 }
 
 Vulkan::~Vulkan() {
-    this->waitForDeviceIdle();
+    this->m_logicalDevice->waitForDeviceIdle();
     // Destroy the engine's buffer instances and free all allocated memory using VMA.
     vmaDestroyBuffer(this->m_VMA->memoryAllocator, this->vertexBuffer._buffer, this->vertexBuffer._bufferMemory);
     vmaDestroyBuffer(this->m_VMA->memoryAllocator, this->indexBuffer._buffer, this->indexBuffer._bufferMemory);

@@ -74,3 +74,7 @@ LogicalDevice::LogicalDevice(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
 LogicalDevice::~LogicalDevice() {
     vkDestroyDevice(this->logicalDevice, nullptr);
 }
+
+void LogicalDevice::waitForDeviceIdle() {
+    vkDeviceWaitIdle(this->logicalDevice);
+}
