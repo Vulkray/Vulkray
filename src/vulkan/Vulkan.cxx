@@ -45,7 +45,7 @@ Vulkan::Vulkan(GraphicsInput graphicsInput) {
     Synchronization::createSyncObjects(&this->imageAvailableSemaphores, &this->renderFinishedSemaphores,
                                        &this->inFlightFences, this->m_logicalDevice->logicalDevice,
                                        this->MAX_FRAMES_IN_FLIGHT);
-    spdlog::debug("Running Vulkan renderer ...");
+    spdlog::debug("Running engine renderer ...");
 
     while(!glfwWindowShouldClose(this->m_window->window)) {
         glfwPollEvents(); // Respond to window events (exit, resize, etc.)
@@ -57,13 +57,11 @@ void Vulkan::renderFrame() {
     uint32_t imageIndex;
     this->waitForPreviousFrame();
     this->getNextSwapChainImage(&imageIndex); // <-- swap chain recreation called here
-    this->resetGraphicsCmdBuffer(imageIndex);
-    this->submitGraphicsCmdBuffer();
+    this->m_graphicsCommandPool->resetGraphicsCmdBuffer(imageIndex);
+    this->m_graphicsCommandPool->submitNextCommandBuffer();
     this->presentImageBuffer(&imageIndex);
     this->frameIndex = (this->frameIndex + 1) % this->MAX_FRAMES_IN_FLIGHT;
 }
-
-// Synchronization / Command Buffer wrappers
 
 void Vulkan::waitForPreviousFrame() {
     vkWaitForFences(this->m_logicalDevice->logicalDevice, 1,
@@ -90,26 +88,7 @@ void Vulkan::getNextSwapChainImage(uint32_t *imageIndex) {
         throw std::runtime_error("Failed to acquire swap chain image!");
     }
     // reset fence only if we know we're submitting work
-    vkResetFences(this->m_logicalDevice->logicalDevice, 1, &this->inFlightFences[frameIndex]);
-}
-
-void Vulkan::resetGraphicsCmdBuffer(uint32_t imageIndex) {
-    vkResetCommandBuffer(this->m_graphicsCommandPool->commandBuffers[frameIndex], 0);
-    this->m_graphicsCommandPool->recordGraphicsCommands(this->m_graphicsCommandPool->commandBuffers[frameIndex],
-                                                        imageIndex, this->m_graphicsPipeline->graphicsPipeline,
-                                                        this->m_renderPass->renderPass,
-                                                        this->m_frameBuffers->swapChainFrameBuffers,
-                                                        this->vertexBuffer, this->indexBuffer, this->graphicsInput,
-                                                        this->m_swapChain->swapChainExtent);
-}
-
-void Vulkan::submitGraphicsCmdBuffer() {
-    this->m_graphicsCommandPool->submitCommandBuffer(&this->m_graphicsCommandPool->commandBuffers[this->frameIndex],
-                                                     this->m_logicalDevice->graphicsQueue,
-                                                     this->inFlightFences[this->frameIndex],
-                                                     this->imageAvailableSemaphores[this->frameIndex],
-                                                     this->renderFinishedSemaphores[this->frameIndex],
-                                                     this->waitSemaphores, this->signalSemaphores);
+    vkResetFences(this->m_logicalDevice->logicalDevice, 1, &this->inFlightFences[this->frameIndex]);
 }
 
 void Vulkan::presentImageBuffer(uint32_t *imageIndex) {

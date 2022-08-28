@@ -248,19 +248,12 @@ public:
     std::vector<VkCommandBuffer> commandBuffers;
     CommandPool(Vulkan *m_vulkan, VkCommandPoolCreateFlags additionalFlags, uint32_t queueIndex);
     ~CommandPool();
-    void recordGraphicsCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex,
-                                VkPipeline graphicsPipeline, VkRenderPass renderPass,
-                                std::vector<VkFramebuffer> swapFrameBuffers,
-                                AllocatedBuffer vertexBuffer, AllocatedBuffer indexBuffer,
-                                GraphicsInput graphicsInput, VkExtent2D swapExtent);
-    void submitCommandBuffer(VkCommandBuffer *commandBuffer, VkQueue graphicsQueue, VkFence inFlightFence,
-                             VkSemaphore imageAvailableSemaphore, VkSemaphore renderFinishedSemaphore,
-                             VkSemaphore waitSemaphores[], VkSemaphore signalSemaphores[]);
+    void recordGraphicsCommands(uint32_t imageIndex);
+    void submitNextCommandBuffer();
+    void resetGraphicsCmdBuffer(uint32_t imageIndex);
 private:
-    void createCommandPool(VkCommandPool *commandPool, VkCommandPoolCreateFlags additionalFlags,
-                                  VkDevice logicalDevice, uint32_t queueIndex);
-    void createCommandBuffer(std::vector<VkCommandBuffer> *commandBuffers, const int MAX_FRAMES_IN_FLIGHT,
-                                    VkDevice logicalDevice, VkCommandPool commandPool);
+    void createCommandPool(VkCommandPoolCreateFlags additionalFlags, uint32_t queueIndex);
+    void createCommandBuffer();
 };
 
 // ---------- Synchronization.cxx ---------- //
@@ -281,14 +274,12 @@ public:
     const int MAX_FRAMES_IN_FLIGHT = 2;
     uint32_t frameIndex = 0;
     bool framebufferResized = false;
-
     const std::vector<const char*> requiredExtensions = {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME
     };
     const std::vector<const char*> validationLayers = {
             "VK_LAYER_KHRONOS_validation"
     };
-
     // Vulkan validation layers (debug build only)
     #ifdef NDEBUG
         const bool enableValidationLayers = false;
@@ -325,7 +316,6 @@ private:
     void waitForPreviousFrame(); // Wrapper for vkWaitForFences()
     void getNextSwapChainImage(uint32_t *imageIndex);
     void resetGraphicsCmdBuffer(uint32_t imageIndex);
-    void submitGraphicsCmdBuffer(); // Wrapper for vkQueueSubmit() via CommandBuffer class
     void presentImageBuffer(uint32_t *imageIndex);
     void recreateSwapChain();
 };

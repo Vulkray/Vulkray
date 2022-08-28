@@ -16,18 +16,15 @@
 CommandPool::CommandPool(Vulkan *m_vulkan, VkCommandPoolCreateFlags additionalFlags,
                          uint32_t queueIndex): VkModuleBase(m_vulkan) {
 
-    this->createCommandPool(&this->commandPool, additionalFlags,
-                            this->m_vulkan->m_logicalDevice->logicalDevice, queueIndex);
-    this->createCommandBuffer(&this->commandBuffers, this->m_vulkan->MAX_FRAMES_IN_FLIGHT,
-                              this->m_vulkan->m_logicalDevice->logicalDevice, this->commandPool);
+    this->createCommandPool(additionalFlags, queueIndex);
+    this->createCommandBuffer();
 }
 
 CommandPool::~CommandPool() {
     vkDestroyCommandPool(this->m_vulkan->m_logicalDevice->logicalDevice, this->commandPool, nullptr);
 }
 
-void CommandPool::createCommandPool(VkCommandPool *commandPool, VkCommandPoolCreateFlags additionalFlags,
-                                      VkDevice logicalDevice, uint32_t queueIndex) {
+void CommandPool::createCommandPool(VkCommandPoolCreateFlags additionalFlags, uint32_t queueIndex) {
 
     // Configure & create the command pool instance
     VkCommandPoolCreateInfo poolInfo{};
@@ -35,27 +32,28 @@ void CommandPool::createCommandPool(VkCommandPool *commandPool, VkCommandPoolCre
     poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT | additionalFlags;
     poolInfo.queueFamilyIndex = queueIndex;
 
-    VkResult result = vkCreateCommandPool(logicalDevice, &poolInfo, nullptr, commandPool);
+    VkResult result = vkCreateCommandPool(this->m_vulkan->m_logicalDevice->logicalDevice,
+                                          &poolInfo, nullptr, &this->commandPool);
     if (result != VK_SUCCESS) {
         spdlog::error("An error occurred while initializing the Vulkan command pool instance.");
         throw std::runtime_error("Failed to create the command pool instance!");
     }
 }
 
-void CommandPool::createCommandBuffer(std::vector<VkCommandBuffer> *commandBuffers, const int MAX_FRAMES_IN_FLIGHT,
-                                        VkDevice logicalDevice, VkCommandPool commandPool) {
+void CommandPool::createCommandBuffer() {
 
     // Resize command buffer vector to max frames in flight value
-    commandBuffers->resize(MAX_FRAMES_IN_FLIGHT);
+    this->commandBuffers.resize(this->m_vulkan->MAX_FRAMES_IN_FLIGHT);
 
     // Configure & create the command buffer instance
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.commandPool = commandPool;
+    allocInfo.commandPool = this->commandPool;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY; // primary buffer (will be executed directly)
-    allocInfo.commandBufferCount = (uint32_t) commandBuffers->size();
+    allocInfo.commandBufferCount = (uint32_t) this->commandBuffers.size();
 
-    VkResult result = vkAllocateCommandBuffers(logicalDevice, &allocInfo, commandBuffers->data());
+    VkResult result = vkAllocateCommandBuffers(this->m_vulkan->m_logicalDevice->logicalDevice,
+                                               &allocInfo, this->commandBuffers.data());
     if (result != VK_SUCCESS) {
         spdlog::error("An error occurred while allocating the Vulkan command buffers.");
         throw std::runtime_error("Failed to allocate the command buffers!");
@@ -63,11 +61,7 @@ void CommandPool::createCommandBuffer(std::vector<VkCommandBuffer> *commandBuffe
 }
 
 // Only applies to the graphics command pool instance
-void CommandPool::recordGraphicsCommands(VkCommandBuffer commandBuffer, uint32_t imageIndex,
-                                        VkPipeline graphicsPipeline, VkRenderPass renderPass,
-                                        std::vector<VkFramebuffer> swapFrameBuffers,
-                                        AllocatedBuffer vertexBuffer, AllocatedBuffer indexBuffer,
-                                        GraphicsInput graphicsInput, VkExtent2D swapExtent) {
+void CommandPool::recordGraphicsCommands(uint32_t imageIndex) {
 
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -75,7 +69,7 @@ void CommandPool::recordGraphicsCommands(VkCommandBuffer commandBuffer, uint32_t
     beginInfo.pInheritanceInfo = nullptr; // optional
 
     // Start recording to the command buffer
-    VkResult result = vkBeginCommandBuffer(commandBuffer, &beginInfo);
+    VkResult result = vkBeginCommandBuffer(this->commandBuffers[this->m_vulkan->frameIndex], &beginInfo);
     if (result != VK_SUCCESS) {
         spdlog::error("An error occurred while trying to start recording to a command buffer.");
         throw std::runtime_error("Failed to begin recording the command buffer!");
@@ -84,73 +78,82 @@ void CommandPool::recordGraphicsCommands(VkCommandBuffer commandBuffer, uint32_t
     // Start configuring the render pass
     VkRenderPassBeginInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassInfo.renderPass = renderPass;
-    renderPassInfo.framebuffer = swapFrameBuffers[imageIndex];
+    renderPassInfo.renderPass = this->m_vulkan->m_renderPass->renderPass;
+    renderPassInfo.framebuffer = this->m_vulkan->m_frameBuffers->swapChainFrameBuffers[imageIndex];
     renderPassInfo.renderArea.offset = {0, 0};
-    renderPassInfo.renderArea.extent = swapExtent;
+    renderPassInfo.renderArea.extent = this->m_vulkan->m_swapChain->swapChainExtent;
     renderPassInfo.clearValueCount = 1;
-    renderPassInfo.pClearValues = &graphicsInput.bufferClearColor;
+    renderPassInfo.pClearValues = &this->m_vulkan->graphicsInput.bufferClearColor;
 
     // Submit (record) command to begin render pass
-    vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdBeginRenderPass(this->commandBuffers[this->m_vulkan->frameIndex],
+                         &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
     // Record binding the graphics pipeline to the command buffer
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+    vkCmdBindPipeline(this->commandBuffers[this->m_vulkan->frameIndex],
+                      VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_vulkan->m_graphicsPipeline->graphicsPipeline);
 
     // Bind the geometry buffers to the command buffer
-    VkBuffer vertexBuffers[] = { vertexBuffer._buffer };
+    VkBuffer vertexBuffers[] = { this->m_vulkan->vertexBuffer._buffer };
     VkDeviceSize offsets[] = {0};
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-    vkCmdBindIndexBuffer(commandBuffer, indexBuffer._buffer, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdBindVertexBuffers(this->commandBuffers[this->m_vulkan->frameIndex],
+                           0, 1, vertexBuffers, offsets);
+    vkCmdBindIndexBuffer(this->commandBuffers[this->m_vulkan->frameIndex],
+                         this->m_vulkan->indexBuffer._buffer, 0, VK_INDEX_TYPE_UINT32);
 
     // Record setting the viewport
     VkViewport viewport{};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width = static_cast<float>(swapExtent.width);
-    viewport.height = static_cast<float>(swapExtent.height);
+    viewport.width = static_cast<float>(this->m_vulkan->m_swapChain->swapChainExtent.width);
+    viewport.height = static_cast<float>(this->m_vulkan->m_swapChain->swapChainExtent.height);
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
-    vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+    vkCmdSetViewport(this->commandBuffers[this->m_vulkan->frameIndex], 0, 1, &viewport);
 
     // Record scissor configuration
     VkRect2D scissor{};
     scissor.offset = {0, 0};
-    scissor.extent = swapExtent;
-    vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+    scissor.extent = this->m_vulkan->m_swapChain->swapChainExtent;
+    vkCmdSetScissor(this->commandBuffers[this->m_vulkan->frameIndex], 0, 1, &scissor);
 
     // Submit (record) the draw command and end the render pass
-    vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(graphicsInput.indices.size()), 1, 0, 0, 0);
-    vkCmdEndRenderPass(commandBuffer);
+    vkCmdDrawIndexed(this->commandBuffers[this->m_vulkan->frameIndex],
+                     static_cast<uint32_t>(this->m_vulkan->graphicsInput.indices.size()), 1, 0, 0, 0);
+    vkCmdEndRenderPass(this->commandBuffers[this->m_vulkan->frameIndex]);
 
     // Finish recording to the command buffer
-    result = vkEndCommandBuffer(commandBuffer);
+    result = vkEndCommandBuffer(this->commandBuffers[this->m_vulkan->frameIndex]);
     if (result != VK_SUCCESS) {
         spdlog::error("An error occurred while trying to stop recording to a command buffer.");
         throw std::runtime_error("Failed to stop recording the command buffer!");
     }
 }
 
-void CommandPool::submitCommandBuffer(VkCommandBuffer *commandBuffer, VkQueue graphicsQueue, VkFence inFlightFence,
-                                        VkSemaphore imageAvailableSemaphore, VkSemaphore renderFinishedSemaphore,
-                                        VkSemaphore waitSemaphores[], VkSemaphore signalSemaphores[]) {
+void CommandPool::submitNextCommandBuffer() {
 
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-    waitSemaphores[0] = imageAvailableSemaphore;
+    this->m_vulkan->waitSemaphores[0] = this->m_vulkan->imageAvailableSemaphores[this->m_vulkan->frameIndex];
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
     submitInfo.waitSemaphoreCount = 1;
-    submitInfo.pWaitSemaphores = waitSemaphores;
+    submitInfo.pWaitSemaphores = this->m_vulkan->waitSemaphores;
     submitInfo.pWaitDstStageMask = waitStages;
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = commandBuffer;
-    signalSemaphores[0] = renderFinishedSemaphore;
+    submitInfo.pCommandBuffers = &this->commandBuffers[this->m_vulkan->frameIndex];
+    this->m_vulkan->signalSemaphores[0] = this->m_vulkan->renderFinishedSemaphores[this->m_vulkan->frameIndex];
     submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = signalSemaphores;
+    submitInfo.pSignalSemaphores = this->m_vulkan->signalSemaphores;
 
-    VkResult result = vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFence);
+    VkResult result = vkQueueSubmit(this->m_vulkan->m_logicalDevice->graphicsQueue, 1, &submitInfo,
+                                    this->m_vulkan->inFlightFences[this->m_vulkan->frameIndex]);
     if (result != VK_SUCCESS) {
         spdlog::error("An error occurred while submitting a command buffer to the graphics queue.");
         throw std::runtime_error("Failed to submit the draw command buffer!");
     }
+}
+
+void CommandPool::resetGraphicsCmdBuffer(uint32_t imageIndex) {
+    vkResetCommandBuffer(this->commandBuffers[this->m_vulkan->frameIndex], 0);
+    this->recordGraphicsCommands(imageIndex);
 }
