@@ -26,13 +26,13 @@ Vulkan::Vulkan(GraphicsInput graphicsInput) {
     this->m_VMA = std::make_unique<VulkanMemoryAllocator>(this);
     this->m_swapChain = std::make_unique<SwapChain>(this);
     this->m_imageViews = std::make_unique<ImageViews>(this);
+    this->m_renderPass = std::make_unique<RenderPass>(this);
 
-    RenderPass::createRenderPass(&this->renderPass, this->m_logicalDevice->logicalDevice,
-                                 this->m_swapChain->swapChainImageFormat);
-    GraphicsPipeline::createGraphicsPipeline(&this->graphicsPipeline, &this->pipelineLayout, this->renderPass,
+    GraphicsPipeline::createGraphicsPipeline(&this->graphicsPipeline, &this->pipelineLayout,
+                                             this->m_renderPass->renderPass,
                                              this->m_logicalDevice->logicalDevice, this->m_swapChain->swapChainExtent);
     FrameBuffers::createFrameBuffers(&this->swapChainFrameBuffers, this->m_imageViews->swapChainImageViews,
-                                     this->m_logicalDevice->logicalDevice, this->renderPass,
+                                     this->m_logicalDevice->logicalDevice, this->m_renderPass->renderPass,
                                      this->m_swapChain->swapChainExtent);
     CommandBuffer::createCommandPool(&this->graphicsCommandPool, (VkCommandPoolCreateFlags) 0,
                                      this->m_logicalDevice->logicalDevice,
@@ -104,9 +104,9 @@ void Vulkan::getNextSwapChainImage(uint32_t *imageIndex) {
 void Vulkan::resetGraphicsCmdBuffer(uint32_t imageIndex) {
     vkResetCommandBuffer(this->graphicsCommandBuffers[frameIndex], 0);
     CommandBuffer::recordGraphicsCommands(this->graphicsCommandBuffers[frameIndex], imageIndex,
-                                       this->graphicsPipeline, this->renderPass, this->swapChainFrameBuffers,
-                                       this->vertexBuffer, this->indexBuffer, this->graphicsInput,
-                                       this->m_swapChain->swapChainExtent);
+                                       this->graphicsPipeline, this->m_renderPass->renderPass,
+                                       this->swapChainFrameBuffers, this->vertexBuffer, this->indexBuffer,
+                                       this->graphicsInput, this->m_swapChain->swapChainExtent);
 }
 
 void Vulkan::submitGraphicsCmdBuffer() {
@@ -153,7 +153,7 @@ void Vulkan::recreateSwapChain() {
     this->m_imageViews = std::make_unique<ImageViews>(this);
 
     FrameBuffers::createFrameBuffers(&this->swapChainFrameBuffers, this->m_imageViews->swapChainImageViews,
-                                     this->m_logicalDevice->logicalDevice, this->renderPass,
+                                     this->m_logicalDevice->logicalDevice, this->m_renderPass->renderPass,
                                      this->m_swapChain->swapChainExtent);
 }
 
@@ -162,7 +162,6 @@ Vulkan::~Vulkan() {
     // Clean up Pipeline instances
     vkDestroyPipeline(this->m_logicalDevice->logicalDevice, this->graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(this->m_logicalDevice->logicalDevice, this->pipelineLayout, nullptr);
-    vkDestroyRenderPass(this->m_logicalDevice->logicalDevice, this->renderPass, nullptr);
     // Clean up synchronization objects
     for (int i = 0; i < this->MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroySemaphore(this->m_logicalDevice->logicalDevice, this->imageAvailableSemaphores.at(i), nullptr);

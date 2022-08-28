@@ -159,9 +159,11 @@ public:
 };
 
 // ---------- RenderPass.cxx ---------- //
-class RenderPass {
+class RenderPass: public VkModuleBase {
 public:
-    static void createRenderPass(VkRenderPass *renderPass, VkDevice logicalDevice, VkFormat swapImageFormat);
+    VkRenderPass renderPass;
+    RenderPass(Vulkan *m_vulkan);
+    ~RenderPass();
 };
 
 // ---------- GraphicsPipeline.cxx ---------- //
@@ -294,7 +296,7 @@ public:
     std::unique_ptr<VulkanMemoryAllocator> m_VMA;
     std::unique_ptr<SwapChain> m_swapChain;
     std::unique_ptr<ImageViews> m_imageViews;
-    VkRenderPass renderPass;
+    std::unique_ptr<RenderPass> m_renderPass;
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
     std::vector<VkFramebuffer> swapChainFrameBuffers;
