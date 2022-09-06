@@ -105,11 +105,58 @@ public:
     void waitForDeviceIdle();
 };
 
-// ---------- VulkanMemoryAllocator.cxx ---------- //
+// ---------- Buffers.cxx ---------- //
+struct Vertex {
+    glm::vec2 pos;
+    glm::vec3 color;
+
+    static VkVertexInputBindingDescription getBindingDescription() {
+        VkVertexInputBindingDescription bindingDescription{};
+        // vertex binding data
+        bindingDescription.binding = 0;
+        bindingDescription.stride = sizeof(Vertex);
+        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+        return bindingDescription;
+    }
+    static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions() {
+        std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
+        // vertex position data to shader
+        attributeDescriptions[0].binding = 0;
+        attributeDescriptions[0].location = 0;
+        attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+        attributeDescriptions[0].offset = offsetof(Vertex, pos);
+        // vertex color data to shader
+        attributeDescriptions[1].binding = 0;
+        attributeDescriptions[1].location = 1;
+        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[1].offset = offsetof(Vertex, color);
+
+        return attributeDescriptions;
+    }
+};
+
 struct AllocatedBuffer {
-    VkBuffer _buffer;
+    VkBuffer _bufferInstance;
     VmaAllocation _bufferMemory;
 };
+
+class Buffer: public VkModuleBase {
+public:
+    AllocatedBuffer buffer;
+    // When vertex/index buffer init, only one data parameter is used (after BufferUsageFlagBit), never both.
+    Buffer(Vulkan *m_vulkan, VkBufferUsageFlagBits bufferType,
+           const std::vector<Vertex> *vertexData, const std::vector<uint32_t> *indexData);
+    ~Buffer();
+private:
+    void createVertexBuffer(const std::vector<Vertex> vertices);
+    void createIndexBuffer(const std::vector<uint32_t> indices);
+    void allocateBuffer(AllocatedBuffer *buffer, VkBufferUsageFlags usageTypeBit,
+                        VmaAllocationCreateFlags allocationFlags, VkDeviceSize bufferSize);
+    void copyBuffer(AllocatedBuffer srcBuffer, AllocatedBuffer dstBuffer, VkDeviceSize bufferSize);
+};
+
+// ---------- VulkanMemoryAllocator.cxx ---------- //
 class VulkanMemoryAllocator: public VkModuleBase {
 public:
     VmaAllocator memoryAllocator;
@@ -186,59 +233,10 @@ public:
     ~FrameBuffers();
 };
 
-// ---------- Buffers.cxx ---------- //
-struct Vertex {
-    glm::vec2 pos;
-    glm::vec3 color;
-
-    static VkVertexInputBindingDescription getBindingDescription() {
-        VkVertexInputBindingDescription bindingDescription{};
-        // vertex binding data
-        bindingDescription.binding = 0;
-        bindingDescription.stride = sizeof(Vertex);
-        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-        return bindingDescription;
-    }
-    static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions() {
-        std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
-        // vertex position data to shader
-        attributeDescriptions[0].binding = 0;
-        attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
-        attributeDescriptions[0].offset = offsetof(Vertex, pos);
-        // vertex color data to shader
-        attributeDescriptions[1].binding = 0;
-        attributeDescriptions[1].location = 1;
-        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[1].offset = offsetof(Vertex, color);
-
-        return attributeDescriptions;
-    }
-};
-
-class Buffers {
-public:
-    glm::mat4 matrix;
-    glm::vec4 vec;
-    static void createVertexBuffer(AllocatedBuffer *vertexBuffer, VmaAllocator allocator,
-                                   QueueFamilyIndices queueIndices, const std::vector<Vertex> vertices,
-                                   VkDevice logicalDevice, VkCommandPool transferPool, VkQueue transferQueue);
-    static void createIndexBuffer(AllocatedBuffer *indexBuffer, VmaAllocator allocator,
-                                  QueueFamilyIndices queueIndices, const std::vector<uint32_t> indices,
-                                  VkDevice logicalDevice, VkCommandPool transferPool, VkQueue transferQueue);
-private:
-    static void allocateBuffer(AllocatedBuffer *buffer, VmaAllocator allocator, VkBufferUsageFlags usageTypeBit,
-                               VmaAllocationCreateFlags allocationFlags,
-                               VkDeviceSize bufferSize, QueueFamilyIndices queueIndices);
-    static void copyBuffer(AllocatedBuffer srcBuffer, AllocatedBuffer dstBuffer, VkDeviceSize bufferSize,
-                           VkDevice logicalDevice, VkCommandPool commandPool, VkQueue transferQueue);
-};
-
 // ---------- CommandBuffer.cxx ---------- //
 struct GraphicsInput {
-    std::vector<Vertex> vertices;
-    std::vector<uint32_t> indices;
+    std::vector<Vertex> vertexData;
+    std::vector<uint32_t> indexData;
     VkClearValue bufferClearColor;
 };
 
@@ -299,15 +297,14 @@ public:
     std::unique_ptr<FrameBuffers> m_frameBuffers;
     std::unique_ptr<CommandPool> m_graphicsCommandPool;
     std::unique_ptr<CommandPool> m_transferCommandPool;
+    std::unique_ptr<Buffer> m_vertexBuffer;
+    std::unique_ptr<Buffer> m_indexBuffer;
     // Synchronization Objects (semaphores / fences)
     std::vector<VkSemaphore> imageAvailableSemaphores;
     std::vector<VkSemaphore> renderFinishedSemaphores;
     std::vector<VkFence> inFlightFences;
     VkSemaphore waitSemaphores[1];
     VkSemaphore signalSemaphores[1];
-    // Buffer allocations
-    AllocatedBuffer vertexBuffer;
-    AllocatedBuffer indexBuffer;
 
     Vulkan(GraphicsInput graphicsInput);
     ~Vulkan();

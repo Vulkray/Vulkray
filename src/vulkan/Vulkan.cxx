@@ -33,15 +33,11 @@ Vulkan::Vulkan(GraphicsInput graphicsInput) {
             this, (VkCommandPoolCreateFlags) 0, this->m_physicalDevice->queueFamilies.graphicsFamily.value());
     this->m_transferCommandPool = std::make_unique<CommandPool>(
             this, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT, this->m_physicalDevice->queueFamilies.transferFamily.value());
+    this->m_vertexBuffer = std::make_unique<Buffer>(this, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                                                    &this->graphicsInput.vertexData, nullptr);
+    this->m_indexBuffer = std::make_unique<Buffer>(this, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                                                   nullptr, &this->graphicsInput.indexData);
 
-    Buffers::createVertexBuffer(&this->vertexBuffer, this->m_VMA->memoryAllocator,
-                                this->m_physicalDevice->queueFamilies,
-                                graphicsInput.vertices, this->m_logicalDevice->logicalDevice,
-                                this->m_transferCommandPool->commandPool, this->m_logicalDevice->transferQueue);
-    Buffers::createIndexBuffer(&this->indexBuffer, this->m_VMA->memoryAllocator,
-                               this->m_physicalDevice->queueFamilies,
-                               graphicsInput.indices, this->m_logicalDevice->logicalDevice,
-                               this->m_transferCommandPool->commandPool, this->m_logicalDevice->transferQueue);
     Synchronization::createSyncObjects(&this->imageAvailableSemaphores, &this->renderFinishedSemaphores,
                                        &this->inFlightFences, this->m_logicalDevice->logicalDevice,
                                        this->MAX_FRAMES_IN_FLIGHT);

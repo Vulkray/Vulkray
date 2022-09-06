@@ -93,12 +93,12 @@ void CommandPool::recordGraphicsCommands(uint32_t imageIndex) {
                       VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_vulkan->m_graphicsPipeline->graphicsPipeline);
 
     // Bind the geometry buffers to the command buffer
-    VkBuffer vertexBuffers[] = { this->m_vulkan->vertexBuffer._buffer };
+    VkBuffer vertexBuffers[] = { this->m_vulkan->m_vertexBuffer->buffer._bufferInstance };
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(this->commandBuffers[this->m_vulkan->frameIndex],
                            0, 1, vertexBuffers, offsets);
     vkCmdBindIndexBuffer(this->commandBuffers[this->m_vulkan->frameIndex],
-                         this->m_vulkan->indexBuffer._buffer, 0, VK_INDEX_TYPE_UINT32);
+                         this->m_vulkan->m_indexBuffer->buffer._bufferInstance, 0, VK_INDEX_TYPE_UINT32);
 
     // Record setting the viewport
     VkViewport viewport{};
@@ -118,7 +118,7 @@ void CommandPool::recordGraphicsCommands(uint32_t imageIndex) {
 
     // Submit (record) the draw command and end the render pass
     vkCmdDrawIndexed(this->commandBuffers[this->m_vulkan->frameIndex],
-                     static_cast<uint32_t>(this->m_vulkan->graphicsInput.indices.size()), 1, 0, 0, 0);
+                     static_cast<uint32_t>(this->m_vulkan->graphicsInput.indexData.size()), 1, 0, 0, 0);
     vkCmdEndRenderPass(this->commandBuffers[this->m_vulkan->frameIndex]);
 
     // Finish recording to the command buffer

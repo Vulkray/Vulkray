@@ -14,69 +14,79 @@
 #include <spdlog/spdlog.h>
 #include <vk_mem_alloc.h>
 
-void Buffers::createVertexBuffer(AllocatedBuffer *vertexBuffer, VmaAllocator allocator,
-                                 QueueFamilyIndices queueIndices, const std::vector <Vertex> vertices,
-                                 VkDevice logicalDevice, VkCommandPool transferPool, VkQueue transferQueue) {
+Buffer::Buffer(Vulkan *m_vulkan, VkBufferUsageFlagBits bufferType,
+               const std::vector<Vertex> *vertexData, const std::vector<uint32_t> *indexData): VkModuleBase(m_vulkan) {
 
+    switch (bufferType) {
+        case VK_BUFFER_USAGE_VERTEX_BUFFER_BIT:
+            this->createVertexBuffer(*vertexData);
+            break;
+        case VK_BUFFER_USAGE_INDEX_BUFFER_BIT:
+            this->createIndexBuffer(*indexData);
+            break;
+        default:
+            spdlog::error("Unsupported VkBufferUsageFlagBit type given to Buffer constructor. Exiting..");
+            throw std::runtime_error("Invalid buffer usage flag bit given to buffer constructor.");
+    }
+}
+
+Buffer::~Buffer() {
+    vmaDestroyBuffer(this->m_vulkan->m_VMA->memoryAllocator,
+                     this->buffer._bufferInstance, this->buffer._bufferMemory);
+}
+
+void Buffer::createVertexBuffer(const std::vector<Vertex> vertices) {
     VkDeviceSize vertexBufferSize = sizeof(vertices[0]) * vertices.size();
 
     // Allocate the staging buffer using the allocateBuffer() helper function
     AllocatedBuffer stagingBuffer;
-    Buffers::allocateBuffer(&stagingBuffer, allocator,
-                            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                            VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
-                            vertexBufferSize, queueIndices);
+    this->allocateBuffer(&stagingBuffer, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                         VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
+                         vertexBufferSize);
 
     // Map the vertex data over to the vertex buffer memory
     void* data;
-    vmaMapMemory(allocator, stagingBuffer._bufferMemory, &data);
+    vmaMapMemory(this->m_vulkan->m_VMA->memoryAllocator, stagingBuffer._bufferMemory, &data);
     memcpy(data, vertices.data(), (size_t) vertexBufferSize);
-    vmaUnmapMemory(allocator, stagingBuffer._bufferMemory);
+    vmaUnmapMemory(this->m_vulkan->m_VMA->memoryAllocator, stagingBuffer._bufferMemory);
 
     // Allocate the device local (GPU) vertex buffer
-    Buffers::allocateBuffer(vertexBuffer, allocator,
-                            VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                            (VmaAllocationCreateFlagBits) 0, // VMA allocates device local memory on auto
-                            vertexBufferSize, queueIndices);
+    this->allocateBuffer(&this->buffer, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                            (VmaAllocationCreateFlagBits) 0, vertexBufferSize); // VMA defaults to device local memory
 
     // Copy the staging buffer on host RAM to the vertex buffer on GPU memory
-    copyBuffer(stagingBuffer, *vertexBuffer, vertexBufferSize, logicalDevice, transferPool, transferQueue);
-    vmaDestroyBuffer(allocator, stagingBuffer._buffer, stagingBuffer._bufferMemory);
+    copyBuffer(stagingBuffer, this->buffer, vertexBufferSize);
+    vmaDestroyBuffer(this->m_vulkan->m_VMA->memoryAllocator,
+                     stagingBuffer._bufferInstance, stagingBuffer._bufferMemory);
 }
 
-void Buffers::createIndexBuffer(AllocatedBuffer *indexBuffer, VmaAllocator allocator,
-                                QueueFamilyIndices queueIndices, const std::vector<uint32_t> indices,
-                                VkDevice logicalDevice, VkCommandPool transferPool, VkQueue transferQueue) {
+void Buffer::createIndexBuffer(const std::vector<uint32_t> indices) {
 
     VkDeviceSize indexBufferSize = sizeof(indices[0]) * indices.size();
 
     // Allocate the staging buffer using the allocateBuffer() helper function
     AllocatedBuffer stagingBuffer;
-    Buffers::allocateBuffer(&stagingBuffer, allocator,
-                            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                            VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT,
-                            indexBufferSize, queueIndices);
+    this->allocateBuffer(&stagingBuffer, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                            VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT, indexBufferSize);
 
     // Map the vertex data over to the vertex buffer memory
     void* data;
-    vmaMapMemory(allocator, stagingBuffer._bufferMemory, &data);
+    vmaMapMemory(this->m_vulkan->m_VMA->memoryAllocator, stagingBuffer._bufferMemory, &data);
     memcpy(data, indices.data(), (size_t) indexBufferSize);
-    vmaUnmapMemory(allocator, stagingBuffer._bufferMemory);
+    vmaUnmapMemory(this->m_vulkan->m_VMA->memoryAllocator, stagingBuffer._bufferMemory);
 
     // Allocate the device local (GPU) vertex buffer
-    Buffers::allocateBuffer(indexBuffer, allocator,
-                            VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                            (VmaAllocationCreateFlagBits) 0, // VMA allocates device local memory on auto
-                            indexBufferSize, queueIndices);
+    this->allocateBuffer(&this->buffer, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                         (VmaAllocationCreateFlagBits) 0, indexBufferSize); // VMA defaults to device local memory
 
     // Copy the staging buffer on host RAM to the vertex buffer on GPU memory
-    copyBuffer(stagingBuffer, *indexBuffer, indexBufferSize, logicalDevice, transferPool, transferQueue);
-    vmaDestroyBuffer(allocator, stagingBuffer._buffer, stagingBuffer._bufferMemory);
+    copyBuffer(stagingBuffer, this->buffer, indexBufferSize);
+    vmaDestroyBuffer(this->m_vulkan->m_VMA->memoryAllocator,
+                     stagingBuffer._bufferInstance, stagingBuffer._bufferMemory);
 }
 
-void Buffers::allocateBuffer(AllocatedBuffer *buffer, VmaAllocator allocator, VkBufferUsageFlags usageTypeBit,
-                             VmaAllocationCreateFlags allocationFlags,
-                             VkDeviceSize bufferSize, QueueFamilyIndices queueIndices) {
+void Buffer::allocateBuffer(AllocatedBuffer *buffer, VkBufferUsageFlags usageTypeBit,
+                            VmaAllocationCreateFlags allocationFlags, VkDeviceSize bufferSize) {
 
     // Create vertex buffer create info struct
     VkBufferCreateInfo bufferInfo{};
@@ -86,8 +96,8 @@ void Buffers::allocateBuffer(AllocatedBuffer *buffer, VmaAllocator allocator, Vk
 
     bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT; // using both graphics and transfer queues
     const unsigned int uniqueQueueFamilies[] = {
-            queueIndices.graphicsFamily.value(),
-            queueIndices.transferFamily.value()
+            this->m_vulkan->m_physicalDevice->queueFamilies.graphicsFamily.value(),
+            this->m_vulkan->m_physicalDevice->queueFamilies.transferFamily.value()
     };
     bufferInfo.pQueueFamilyIndices = uniqueQueueFamilies;
     bufferInfo.queueFamilyIndexCount = 2;
@@ -100,26 +110,25 @@ void Buffers::allocateBuffer(AllocatedBuffer *buffer, VmaAllocator allocator, Vk
      * Note: vmaCreateBuffer() doesn't just create the buffer instance, but also allocates the
      * required memory for the buffer according to its needs and binds the memory to the buffer for you.
      */
-    VkResult bufferResult = vmaCreateBuffer(allocator, &bufferInfo, &allocInfo,
-                                      &buffer->_buffer, &buffer->_bufferMemory, nullptr);
+    VkResult bufferResult = vmaCreateBuffer(this->m_vulkan->m_VMA->memoryAllocator, &bufferInfo, &allocInfo,
+                                      &buffer->_bufferInstance, &buffer->_bufferMemory, nullptr);
     if (bufferResult != VK_SUCCESS) {
         spdlog::error("An error occurred after attempting to allocate the Vertex Buffer using VMA.");
         throw std::runtime_error("Failed to create the Vulkan vertex buffer!");
     }
 }
 
-void Buffers::copyBuffer(AllocatedBuffer srcBuffer, AllocatedBuffer dstBuffer, VkDeviceSize bufferSize,
-                         VkDevice logicalDevice, VkCommandPool commandPool, VkQueue transferQueue) {
+void Buffer::copyBuffer(AllocatedBuffer srcBuffer, AllocatedBuffer dstBuffer, VkDeviceSize bufferSize) {
 
     // Allocate a short-lived single command buffer in the transfer command pool
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandPool = commandPool;
+    allocInfo.commandPool = this->m_vulkan->m_transferCommandPool->commandPool;
     allocInfo.commandBufferCount = 1;
 
     VkCommandBuffer commandBuffer;
-    vkAllocateCommandBuffers(logicalDevice, &allocInfo, &commandBuffer);
+    vkAllocateCommandBuffers(this->m_vulkan->m_logicalDevice->logicalDevice, &allocInfo, &commandBuffer);
 
     // Begin recording to the temporary transfer command buffer
     VkCommandBufferBeginInfo beginInfo{};
@@ -132,7 +141,7 @@ void Buffers::copyBuffer(AllocatedBuffer srcBuffer, AllocatedBuffer dstBuffer, V
     copyRegion.srcOffset = 0; // optional
     copyRegion.dstOffset = 0; // optional
     copyRegion.size = bufferSize;
-    vkCmdCopyBuffer(commandBuffer, srcBuffer._buffer, dstBuffer._buffer, 1, &copyRegion);
+    vkCmdCopyBuffer(commandBuffer, srcBuffer._bufferInstance, dstBuffer._bufferInstance, 1, &copyRegion);
     vkEndCommandBuffer(commandBuffer);
 
     /* Submit the command buffer to the dedicated transfer queue.
@@ -144,8 +153,9 @@ void Buffers::copyBuffer(AllocatedBuffer srcBuffer, AllocatedBuffer dstBuffer, V
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &commandBuffer;
 
-    vkQueueSubmit(transferQueue, 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle(transferQueue);
+    vkQueueSubmit(this->m_vulkan->m_logicalDevice->transferQueue, 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(this->m_vulkan->m_logicalDevice->transferQueue);
     // free the temporary allocated command buffer
-    vkFreeCommandBuffers(logicalDevice, commandPool, 1, &commandBuffer);
+    vkFreeCommandBuffers(this->m_vulkan->m_logicalDevice->logicalDevice,
+                         this->m_vulkan->m_transferCommandPool->commandPool, 1, &commandBuffer);
 }

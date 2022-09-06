@@ -26,13 +26,13 @@ public:
 private:
     // TODO: Vulkan graphics input struct; temporary location!
     GraphicsInput graphicsInput = {
-        .vertices = {
+        .vertexData = {
             {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
             {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
             {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
             {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
         },
-        .indices = {0, 1, 2, 2, 3, 0},
+        .indexData = {0, 1, 2, 2, 3, 0},
         .bufferClearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}}
     };
 };
@@ -44,14 +44,14 @@ int main() {
     #else
         spdlog::set_level(spdlog::level::info); // only print info output on release builds
     #endif
-    spdlog::set_pattern("[Vulkray] [%n] [%H:%M:%S] [%^%l%$] %v");
+    spdlog::set_pattern("[%H:%M:%S] [%n] [%^%l%$] %v");
 
     // ----- Initialize the engine ----- //
     Initialize engineBase;
     try {
         engineBase.launch();
     } catch (const std::exception& exception) {
-        spdlog::error("Failed to initialize engine base: {0}", exception.what());
+        spdlog::error("An error was thrown by the engine: {0}", exception.what());
         return 1; // exit with error
     }
     return 0;
