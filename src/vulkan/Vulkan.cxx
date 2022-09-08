@@ -113,13 +113,16 @@ void Vulkan::presentImageBuffer(uint32_t *imageIndex) {
 void Vulkan::recreateSwapChain() {
     this->m_window->waitForWindowFocus();
     this->m_logicalDevice->waitForDeviceIdle();
-    // recreate previous swap chain + dependent modules
-    this->m_swapChain.reset();
+    // Move current swap to old swap smart pointer
+    this->m_oldSwapChain = std::move(this->m_swapChain);
+    // recreate the swap chain & its dependent modules
     this->m_imageViews.reset();
     this->m_frameBuffers.reset();
     this->m_swapChain = std::make_unique<SwapChain>(this);
     this->m_imageViews = std::make_unique<ImageViews>(this);
     this->m_frameBuffers = std::make_unique<FrameBuffers>(this);
+    // destroy old swap chain module after recreation
+    this->m_oldSwapChain.reset();
 }
 
 Vulkan::~Vulkan() {

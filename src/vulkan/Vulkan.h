@@ -294,6 +294,7 @@ public:
     std::unique_ptr<LogicalDevice> m_logicalDevice;
     std::unique_ptr<VulkanMemoryAllocator> m_VMA;
     std::unique_ptr<SwapChain> m_swapChain;
+    std::unique_ptr<SwapChain> m_oldSwapChain = nullptr; // used for swap recreation
     std::unique_ptr<ImageViews> m_imageViews;
     std::unique_ptr<RenderPass> m_renderPass;
     std::unique_ptr<GraphicsPipeline> m_graphicsPipeline;

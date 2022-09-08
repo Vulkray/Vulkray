@@ -72,7 +72,13 @@ SwapChain::SwapChain(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
     swapCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR; // ignore alpha channel
     swapCreateInfo.presentMode = presentMode;
     swapCreateInfo.clipped = VK_TRUE; // ignore pixels covered by another window (no use in this engine)
-    swapCreateInfo.oldSwapchain = VK_NULL_HANDLE; // swap recreation not yet implemented; temporary!
+
+    // pass old swap chain instance if this is not the first swap chain
+    if (this->m_vulkan->m_oldSwapChain == nullptr) {
+        swapCreateInfo.oldSwapchain = VK_NULL_HANDLE;
+    } else {
+        swapCreateInfo.oldSwapchain = this->m_vulkan->m_oldSwapChain->swapChain;
+    }
 
     // Initialize the Vulkan swap chain instance
     VkResult result = vkCreateSwapchainKHR(this->m_vulkan->m_logicalDevice->logicalDevice,
