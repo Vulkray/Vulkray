@@ -78,9 +78,22 @@ SwapChain::SwapChain(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
     VkResult result = vkCreateSwapchainKHR(this->m_vulkan->m_logicalDevice->logicalDevice,
                                            &swapCreateInfo, nullptr, &this->swapChain);
     if (result != VK_SUCCESS) {
-        spdlog::error("An issue was encountered while trying to create the Vulkan swap chain.");
+        switch (result) {
+            case VK_ERROR_INITIALIZATION_FAILED:
+                spdlog::error("Swap chain initialization could not be completed for implementation-specific reasons.");
+                break;
+            case VK_ERROR_SURFACE_LOST_KHR:
+                spdlog::error("The GLFW vulkan surface instance is no longer available.");
+                break;
+            case VK_ERROR_NATIVE_WINDOW_IN_USE_KHR:
+                spdlog::error("The requested window is already in use by Vulkan or another API.");
+                break;
+            default:
+                spdlog::error("vkCreateSwapchainKHR() returned error code: {0}", result);
+                break;
+        }
         this->swapChain = VK_NULL_HANDLE; // less validation layer errors on clean up after error
-        throw std::runtime_error("Failed to initialize the swap chain!");
+        throw std::runtime_error("Failed to recreate the swap chain!");
     }
 
     // Get the swap chain images handles

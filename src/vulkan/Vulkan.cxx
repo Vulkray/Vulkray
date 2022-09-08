@@ -49,10 +49,10 @@ Vulkan::Vulkan(GraphicsInput graphicsInput) {
 void Vulkan::renderFrame() {
     uint32_t imageIndex;
     this->waitForPreviousFrame();
-    this->getNextSwapChainImage(&imageIndex); // <-- swap chain recreation called here
+    this->getNextSwapChainImage(&imageIndex); // <-- swap chain recreation called here (via Vulkan OUT_OF_DATE_KHR)
     this->m_graphicsCommandPool->resetGraphicsCmdBuffer(imageIndex);
     this->m_graphicsCommandPool->submitNextCommandBuffer();
-    this->presentImageBuffer(&imageIndex);
+    this->presentImageBuffer(&imageIndex); // <-- swap chain recreation called here (via GLFW framebuffer callback)
     this->frameIndex = (this->frameIndex + 1) % this->MAX_FRAMES_IN_FLIGHT;
 }
 
@@ -71,7 +71,8 @@ void Vulkan::getNextSwapChainImage(uint32_t *imageIndex) {
     /* check if vkAcquireNextImageKHR returned an out of date framebuffer flag
      * Note: this is not a feature on all Vulkan compatible drivers! also checking via GLFW resize callback!
      */
-    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || this->framebufferResized) {
+        this->framebufferResized = false; // reset GLFW triggered framebuffer resized flag
         this->recreateSwapChain();
         return;
 
@@ -99,8 +100,7 @@ void Vulkan::presentImageBuffer(uint32_t *imageIndex) {
 
     VkResult result = vkQueuePresentKHR(this->m_logicalDevice->presentQueue, &presentInfo);
 
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || this->framebufferResized) {
-        this->framebufferResized = false; // reset GLFW triggered framebuffer resized flag
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
         this->recreateSwapChain();
 
     } else if (result != VK_SUCCESS) {
