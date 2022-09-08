@@ -37,12 +37,9 @@ Vulkan::Vulkan(GraphicsInput graphicsInput) {
                                                     &this->graphicsInput.vertexData, nullptr);
     this->m_indexBuffer = std::make_unique<Buffer>(this, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
                                                    nullptr, &this->graphicsInput.indexData);
+    this->m_synchronization = std::make_unique<Synchronization>(this);
 
-    Synchronization::createSyncObjects(&this->imageAvailableSemaphores, &this->renderFinishedSemaphores,
-                                       &this->inFlightFences, this->m_logicalDevice->logicalDevice,
-                                       this->MAX_FRAMES_IN_FLIGHT);
     spdlog::debug("Running engine renderer ...");
-
     while(!glfwWindowShouldClose(this->m_window->window)) {
         glfwPollEvents(); // Respond to window events (exit, resize, etc.)
         renderFrame();
@@ -61,14 +58,14 @@ void Vulkan::renderFrame() {
 
 void Vulkan::waitForPreviousFrame() {
     vkWaitForFences(this->m_logicalDevice->logicalDevice, 1,
-                    &this->inFlightFences[this->frameIndex], VK_TRUE, UINT64_MAX);
+                    &this->m_synchronization->inFlightFences[this->frameIndex], VK_TRUE, UINT64_MAX);
 }
 
 void Vulkan::getNextSwapChainImage(uint32_t *imageIndex) {
 
     // acquire next image view, also get swap chain status
     VkResult result = vkAcquireNextImageKHR(this->m_logicalDevice->logicalDevice, this->m_swapChain->swapChain,
-                                            UINT64_MAX, this->imageAvailableSemaphores[frameIndex],
+                                            UINT64_MAX, this->m_synchronization->imageAvailableSemaphores[frameIndex],
                                             VK_NULL_HANDLE, imageIndex);
 
     /* check if vkAcquireNextImageKHR returned an out of date framebuffer flag
@@ -84,7 +81,7 @@ void Vulkan::getNextSwapChainImage(uint32_t *imageIndex) {
         throw std::runtime_error("Failed to acquire swap chain image!");
     }
     // reset fence only if we know we're submitting work
-    vkResetFences(this->m_logicalDevice->logicalDevice, 1, &this->inFlightFences[this->frameIndex]);
+    vkResetFences(this->m_logicalDevice->logicalDevice, 1, &this->m_synchronization->inFlightFences[this->frameIndex]);
 }
 
 void Vulkan::presentImageBuffer(uint32_t *imageIndex) {
@@ -92,7 +89,7 @@ void Vulkan::presentImageBuffer(uint32_t *imageIndex) {
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 
     presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = this->signalSemaphores;
+    presentInfo.pWaitSemaphores = this->m_synchronization->signalSemaphores;
 
     VkSwapchainKHR swapChains[] = {this->m_swapChain->swapChain};
     presentInfo.swapchainCount = 1;
@@ -116,7 +113,7 @@ void Vulkan::presentImageBuffer(uint32_t *imageIndex) {
 void Vulkan::recreateSwapChain() {
     this->m_window->waitForWindowFocus();
     this->m_logicalDevice->waitForDeviceIdle();
-    // destroy the previous swap chain / dependent modules
+    // recreate previous swap chain + dependent modules
     this->m_swapChain.reset();
     this->m_imageViews.reset();
     this->m_frameBuffers.reset();
@@ -126,14 +123,8 @@ void Vulkan::recreateSwapChain() {
 }
 
 Vulkan::~Vulkan() {
-    // Sleeps thread until GPU is idle before cleaning up
+    // Sleeps thread until GPU is idle before cleaning up engine memory
     this->m_logicalDevice->waitForDeviceIdle();
-    // Clean up synchronization objects
-    for (int i = 0; i < this->MAX_FRAMES_IN_FLIGHT; i++) {
-        vkDestroySemaphore(this->m_logicalDevice->logicalDevice, this->imageAvailableSemaphores.at(i), nullptr);
-        vkDestroySemaphore(this->m_logicalDevice->logicalDevice, this->renderFinishedSemaphores.at(i), nullptr);
-        vkDestroyFence(this->m_logicalDevice->logicalDevice, this->inFlightFences.at(i), nullptr);
-    }
 }
 
 // Module base class constructor

@@ -134,19 +134,22 @@ void CommandPool::submitNextCommandBuffer() {
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-    this->m_vulkan->waitSemaphores[0] = this->m_vulkan->imageAvailableSemaphores[this->m_vulkan->frameIndex];
+    // Synchronization module pointer reference to shorten code
+    Synchronization *m_synchronization = this->m_vulkan->m_synchronization.get();
+
+    m_synchronization->waitSemaphores[0] = m_synchronization->imageAvailableSemaphores[this->m_vulkan->frameIndex];
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
     submitInfo.waitSemaphoreCount = 1;
-    submitInfo.pWaitSemaphores = this->m_vulkan->waitSemaphores;
+    submitInfo.pWaitSemaphores = m_synchronization->waitSemaphores;
     submitInfo.pWaitDstStageMask = waitStages;
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &this->commandBuffers[this->m_vulkan->frameIndex];
-    this->m_vulkan->signalSemaphores[0] = this->m_vulkan->renderFinishedSemaphores[this->m_vulkan->frameIndex];
+    m_synchronization->signalSemaphores[0] = m_synchronization->renderFinishedSemaphores[this->m_vulkan->frameIndex];
     submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = this->m_vulkan->signalSemaphores;
+    submitInfo.pSignalSemaphores = m_synchronization->signalSemaphores;
 
     VkResult result = vkQueueSubmit(this->m_vulkan->m_logicalDevice->graphicsQueue, 1, &submitInfo,
-                                    this->m_vulkan->inFlightFences[this->m_vulkan->frameIndex]);
+                                    m_synchronization->inFlightFences[this->m_vulkan->frameIndex]);
     if (result != VK_SUCCESS) {
         spdlog::error("An error occurred while submitting a command buffer to the graphics queue.");
         throw std::runtime_error("Failed to submit the draw command buffer!");

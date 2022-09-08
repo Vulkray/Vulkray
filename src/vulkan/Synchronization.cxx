@@ -1,6 +1,6 @@
 /*
  * Synchronization.cxx
- * Creates the Vulkan semaphores / fences instances for GPU/CPU sync.
+ * Creates the Vulkan semaphores/fences instances for GPU/CPU synchronization.
  *
  * VULKRAY ENGINE SOFTWARE
  * Copyright (c) 2022, Max Rodriguez. All rights reserved.
@@ -13,15 +13,12 @@
 #include "Vulkan.h"
 #include <spdlog/spdlog.h>
 
-void Synchronization::createSyncObjects(std::vector<VkSemaphore> *imageAvailableSemaphores,
-                                        std::vector<VkSemaphore> *renderFinishedSemaphores,
-                                        std::vector<VkFence> *inFlightFences, VkDevice logicalDevice,
-                                        const int MAX_FRAMES_IN_FLIGHT) {
+Synchronization::Synchronization(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
 
     // resize semaphore and fence vectors to max frames in flight value
-    imageAvailableSemaphores->resize(MAX_FRAMES_IN_FLIGHT);
-    renderFinishedSemaphores->resize(MAX_FRAMES_IN_FLIGHT);
-    inFlightFences->resize(MAX_FRAMES_IN_FLIGHT);
+    this->imageAvailableSemaphores.resize(this->m_vulkan->MAX_FRAMES_IN_FLIGHT);
+    this->renderFinishedSemaphores.resize(this->m_vulkan->MAX_FRAMES_IN_FLIGHT);
+    this->inFlightFences.resize(this->m_vulkan->MAX_FRAMES_IN_FLIGHT);
 
     VkSemaphoreCreateInfo semaphoreInfo{};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -31,12 +28,27 @@ void Synchronization::createSyncObjects(std::vector<VkSemaphore> *imageAvailable
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT; // start fence signaled (to render first frame)
 
     // create each semaphore & fence for each frame that can be drawn in flight
-    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        if (vkCreateSemaphore(logicalDevice, &semaphoreInfo, nullptr, &imageAvailableSemaphores->at(i)) != VK_SUCCESS ||
-            vkCreateSemaphore(logicalDevice, &semaphoreInfo, nullptr, &renderFinishedSemaphores->at(i)) != VK_SUCCESS ||
-            vkCreateFence(logicalDevice, &fenceInfo, nullptr, &inFlightFences->at(i)) != VK_SUCCESS) {
+    for (int i = 0; i < this->m_vulkan->MAX_FRAMES_IN_FLIGHT; i++) {
+        if (vkCreateSemaphore(this->m_vulkan->m_logicalDevice->logicalDevice, &semaphoreInfo, nullptr,
+                              &this->imageAvailableSemaphores.at(i)) != VK_SUCCESS ||
+            vkCreateSemaphore(this->m_vulkan->m_logicalDevice->logicalDevice, &semaphoreInfo, nullptr,
+                              &this->renderFinishedSemaphores.at(i)) != VK_SUCCESS ||
+            vkCreateFence(this->m_vulkan->m_logicalDevice->logicalDevice, &fenceInfo, nullptr,
+                          &this->inFlightFences.at(i)) != VK_SUCCESS) {
+
             spdlog::error("An error occurred while initializing the Vulkan semaphores and fence instances.");
             throw std::runtime_error("Failed to create the synchronization objects!");
         }
+    }
+}
+
+Synchronization::~Synchronization() {
+    for (int i = 0; i < this->m_vulkan->MAX_FRAMES_IN_FLIGHT; i++) {
+        vkDestroySemaphore(this->m_vulkan->m_logicalDevice->logicalDevice,
+                           this->imageAvailableSemaphores.at(i), nullptr);
+        vkDestroySemaphore(this->m_vulkan->m_logicalDevice->logicalDevice,
+                           this->renderFinishedSemaphores.at(i), nullptr);
+        vkDestroyFence(this->m_vulkan->m_logicalDevice->logicalDevice,
+                       this->inFlightFences.at(i), nullptr);
     }
 }

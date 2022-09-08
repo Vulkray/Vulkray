@@ -255,12 +255,15 @@ private:
 };
 
 // ---------- Synchronization.cxx ---------- //
-class Synchronization {
+class Synchronization: public VkModuleBase {
 public:
-    static void createSyncObjects(std::vector<VkSemaphore> *imageAvailableSemaphores,
-                                  std::vector<VkSemaphore> *renderFinishedSemaphores,
-                                  std::vector<VkFence> *inFlightFences, VkDevice logicalDevice,
-                                  const int MAX_FRAMES_IN_FLIGHT);
+    std::vector<VkSemaphore> imageAvailableSemaphores;
+    std::vector<VkSemaphore> renderFinishedSemaphores;
+    std::vector<VkFence> inFlightFences;
+    VkSemaphore waitSemaphores[1];
+    VkSemaphore signalSemaphores[1];
+    Synchronization(Vulkan *m_vulkan);
+    ~Synchronization();
 };
 
 // ---------- Vulkan.cxx ---------- //
@@ -299,13 +302,7 @@ public:
     std::unique_ptr<CommandPool> m_transferCommandPool;
     std::unique_ptr<Buffer> m_vertexBuffer;
     std::unique_ptr<Buffer> m_indexBuffer;
-    // Synchronization Objects (semaphores / fences)
-    std::vector<VkSemaphore> imageAvailableSemaphores;
-    std::vector<VkSemaphore> renderFinishedSemaphores;
-    std::vector<VkFence> inFlightFences;
-    VkSemaphore waitSemaphores[1];
-    VkSemaphore signalSemaphores[1];
-
+    std::unique_ptr<Synchronization> m_synchronization;
     Vulkan(GraphicsInput graphicsInput);
     ~Vulkan();
 private:
