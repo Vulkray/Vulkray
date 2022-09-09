@@ -20,4 +20,4 @@ fi
 
 # Run build with Ninja
 ninja
-./bin/vulkray
+./bin/VulkrayExampleProgram

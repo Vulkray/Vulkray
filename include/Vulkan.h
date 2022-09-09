@@ -1,5 +1,5 @@
 /*
- * Vulkan.cxx
+ * Vulkan.h
  * Initializes and manages all the engine's Vulkan instances.
  *
  * VULKRAY ENGINE SOFTWARE
