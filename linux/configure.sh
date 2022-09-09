@@ -1,5 +1,6 @@
 #!/bin/bash
 # Creates and configures the debug/release build directories
+# NOTE: Execute file from project root directory!
 
 # (Script used with IDE script configurations)
 # (Set script options to either "debug" or "release")

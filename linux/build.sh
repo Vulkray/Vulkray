@@ -1,5 +1,6 @@
 #!/bin/bash
 # Runs ninja on debug/release build configuration
+# NOTE: Execute file from project root directory!
 
 # (Script used with IDE script configurations)
 # (Set script options to either "debug" or "release")
