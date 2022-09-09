@@ -9,27 +9,28 @@
  * with this source code in a file named "COPYING."
  */
 
-#include "../include/Vulkray.h"
+#include "../include/vulkray.h"
+#include <iostream>
 
 int main() {
     // Instantiate the engine base class using a smart pointer
-    std::unique_ptr<VulkrayEngine> vulkray = std::make_unique<VulkrayEngine>();
+    std::unique_ptr<VulkrayEngine> engine = std::make_unique<VulkrayEngine>();
 
     // Feed graphics information to the engine
-    vulkray->graphicsInput.vertexData = {
+    engine->graphicsInput.vertexData = {
             {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
             {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
             {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
             {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
     };
-    vulkray->graphicsInput.indexData = {0, 1, 2, 2, 3, 0};
-    vulkray->graphicsInput.bufferClearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
+    engine->graphicsInput.indexData = {0, 1, 2, 2, 3, 0};
+    engine->graphicsInput.bufferClearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
 
     // Initialize the engine vulkan renderer
     try {
-        vulkray->initialize();
+        engine->initialize();
     } catch (const std::exception& exception) {
-        printf("An exception was thrown by the engine: %s", exception.what());
+        std::cout << "An exception was thrown by the engine: %s" << exception.what();
         return 1;
     }
     return 0;

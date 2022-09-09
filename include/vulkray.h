@@ -1,6 +1,6 @@
 /*
  * Vulkray.h
- * The first header file in early development of the Vulkray engine API.
+ * API Header - The first header file in early development of the Vulkray engine API.
  *
  * VULKRAY ENGINE SOFTWARE
  * Copyright (c) 2022, Max Rodriguez. All rights reserved.
@@ -10,10 +10,11 @@
  * with this source code in a file named "COPYING."
  */
 
-#ifndef VULKRAY_VULKRAY_H
-#define VULKRAY_VULKRAY_H
+#ifndef VULKRAY_API_VULKRAY_H
+#define VULKRAY_API_VULKRAY_H
 
-#include "./Vulkan.h"
+#include "vulkan.h"
+#include <memory>
 
 class VulkrayEngine {
 public:
@@ -25,4 +26,4 @@ private:
     std::unique_ptr<Vulkan> m_vulkan;
 };
 
-#endif //VULKRAY_VULKRAY_H
+#endif //VULKRAY_API_VULKRAY_H

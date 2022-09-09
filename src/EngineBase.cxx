@@ -13,8 +13,8 @@
 #include "global_definitions.h"
 #include <spdlog/spdlog.h>
 
-#include "../include/Vulkan.h"
-#include "../include/Vulkray.h"
+#include "vulkan/Vulkan.h"
+#include "../include/vulkray.h"
 
 VulkrayEngine::VulkrayEngine() {
     // spdlog debug/release output configuration

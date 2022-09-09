@@ -11,7 +11,7 @@
  */
 
 #include <vk_mem_alloc.h>
-#include "../../include/Vulkan.h"
+#include "Vulkan.h"
 
 VulkanMemoryAllocator::VulkanMemoryAllocator(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
     VmaVulkanFunctions vulkanFunctions = {};

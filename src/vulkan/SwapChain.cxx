@@ -10,7 +10,7 @@
  * with this source code in a file named "COPYING."
  */
 
-#include "../../include/Vulkan.h"
+#include "Vulkan.h"
 
 #include <spdlog/spdlog.h>
 #include <cstdint>
