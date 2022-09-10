@@ -3,7 +3,7 @@ Vulkray Engine
 
 |license| |platforms| |pull_requests| |discord|
 
-.. image:: .github/vulkray-logo.png
+.. image:: logo/vulkray-logo.png
     :width: 70%
     :alt: Vulkray Engine
 
