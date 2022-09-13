@@ -55,7 +55,7 @@ GraphicsPipeline::GraphicsPipeline(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
     dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
     dynamicState.pDynamicStates = dynamicStates.data();
 
-    // Get vertex shader binding descriptions from VertexBuffer.cxx
+    // Get vertex shader binding descriptions from Vertex struct
     auto bindingDescription = Vertex::getBindingDescription();
     auto attributeDescriptions = Vertex::getAttributeDescriptions();
 
@@ -138,8 +138,8 @@ GraphicsPipeline::GraphicsPipeline(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
     // Create the Pipeline Layout vulkan instance
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutInfo.setLayoutCount = 0;
-    pipelineLayoutInfo.pSetLayouts = nullptr;
+    pipelineLayoutInfo.setLayoutCount = 1;
+    pipelineLayoutInfo.pSetLayouts = &this->m_vulkan->m_descriptorSet->descriptorSetLayout;
     pipelineLayoutInfo.pushConstantRangeCount = 0;
     pipelineLayoutInfo.pPushConstantRanges = nullptr;
 

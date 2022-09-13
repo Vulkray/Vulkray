@@ -30,7 +30,7 @@ int main() {
     try {
         engine->initialize();
     } catch (const std::exception& exception) {
-        std::cout << "An exception was thrown by the engine: %s" << exception.what();
+        std::cout << "An exception was thrown by the engine:\n" << exception.what();
         return 1;
     }
     return 0;

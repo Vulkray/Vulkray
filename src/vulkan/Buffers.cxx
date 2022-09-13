@@ -18,11 +18,14 @@ Buffer::Buffer(Vulkan *m_vulkan, VkBufferUsageFlagBits bufferType,
                const std::vector<Vertex> *vertexData, const std::vector<uint32_t> *indexData): VkModuleBase(m_vulkan) {
 
     switch (bufferType) {
-        case VK_BUFFER_USAGE_VERTEX_BUFFER_BIT:
+        case VK_BUFFER_USAGE_VERTEX_BUFFER_BIT: // Vertex Buffer
             this->createVertexBuffer(*vertexData);
             break;
-        case VK_BUFFER_USAGE_INDEX_BUFFER_BIT:
+        case VK_BUFFER_USAGE_INDEX_BUFFER_BIT: // Index Buffer
             this->createIndexBuffer(*indexData);
+            break;
+        case VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT: // Uniform Buffer (UBO)
+            this->createUniformBuffer();
             break;
         default:
             spdlog::error("Unsupported VkBufferUsageFlagBit type given to Buffer constructor. Exiting..");
@@ -83,6 +86,10 @@ void Buffer::createIndexBuffer(const std::vector<uint32_t> indices) {
     copyBuffer(stagingBuffer, this->buffer, indexBufferSize);
     vmaDestroyBuffer(this->m_vulkan->m_VMA->memoryAllocator,
                      stagingBuffer._bufferInstance, stagingBuffer._bufferMemory);
+}
+
+void Buffer::createUniformBuffer() {
+
 }
 
 void Buffer::allocateBuffer(AllocatedBuffer *buffer, VkBufferUsageFlags usageTypeBit,

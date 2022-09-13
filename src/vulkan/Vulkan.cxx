@@ -27,6 +27,7 @@ Vulkan::Vulkan(GraphicsInput graphicsInput) {
     this->m_swapChain = std::make_unique<SwapChain>(this);
     this->m_imageViews = std::make_unique<ImageViews>(this);
     this->m_renderPass = std::make_unique<RenderPass>(this);
+    this->m_descriptorSet = std::make_unique<DescriptorSet>(this);
     this->m_graphicsPipeline = std::make_unique<GraphicsPipeline>(this);
     this->m_frameBuffers = std::make_unique<FrameBuffers>(this);
     this->m_graphicsCommandPool = std::make_unique<CommandPool>(
@@ -48,7 +49,7 @@ Vulkan::Vulkan(GraphicsInput graphicsInput) {
 
 void Vulkan::renderFrame() {
     uint32_t imageIndex;
-    this->waitForPreviousFrame();
+    this->waitForPreviousFrame(); // TODO: Measure FPS at this point in the engine renderer
     this->getNextSwapChainImage(&imageIndex); // <-- swap chain recreation called here (via Vulkan OUT_OF_DATE_KHR)
     this->m_graphicsCommandPool->resetGraphicsCmdBuffer(imageIndex);
     this->m_graphicsCommandPool->submitNextCommandBuffer();

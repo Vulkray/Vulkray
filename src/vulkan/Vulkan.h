@@ -21,6 +21,7 @@
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 #include <vk_mem_alloc.h>
+// exposing some definitions to the API
 #include "../../include/vulkan.h"
 
 #include <memory>
@@ -106,10 +107,24 @@ public:
     void waitForDeviceIdle();
 };
 
+// ---------- DescriptorSet.cxx ---------- //
+class DescriptorSet: public VkModuleBase {
+public:
+    VkDescriptorSetLayout descriptorSetLayout;
+    DescriptorSet(Vulkan *m_vulkan);
+    ~DescriptorSet();
+private:
+};
+
 // ---------- Buffers.cxx ---------- //
 struct AllocatedBuffer {
     VkBuffer _bufferInstance;
     VmaAllocation _bufferMemory;
+};
+struct UniformBufferObject {
+    glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 proj;
 };
 
 class Buffer: public VkModuleBase {
@@ -122,6 +137,7 @@ public:
 private:
     void createVertexBuffer(const std::vector<Vertex> vertices);
     void createIndexBuffer(const std::vector<uint32_t> indices);
+    void createUniformBuffer();
     void allocateBuffer(AllocatedBuffer *buffer, VkBufferUsageFlags usageTypeBit,
                         VmaAllocationCreateFlags allocationFlags, VkDeviceSize bufferSize);
     void copyBuffer(AllocatedBuffer srcBuffer, AllocatedBuffer dstBuffer, VkDeviceSize bufferSize);
@@ -262,6 +278,7 @@ public:
     std::unique_ptr<SwapChain> m_oldSwapChain = nullptr; // used for swap recreation
     std::unique_ptr<ImageViews> m_imageViews;
     std::unique_ptr<RenderPass> m_renderPass;
+    std::unique_ptr<DescriptorSet> m_descriptorSet;
     std::unique_ptr<GraphicsPipeline> m_graphicsPipeline;
     std::unique_ptr<FrameBuffers> m_frameBuffers;
     std::unique_ptr<CommandPool> m_graphicsCommandPool;
