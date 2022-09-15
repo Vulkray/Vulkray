@@ -1,5 +1,6 @@
 Vulkray Engine
 ##############
+A work in progress, lightweight Linux native game engine powered by Vulkan using modern C++20.
 
 |license| |platforms| |pull_requests| |discord|
 
@@ -7,11 +8,20 @@ Vulkray Engine
     :width: 70%
     :alt: Vulkray Engine
 
+Getting Started
+###############
+
 Installing the Conan C/C++ package manager on a **Unix-like** system:
 
 .. code-block:: shell-session
 
     $ python -m pip install conan
+    
+Installing the Ninja build system tool on a **Linux** system (package manager may vary by distribution):
+
+.. code-block:: shell-session
+
+    $ sudo pacman -S ninja
 
 Configure the CMake build directory using Conan via the **bash** script:
 
@@ -24,6 +34,12 @@ Compiling the project source via the **bash** script:
 .. code-block:: shell-session
 
     $ ./build.sh release
+    
+Contributing
+############
+Please read the `contributor guidelines <./CONTRIBUTING.rst>`_ before submitting your first pull request to the engine source code.
+
+Any contributions, big or small, are encouraged and greatly appreciated. :)
 
 .. |license| image:: https://img.shields.io/github/license/Max-Rodriguez/Vulkray?color=red&label=License&logo=github&logoColor=white
     :target: https://github.com/Max-Rodriguez/Vulkray/blob/master/COPYING
@@ -36,4 +52,3 @@ Compiling the project source via the **bash** script:
 
 .. |discord| image:: https://img.shields.io/discord/1000247031698313327?color=red&label=Discord&logo=discord&logoColor=white
     :target: https://discord.gg/
-
