@@ -34,7 +34,6 @@ jobs:
           apt install -y \
             clang \
             cmake \
-            curl \
             git \
             libgl1-mesa-dev \
             libx11-dev \
@@ -58,18 +57,16 @@ jobs:
             python3 \
             python3-pip \
             xkb-data \
-            xorg-dev
+            xorg-dev \
+            vulkan-sdk \
+            libvulkan-dev \
+            vulkan-tools \
+            vulkan-validationlayers-dev \
+            spirv-tools \
+            glslang-dev \
+            glslang-tools
           pip3 install wheel setuptools
           pip3 install conan mako
-      - name: Install Vulkan SDK
-        shell: bash
-        run: |
-          # Download Vulkan SDK
-          curl -LS -o vulkansdk.tar.gz \
-            https://sdk.lunarg.com/sdk/download/${{ env.inexor_vulkan_version }}/linux/vulkansdk-linux-x86_64-${{ env.inexor_vulkan_version }}.tar.gz
-          # Create Vulkan SDK directory and extract
-          mkdir "${{ env.inexor_vulkan_sdk }}"
-          tar xfz vulkansdk.tar.gz -C "${{ env.inexor_vulkan_sdk }}"
       - name: Checkout
         uses: actions/checkout@v3
 
