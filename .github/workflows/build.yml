@@ -58,7 +58,6 @@ jobs:
             python3-pip \
             xkb-data \
             xorg-dev \
-            vulkan-sdk \
             libvulkan-dev \
             vulkan-tools \
             vulkan-validationlayers-dev \
