@@ -8,6 +8,7 @@ jobs:
     container: ubuntu:rolling
     env:
       DEBIAN_FRONTEND: "noninteractive"
+      GLSL_COMPILER_VERSION: "shaderc-2022.2"
     strategy:
       fail-fast: false
       matrix:
@@ -77,7 +78,14 @@ jobs:
         run: |
           conan profile new default --detect
           conan profile update settings.compiler.libcxx=libstdc++11 default
-      - name: Build Google GLSL Compiler # Ubuntu/Debian doesn't package glslc binary
+      - name: Check Cached GLSLC Binary
+        id: glslc-cache
+        uses: actions/cache@v3.0.8
+        with:
+          path: /bin/glslc
+          key: ${{ runner.os }}-${{ env.GLSL_COMPILER_VERSION }}-binary
+      - name: Build Google GLSL Compiler # Ubuntu/Debian doesn't package glslc binary; do if not cached!
+        if: steps.glslc-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
           wget https://github.com/google/shaderc/archive/refs/tags/v2022.2.tar.gz
