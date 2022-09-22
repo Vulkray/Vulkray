@@ -85,10 +85,15 @@ jobs:
           cmake -GNinja -DCMAKE_BUILD_TYPE=Release ..
           ninja
           sudo cp glslc/glslc /bin
+      - name: Set Conan Profile Configuration
+        shell: bash
+        run: |
+          printf "[settings]\nos=Linux\nos_build=Linux\narch=x86_64\narch_build=x86_64\n\
+build_type=Release\ncompiler=gcc\ncompiler.version=12\n\
+compiler.libcxx=libstdc++11\n[options]\n[build_requires]\n[env]\n" > /github/home/.conan/profiles/default
       - name: Configure CMake
         shell: bash
         run: |
-          conan profile update settings.compiler.libcxx=libstdc++11 default
           bash ./linux/configure.sh release
       - name: Build Engine Release
         shell: bash
