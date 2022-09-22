@@ -97,11 +97,3 @@ jobs:
         shell: bash
         run: |
           bash ./linux/build.sh release
-      - name: Prepare upload
-        run: |
-          tar cfz ${{ matrix.config.artifact }} build
-      - name: Upload
-        uses: actions/upload-artifact@v2
-        with:
-          path: ${{ matrix.config.artifact }}
-          name: ${{ matrix.config.artifact }}
