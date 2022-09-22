@@ -32,6 +32,7 @@ jobs:
           apt update -qq
           # Install build tools
           apt install -y \
+            sudo \
             clang \
             cmake \
             git \
