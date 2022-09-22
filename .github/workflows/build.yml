@@ -88,6 +88,7 @@ jobs:
       - name: Configure CMake
         shell: bash
         run: |
+          conan profile update settings.compiler.libcxx=libstdc++11 default
           bash ./linux/configure.sh release
       - name: Build Engine Release
         shell: bash
