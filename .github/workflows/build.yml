@@ -38,6 +38,7 @@ jobs:
             git \
             wget \
             google-mock \
+            libgtest-dev \
             libgl1-mesa-dev \
             libx11-dev \
             libx11-xcb-dev \
