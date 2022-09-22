@@ -35,6 +35,8 @@ jobs:
             clang \
             cmake \
             git \
+            wget \
+            google-mock \
             libgl1-mesa-dev \
             libx11-dev \
             libx11-xcb-dev \
@@ -66,9 +68,21 @@ jobs:
             glslang-tools
           pip3 install wheel setuptools
           pip3 install conan mako
+          
       - name: Checkout
         uses: actions/checkout@v3
-
+      - name: Build Google GLSL Compiler # Ubuntu/Debian doesn't package glslc binary
+        shell: bash
+        run: |
+          wget https://github.com/google/shaderc/archive/refs/tags/v2022.2.tar.gz
+          tar -xvf v2022.2.tar.gz
+          cd shaderc-2022.2
+          ./utils/git-sync-deps
+          mkdir build
+          cd build
+          cmake -GNinja -DCMAKE_BUILD_TYPE=Release ..
+          ninja
+          export PATH="$(pwd)/glslc/glslc:$PATH"
       - name: Configure CMake
         shell: bash
         run: |
