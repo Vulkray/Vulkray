@@ -18,6 +18,9 @@ else
   echo "Invalid script argument! (Valid arguments: 'debug', 'release')"
 fi
 
-# Run build with Ninja
+# Build with Ninja
 ninja
-./bin/VulkrayExampleProgram
+# Run program if not in continuous integration environment
+if [[ -z "$CI" ]]; then
+  ./bin/VulkrayExampleProgram
+fi
