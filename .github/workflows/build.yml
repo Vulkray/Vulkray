@@ -82,9 +82,7 @@ jobs:
           cd build
           cmake -GNinja -DCMAKE_BUILD_TYPE=Release ..
           ninja
-          mkdir bin_path
-          cp glslc/glslc bin_path/glslc
-          export PATH="$(pwd)/bin_path:$PATH"
+          sudo cp glslc/glslc /bin
       - name: Configure CMake
         shell: bash
         run: |
