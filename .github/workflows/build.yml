@@ -25,7 +25,7 @@ jobs:
             name: "Ubuntu GCC",
             artifact: "linux-gcc.tar.xz",
             compiler: "gcc",
-            cc_version: "12",
+            cc_version: "11.2",
             cc: "gcc", cxx: "g++",
           }
 
