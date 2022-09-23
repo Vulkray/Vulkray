@@ -17,6 +17,7 @@ jobs:
             name: "Ubuntu Clang",
             artifact: "linux-clang.tar.xz",
             compiler: "clang",
+            cc_version: "14",
             cc: "clang-14", cxx: "clang++-14",
             cmake_configure_options: '-DCMAKE_EXE_LINKER_FLAGS="-v -fuse-ld=lld"',
           }
@@ -24,6 +25,7 @@ jobs:
             name: "Ubuntu GCC",
             artifact: "linux-gcc.tar.xz",
             compiler: "gcc",
+            cc_version: "12",
             cc: "gcc", cxx: "g++",
           }
 
@@ -81,6 +83,7 @@ jobs:
           conan profile new default --detect
           conan profile update settings.compiler.libcxx=libstdc++11 default
           conan profile update settings.compiler=${{ matrix.config.compiler }} default
+          conan profile update settings.compiler.version=${{ matrix.config.cc_version }} default
       - name: Check Cached GLSLC Binary
         id: glslc-cache
         uses: actions/cache@v3.0.8
