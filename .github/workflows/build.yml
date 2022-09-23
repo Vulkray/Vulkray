@@ -78,6 +78,7 @@ jobs:
         run: |
           conan profile new default --detect
           conan profile update settings.compiler.libcxx=libstdc++11 default
+          conan profile update settings.compiler=${{ matrix.config.cc }} default
       - name: Check Cached GLSLC Binary
         id: glslc-cache
         uses: actions/cache@v3.0.8
@@ -97,9 +98,11 @@ jobs:
           cmake -GNinja -DCMAKE_BUILD_TYPE=Release ..
           ninja
           sudo cp glslc/glslc /bin
-      - name: Configure CMake
+      - name: Configure CMake & Conan Install
         shell: bash
         run: |
+          export CC=${{ matrix.config.cc }}
+          export CXX=${{ matrix.config.cxx }}
           bash ./linux/configure.sh release
       - name: Build Engine Release
         shell: bash
