@@ -38,6 +38,7 @@ jobs:
           # Install build tools
           apt install -y \
             sudo \
+            clang \
             clang-14 \
             cmake \
             git \
