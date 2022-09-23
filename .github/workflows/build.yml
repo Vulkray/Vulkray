@@ -16,7 +16,7 @@ jobs:
           - {
             name: "Ubuntu Clang",
             artifact: "linux-clang.tar.xz",
-            cc: "clang", cxx: "clang++",
+            cc: "clang-14", cxx: "clang++-14",
             cmake_configure_options: '-DCMAKE_EXE_LINKER_FLAGS="-v -fuse-ld=lld"',
           }
           - {
