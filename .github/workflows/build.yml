@@ -119,4 +119,6 @@ jobs:
       - name: Build Engine Release
         shell: bash
         run: |
+          export CC=${{ matrix.config.cc }}
+          export CXX=${{ matrix.config.cxx }}
           bash ./linux/build.sh release
