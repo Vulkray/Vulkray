@@ -76,7 +76,7 @@ jobs:
             glslang-tools
           pip3 install wheel setuptools
           pip3 install conan mako
-      - name: Checkout
+      - name: Git Checkout
         uses: actions/checkout@v3
       - name: Create Default Conan Profile
         shell: bash
@@ -85,6 +85,12 @@ jobs:
           conan profile update settings.compiler.libcxx=libstdc++11 default
           conan profile update settings.compiler=${{ matrix.config.compiler }} default
           conan profile update settings.compiler.version=${{ matrix.config.cc_version }} default
+      - name: Check Cached Conan Dependencies
+        id: conan-cache
+        uses: actions/cache@v3.0.8
+        with:
+          path: /github/home/.conan/data/*
+          key: ${{ runner.os }}-${{ matrix.config.compiler }}-conan-data-${{ hashFiles('**/conanfile.txt') }}
       - name: Check Cached GLSLC Binary
         id: glslc-cache
         uses: actions/cache@v3.0.8
