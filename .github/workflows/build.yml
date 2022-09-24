@@ -90,7 +90,7 @@ jobs:
         uses: actions/cache@v3.0.8
         with:
           path: /github/home/.conan/data/*
-          key: ${{ runner.os }}-${{ matrix.config.compiler }}-conan-data-${{ hashFiles('**/conanfile.txt') }}
+          key: ${{ runner.os }}-${{ matrix.config.compiler }}${{ matrix.config.cc_version }}-conan-data-${{ hashFiles('**/conanfile.txt') }}
       - name: Check Cached GLSLC Binary
         id: glslc-cache
         uses: actions/cache@v3.0.8
