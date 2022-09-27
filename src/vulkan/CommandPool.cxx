@@ -116,6 +116,11 @@ void CommandPool::recordGraphicsCommands(uint32_t imageIndex) {
     scissor.extent = this->m_vulkan->m_swapChain->swapChainExtent;
     vkCmdSetScissor(this->commandBuffers[this->m_vulkan->frameIndex], 0, 1, &scissor);
 
+    // Bind the corresponding descriptor set to use for this frame render
+    vkCmdBindDescriptorSets(this->commandBuffers[this->m_vulkan->frameIndex],
+                            VK_PIPELINE_BIND_POINT_GRAPHICS, this->m_vulkan->m_graphicsPipeline->pipelineLayout, 0, 1,
+                            &this->m_vulkan->m_descriptorPool->descriptorSets[this->m_vulkan->frameIndex], 0, nullptr);
+
     // Submit (record) the draw command and end the render pass
     vkCmdDrawIndexed(this->commandBuffers[this->m_vulkan->frameIndex],
                      static_cast<uint32_t>(this->m_vulkan->graphicsInput.indexData.size()), 1, 0, 0, 0);

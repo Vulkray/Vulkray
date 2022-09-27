@@ -94,7 +94,7 @@ GraphicsPipeline::GraphicsPipeline(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
     rasterizer.polygonMode = VK_POLYGON_MODE_FILL; // other modes will require more GPU features
     rasterizer.lineWidth = 1.0f;
     rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-    rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+    rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE; // counterclockwise to fix GLM y-coords flip
     // other optional rasterizer configuration
     rasterizer.depthBiasEnable = VK_FALSE;
     rasterizer.depthBiasConstantFactor = 0.0f;
@@ -139,7 +139,7 @@ GraphicsPipeline::GraphicsPipeline(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount = 1;
-    pipelineLayoutInfo.pSetLayouts = &this->m_vulkan->m_descriptorSet->descriptorSetLayout;
+    pipelineLayoutInfo.pSetLayouts = &this->m_vulkan->m_descriptorPool->descriptorSetLayout;
     pipelineLayoutInfo.pushConstantRangeCount = 0;
     pipelineLayoutInfo.pPushConstantRanges = nullptr;
 

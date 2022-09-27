@@ -30,9 +30,6 @@ Vulkan::Vulkan(GraphicsInput graphicsInput) {
     this->m_swapChain = std::make_unique<SwapChain>(this);
     this->m_imageViews = std::make_unique<ImageViews>(this);
     this->m_renderPass = std::make_unique<RenderPass>(this);
-    this->m_descriptorSet = std::make_unique<DescriptorSet>(this);
-    this->m_graphicsPipeline = std::make_unique<GraphicsPipeline>(this);
-    this->m_frameBuffers = std::make_unique<FrameBuffers>(this);
     this->m_graphicsCommandPool = std::make_unique<CommandPool>(
             this, (VkCommandPoolCreateFlags) 0, this->m_physicalDevice->queueFamilies.graphicsFamily.value());
     this->m_transferCommandPool = std::make_unique<CommandPool>(
@@ -45,6 +42,9 @@ Vulkan::Vulkan(GraphicsInput graphicsInput) {
     for (size_t i = 0; i < this->MAX_FRAMES_IN_FLIGHT; i++) {
         this->m_uniformBuffers[i] = std::make_unique<Buffer>(this, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, nullptr, nullptr);
     }
+    this->m_descriptorPool = std::make_unique<DescriptorPool>(this);
+    this->m_graphicsPipeline = std::make_unique<GraphicsPipeline>(this);
+    this->m_frameBuffers = std::make_unique<FrameBuffers>(this);
     this->m_synchronization = std::make_unique<Synchronization>(this);
 
     spdlog::debug("Running engine renderer ...");

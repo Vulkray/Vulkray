@@ -107,13 +107,15 @@ public:
     void waitForDeviceIdle();
 };
 
-// ---------- DescriptorSet.cxx ---------- //
-class DescriptorSet: public VkModuleBase {
+// ---------- DescriptorPool.cxx ---------- //
+class DescriptorPool: public VkModuleBase {
 public:
     VkDescriptorSetLayout descriptorSetLayout;
-    DescriptorSet(Vulkan *m_vulkan);
-    ~DescriptorSet();
+    std::vector<VkDescriptorSet> descriptorSets;
+    DescriptorPool(Vulkan *m_vulkan);
+    ~DescriptorPool();
 private:
+    VkDescriptorPool descriptorPool;
 };
 
 // ---------- Buffers.cxx ---------- //
@@ -122,9 +124,9 @@ struct AllocatedBuffer {
     VmaAllocation _bufferMemory;
 };
 struct UniformBufferObject {
-    glm::mat4 model;
-    glm::mat4 view;
-    glm::mat4 proj;
+    alignas(16) glm::mat4 model;
+    alignas(16) glm::mat4 view;
+    alignas(16) glm::mat4 proj;
 };
 
 class Buffer: public VkModuleBase {
@@ -278,7 +280,7 @@ public:
     std::unique_ptr<SwapChain> m_oldSwapChain = nullptr; // used for swap recreation
     std::unique_ptr<ImageViews> m_imageViews;
     std::unique_ptr<RenderPass> m_renderPass;
-    std::unique_ptr<DescriptorSet> m_descriptorSet;
+    std::unique_ptr<DescriptorPool> m_descriptorPool;
     std::unique_ptr<GraphicsPipeline> m_graphicsPipeline;
     std::unique_ptr<FrameBuffers> m_frameBuffers;
     std::unique_ptr<CommandPool> m_graphicsCommandPool;
