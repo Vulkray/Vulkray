@@ -28,7 +28,7 @@ Synchronization::Synchronization(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT; // start fence signaled (to render first frame)
 
     // create each semaphore & fence for each frame that can be drawn in flight
-    for (int i = 0; i < this->m_vulkan->MAX_FRAMES_IN_FLIGHT; i++) {
+    for (unsigned int i = 0; i < this->m_vulkan->MAX_FRAMES_IN_FLIGHT; i++) {
         if (vkCreateSemaphore(this->m_vulkan->m_logicalDevice->logicalDevice, &semaphoreInfo, nullptr,
                               &this->imageAvailableSemaphores.at(i)) != VK_SUCCESS ||
             vkCreateSemaphore(this->m_vulkan->m_logicalDevice->logicalDevice, &semaphoreInfo, nullptr,
@@ -43,7 +43,7 @@ Synchronization::Synchronization(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
 }
 
 Synchronization::~Synchronization() {
-    for (int i = 0; i < this->m_vulkan->MAX_FRAMES_IN_FLIGHT; i++) {
+    for (unsigned int i = 0; i < this->m_vulkan->MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroySemaphore(this->m_vulkan->m_logicalDevice->logicalDevice,
                            this->imageAvailableSemaphores.at(i), nullptr);
         vkDestroySemaphore(this->m_vulkan->m_logicalDevice->logicalDevice,

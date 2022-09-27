@@ -90,6 +90,10 @@ void Buffer::createIndexBuffer(const std::vector<uint32_t> indices) {
 
 void Buffer::createUniformBuffer() {
 
+    VkDeviceSize uniformBufferSize = sizeof(UniformBufferObject);
+    // Allocate the Uniform Buffer instance & memory (with CPU access)
+    this->allocateBuffer(&this->buffer, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                         VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT, uniformBufferSize);
 }
 
 void Buffer::allocateBuffer(AllocatedBuffer *buffer, VkBufferUsageFlags usageTypeBit,

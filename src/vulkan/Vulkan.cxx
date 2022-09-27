@@ -11,7 +11,10 @@
  */
 
 #include "Vulkan.h"
+#include <chrono>
 #include <spdlog/spdlog.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 Vulkan::Vulkan(GraphicsInput graphicsInput) {
     // store as class attribute for modules to access
@@ -38,6 +41,10 @@ Vulkan::Vulkan(GraphicsInput graphicsInput) {
                                                     &this->graphicsInput.vertexData, nullptr);
     this->m_indexBuffer = std::make_unique<Buffer>(this, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
                                                    nullptr, &this->graphicsInput.indexData);
+    this->m_uniformBuffers.resize(this->MAX_FRAMES_IN_FLIGHT); // have as many UBs as frames in flight
+    for (size_t i = 0; i < this->MAX_FRAMES_IN_FLIGHT; i++) {
+        this->m_uniformBuffers[i] = std::make_unique<Buffer>(this, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, nullptr, nullptr);
+    }
     this->m_synchronization = std::make_unique<Synchronization>(this);
 
     spdlog::debug("Running engine renderer ...");
@@ -52,6 +59,7 @@ void Vulkan::renderFrame() {
     this->waitForPreviousFrame(); // TODO: Measure FPS at this point in the engine renderer
     this->getNextSwapChainImage(&imageIndex); // <-- swap chain recreation called here (via Vulkan OUT_OF_DATE_KHR)
     this->m_graphicsCommandPool->resetGraphicsCmdBuffer(imageIndex);
+    this->updateUniformBuffer(imageIndex);
     this->m_graphicsCommandPool->submitNextCommandBuffer();
     this->presentImageBuffer(&imageIndex); // <-- swap chain recreation called here (via GLFW framebuffer callback)
     this->frameIndex = (this->frameIndex + 1) % this->MAX_FRAMES_IN_FLIGHT;
@@ -60,6 +68,27 @@ void Vulkan::renderFrame() {
 void Vulkan::waitForPreviousFrame() {
     vkWaitForFences(this->m_logicalDevice->logicalDevice, 1,
                     &this->m_synchronization->inFlightFences[this->frameIndex], VK_TRUE, UINT64_MAX);
+}
+
+void Vulkan::updateUniformBuffer(uint32_t imageIndex) {
+    static auto startTime = std::chrono::high_resolution_clock::now();
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+    uint32_t swapImageWidth = this->m_swapChain->swapChainExtent.width;
+    uint32_t swapImageHeight = this->m_swapChain->swapChainExtent.height;
+
+    UniformBufferObject ubo{};
+    ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.proj = glm::perspective(glm::radians(45.0f), swapImageWidth / (float) swapImageHeight, 0.1f, 10.0f);
+    ubo.proj[1][1] *= -1; // GLM was designed for OpenGL, where Y coordinates are flipped. Corrected for vulkan here.
+
+    // map new UBO information to current uniform buffer memory
+    void* data;
+    vmaMapMemory(this->m_VMA->memoryAllocator, this->m_uniformBuffers[imageIndex]->buffer._bufferMemory, &data);
+    memcpy(data, &ubo, sizeof(ubo));
+    vmaUnmapMemory(this->m_VMA->memoryAllocator, this->m_uniformBuffers[imageIndex]->buffer._bufferMemory);
 }
 
 void Vulkan::getNextSwapChainImage(uint32_t *imageIndex) {

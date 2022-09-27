@@ -253,7 +253,7 @@ public:
     const char* engineName = "Vulkray Engine";
     GraphicsInput graphicsInput;
     // Render variables
-    const int MAX_FRAMES_IN_FLIGHT = 2;
+    const unsigned int MAX_FRAMES_IN_FLIGHT = 2;
     uint32_t frameIndex = 0;
     bool framebufferResized = false;
     const std::vector<const char*> requiredExtensions = {
@@ -285,12 +285,14 @@ public:
     std::unique_ptr<CommandPool> m_transferCommandPool;
     std::unique_ptr<Buffer> m_vertexBuffer;
     std::unique_ptr<Buffer> m_indexBuffer;
+    std::vector<std::unique_ptr<Buffer>> m_uniformBuffers;
     std::unique_ptr<Synchronization> m_synchronization;
     Vulkan(GraphicsInput graphicsInput);
     ~Vulkan();
 private:
     void renderFrame();
     void waitForPreviousFrame(); // Wrapper for vkWaitForFences()
+    void updateUniformBuffer(uint32_t imageIndex);
     void getNextSwapChainImage(uint32_t *imageIndex);
     void resetGraphicsCmdBuffer(uint32_t imageIndex);
     void presentImageBuffer(uint32_t *imageIndex);
