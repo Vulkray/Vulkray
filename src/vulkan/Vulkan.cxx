@@ -86,9 +86,9 @@ void Vulkan::updateUniformBuffer(uint32_t imageIndex) {
 
     // map new UBO information to current uniform buffer memory
     void* data;
-    vmaMapMemory(this->m_VMA->memoryAllocator, this->m_uniformBuffers[imageIndex]->buffer._bufferMemory, &data);
+    vmaMapMemory(this->m_VMA->memoryAllocator, this->m_uniformBuffers.at(this->frameIndex)->buffer._bufferMemory, &data);
     memcpy(data, &ubo, sizeof(ubo));
-    vmaUnmapMemory(this->m_VMA->memoryAllocator, this->m_uniformBuffers[imageIndex]->buffer._bufferMemory);
+    vmaUnmapMemory(this->m_VMA->memoryAllocator, this->m_uniformBuffers.at(this->frameIndex)->buffer._bufferMemory);
 }
 
 void Vulkan::getNextSwapChainImage(uint32_t *imageIndex) {
