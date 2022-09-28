@@ -16,7 +16,7 @@ int main() {
     // Instantiate the engine base class using a smart pointer
     std::unique_ptr<VulkrayEngine> engine = std::make_unique<VulkrayEngine>();
 
-    // Feed graphics information to the engine
+    // Feed graphics information to the engine (currently very manual, temporary!)
     engine->graphicsInput.vertexData = {
             {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
             {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
@@ -24,7 +24,6 @@ int main() {
             {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
     };
     engine->graphicsInput.indexData = {0, 1, 2, 2, 3, 0};
-    engine->graphicsInput.bufferClearColor = {{{0.1f, 0.1f, 0.1f, 1.0f}}};
 
     // Initialize the engine vulkan renderer
     try {
