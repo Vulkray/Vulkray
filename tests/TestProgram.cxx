@@ -18,12 +18,20 @@ int main() {
 
     // Feed graphics information to the engine (currently very manual, temporary!)
     engine->graphicsInput.vertexData = {
-            {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-            {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-            {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-            {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+            {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}}, // top plane
+            {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+            {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+            {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
+
+            {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}}, // bottom plane
+            {{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+            {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}},
+            {{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}}
     };
-    engine->graphicsInput.indexData = {0, 1, 2, 2, 3, 0};
+    engine->graphicsInput.indexData = {
+            0, 1, 2, 2, 3, 0, // top plane index data
+            4, 5, 6, 6, 7, 4 // bottom plane index data
+    };
 
     // Initialize the engine vulkan renderer
     try {
