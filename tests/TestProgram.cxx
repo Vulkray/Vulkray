@@ -24,7 +24,7 @@ int main() {
             {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
     };
     engine->graphicsInput.indexData = {0, 1, 2, 2, 3, 0};
-    engine->graphicsInput.bufferClearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
+    engine->graphicsInput.bufferClearColor = {{{0.1f, 0.1f, 0.1f, 1.0f}}};
 
     // Initialize the engine vulkan renderer
     try {
