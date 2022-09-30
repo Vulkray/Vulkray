@@ -88,7 +88,11 @@ public:
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
     QueueFamilyIndices queueFamilies;
     PhysicalDevice(Vulkan *m_vulkan);
+    VkFormat findDepthFormat();
+    bool depthFormatHasStencilComponent(VkFormat format);
 private:
+    VkFormat findSupportedDepthFormat(const std::vector<VkFormat>& candidates,
+                                      VkImageTiling tiling, VkFormatFeatureFlags features);
     QueueFamilyIndices findDeviceQueueFamilies();
     int rateGPUSuitability();
     bool checkGPUExtensionSupport();
@@ -187,11 +191,31 @@ private:
 };
 
 // ---------- ImageViews.cxx ---------- //
-class ImageViews: public VkModuleBase {
+struct AllocatedImage {
+    VkImage _imageInstance;
+    VmaAllocation _imageMemory;
+};
+class SwapImageViews: public VkModuleBase {
 public:
     std::vector<VkImageView> swapChainImageViews;
-    ImageViews(Vulkan *m_vulkan);
-    ~ImageViews();
+    SwapImageViews(Vulkan *m_vulkan);
+    ~SwapImageViews();
+};
+// static helper class for creating images using VMA
+class ImageViews {
+public:
+    static void allocateVMAImage(VmaAllocator allocator, AllocatedImage *allocatedImage);
+    static VkImageView createImageView(VkDevice logicalDevice, VkImage image,
+                                       VkFormat format, VkImageAspectFlags aspectFlags);
+};
+
+// ---------- DepthBuffering.cxx ---------- //
+class DepthBuffering: public VkModuleBase {
+public:
+    AllocatedImage depthImage;
+    VkImageView depthImageView;
+    DepthBuffering(Vulkan *m_vulkan);
+    ~DepthBuffering();
 };
 
 // ---------- RenderPass.cxx ---------- //
@@ -278,7 +302,8 @@ public:
     std::unique_ptr<VulkanMemoryAllocator> m_VMA;
     std::unique_ptr<SwapChain> m_swapChain;
     std::unique_ptr<SwapChain> m_oldSwapChain = nullptr; // used for swap recreation
-    std::unique_ptr<ImageViews> m_imageViews;
+    std::unique_ptr<SwapImageViews> m_imageViews;
+    std::unique_ptr<DepthBuffering> m_depthBuffering;
     std::unique_ptr<RenderPass> m_renderPass;
     std::unique_ptr<DescriptorPool> m_descriptorPool;
     std::unique_ptr<GraphicsPipeline> m_graphicsPipeline;

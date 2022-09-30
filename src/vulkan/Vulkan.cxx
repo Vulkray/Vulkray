@@ -28,7 +28,8 @@ Vulkan::Vulkan(GraphicsInput graphicsInput) {
     this->m_logicalDevice = std::make_unique<LogicalDevice>(this);
     this->m_VMA = std::make_unique<VulkanMemoryAllocator>(this);
     this->m_swapChain = std::make_unique<SwapChain>(this);
-    this->m_imageViews = std::make_unique<ImageViews>(this);
+    this->m_imageViews = std::make_unique<SwapImageViews>(this);
+    this->m_depthBuffering = std::make_unique<DepthBuffering>(this);
     this->m_renderPass = std::make_unique<RenderPass>(this);
     this->m_graphicsCommandPool = std::make_unique<CommandPool>(
             this, (VkCommandPoolCreateFlags) 0, this->m_physicalDevice->queueFamilies.graphicsFamily.value());
@@ -149,7 +150,7 @@ void Vulkan::recreateSwapChain() {
     this->m_imageViews.reset();
     this->m_frameBuffers.reset();
     this->m_swapChain = std::make_unique<SwapChain>(this);
-    this->m_imageViews = std::make_unique<ImageViews>(this);
+    this->m_imageViews = std::make_unique<SwapImageViews>(this);
     this->m_frameBuffers = std::make_unique<FrameBuffers>(this);
     // destroy old swap chain module after recreation
     this->m_oldSwapChain.reset();

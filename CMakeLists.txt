@@ -36,9 +36,9 @@ set(sources src/global_definitions.h
         src/vulkan/DescriptorPool.cxx src/vulkan/Buffers.cxx
         src/vulkan/GraphicsPipeline.cxx src/vulkan/FrameBuffers.cxx
         src/vulkan/CommandPool.cxx src/vulkan/Synchronization.cxx
-        src/vulkan/Vulkan.cxx include/vulkray.h)
+        src/vulkan/DepthBuffering.cxx src/vulkan/Vulkan.cxx include/vulkray.h)
 
-# Engine binary target (.so/.dll/.dylib)
+# Engine dynamic library binary target (.so/.dll/.dylib)
 add_library(${name} SHARED ${sources})
 
 # Setup linked libraries using Conan info

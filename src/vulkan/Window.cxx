@@ -46,11 +46,11 @@ Window::Window(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
             spdlog::error("Failed to create Vulkan window surface instance.");
             throw std::runtime_error("Failed to create window surface!");
         }
+    #endif
     // GLFW window surface
-    #elifdef __unix__
+    #ifdef __unix__
         VkResult result = glfwCreateWindowSurface(this->m_vulkan->m_vulkanInstance->vulkanInstance,
                                                   this->window, nullptr, &this->surface);
-
         if (result != VK_SUCCESS) {
             // Check if it's a GLFW error or a Vulkan error
             const char *errorMsg;

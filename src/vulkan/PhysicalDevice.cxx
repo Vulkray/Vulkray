@@ -11,7 +11,6 @@
  */
 
 #include "Vulkan.h"
-
 #include <spdlog/spdlog.h>
 #include <map>
 #include <set>
@@ -160,4 +159,34 @@ bool PhysicalDevice::checkGPUExtensionSupport() {
         requiredExtensions.erase(extension.extensionName);
     }
     return requiredExtensions.empty();
+}
+
+VkFormat PhysicalDevice::findSupportedDepthFormat(const std::vector<VkFormat>& candidates,
+                                             VkImageTiling tiling, VkFormatFeatureFlags features) {
+
+    // Get GPU format properties per format candidate & compare requirements
+    for (VkFormat format : candidates) {
+        VkFormatProperties props;
+        vkGetPhysicalDeviceFormatProperties(this->physicalDevice, format, &props);
+
+        if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
+            return format;
+        } else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) {
+            return format;
+        }
+    }
+    spdlog::error("Could not find a suitable depth format supported by your GPU!");
+    throw std::runtime_error("Failed to find a supported depth format.");
+}
+
+// wrapper for private method findSupportedDepthFormat() with preset depth format requirements
+VkFormat PhysicalDevice::findDepthFormat() {
+    return this->findSupportedDepthFormat(
+        {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
+        VK_IMAGE_TILING_OPTIMAL,
+        VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+}
+
+bool PhysicalDevice::depthFormatHasStencilComponent(VkFormat format) {
+    return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 }
