@@ -204,7 +204,9 @@ public:
 // static helper class for creating images using VMA
 class ImageViews {
 public:
-    static void allocateVMAImage(VmaAllocator allocator, AllocatedImage *allocatedImage);
+    static void allocateVMAImage(VmaAllocator allocator, AllocatedImage *allocatedImage,
+                                 uint32_t width, uint32_t height, VkImageTiling tiling,
+                                 VkImageUsageFlags usageFlags, VkFormat imageFormat);
     static VkImageView createImageView(VkDevice logicalDevice, VkImage image,
                                        VkFormat format, VkImageAspectFlags aspectFlags);
 };

@@ -61,8 +61,37 @@ SwapImageViews::~SwapImageViews() {
 
 // --------- Static Helper Class for allocating images using VMA ---------- //
 
-void ImageViews::allocateVMAImage(VmaAllocator allocator, AllocatedImage *allocatedImage) {
+void ImageViews::allocateVMAImage(VmaAllocator allocator, AllocatedImage *allocatedImage,
+                                  uint32_t width, uint32_t height, VkImageTiling tiling,
+                                  VkImageUsageFlags usageFlags, VkFormat imageFormat) {
+    VkExtent3D imageExtent = {
+        .width = width,
+        .height = height,
+        .depth = 1
+    };
+    const VkImageCreateInfo imageCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+        .imageType = VK_IMAGE_TYPE_2D,
+        .format = imageFormat,
+        .extent = imageExtent,
+        .mipLevels = 1,
+        .arrayLayers = 1,
+        .samples = VK_SAMPLE_COUNT_1_BIT,
+        .tiling = tiling,
+        .usage = usageFlags,
+        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+    };
+    const VmaAllocationCreateInfo allocCreateInfo = {
+        .usage = VMA_MEMORY_USAGE_AUTO
+    };
 
+    VkResult result = vmaCreateImage(allocator, &imageCreateInfo, &allocCreateInfo,
+                                     &allocatedImage->_imageInstance, &allocatedImage->_imageMemory, nullptr);
+    if (result != VK_SUCCESS) {
+        spdlog::error("An error occurred while allocating an image using VMA. Error Code: {}", result);
+        throw std::runtime_error("Failed to allocate a new VMA image.\n");
+    }
 }
 
 VkImageView ImageViews::createImageView(VkDevice logicalDevice, VkImage image,
