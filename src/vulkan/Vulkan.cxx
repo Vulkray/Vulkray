@@ -96,7 +96,8 @@ void Vulkan::getNextSwapChainImage(uint32_t *imageIndex) {
 
     // acquire next image view, also get swap chain status
     VkResult result = vkAcquireNextImageKHR(this->m_logicalDevice->logicalDevice, this->m_swapChain->swapChain,
-                                            UINT64_MAX, this->m_synchronization->imageAvailableSemaphores[frameIndex],
+                                            10, // timeout in nanoseconds (kept low for best latency)
+                                            this->m_synchronization->imageAvailableSemaphores[frameIndex],
                                             VK_NULL_HANDLE, imageIndex);
 
     /* check if vkAcquireNextImageKHR returned an out of date framebuffer flag
@@ -105,6 +106,9 @@ void Vulkan::getNextSwapChainImage(uint32_t *imageIndex) {
     if (result == VK_ERROR_OUT_OF_DATE_KHR || this->framebufferResized) {
         this->framebufferResized = false; // reset GLFW triggered framebuffer resized flag
         this->recreateSwapChain();
+        // reset fence only if we know we're submitting work
+        vkResetFences(this->m_logicalDevice->logicalDevice, 1,
+                      &this->m_synchronization->inFlightFences[this->frameIndex]);
         return;
 
     // TODO: Handle VK_SUBOPTIMAL_KHR status code
@@ -154,6 +158,7 @@ void Vulkan::recreateSwapChain() {
     this->m_frameBuffers = std::make_unique<FrameBuffers>(this);
     // destroy old swap chain module after recreation
     this->m_oldSwapChain.reset();
+    spdlog::debug("Recreated the swap chain!");
 }
 
 Vulkan::~Vulkan() {
