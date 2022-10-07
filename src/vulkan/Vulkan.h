@@ -280,7 +280,7 @@ public:
 // ---------- Vulkan.cxx ---------- //
 class Vulkan {
 public:
-    const char* engineName = "Vulkray Engine";
+    const char* engineName = "Vulkray";
     GraphicsInput graphicsInput;
     // Render variables
     const unsigned int MAX_FRAMES_IN_FLIGHT = 2;
