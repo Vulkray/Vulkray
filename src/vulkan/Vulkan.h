@@ -214,12 +214,12 @@ public:
 };
 
 // ---------- DepthBuffering.cxx ---------- //
-class DepthBuffering: public VkModuleBase {
+class DepthTesting: public VkModuleBase {
 public:
     AllocatedImage depthImage;
     VkImageView depthImageView;
-    DepthBuffering(Vulkan *m_vulkan);
-    ~DepthBuffering();
+    DepthTesting(Vulkan *m_vulkan);
+    ~DepthTesting();
 };
 
 // ---------- RenderPass.cxx ---------- //
@@ -307,7 +307,7 @@ public:
     std::unique_ptr<SwapChain> m_swapChain;
     std::unique_ptr<SwapChain> m_oldSwapChain = nullptr; // used for swap recreation
     std::unique_ptr<SwapImageViews> m_imageViews;
-    std::unique_ptr<DepthBuffering> m_depthBuffering;
+    std::unique_ptr<DepthTesting> m_depthTesting;
     std::unique_ptr<RenderPass> m_renderPass;
     std::unique_ptr<DescriptorPool> m_descriptorPool;
     std::unique_ptr<GraphicsPipeline> m_graphicsPipeline;

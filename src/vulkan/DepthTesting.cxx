@@ -1,6 +1,6 @@
 /*
- * DepthBuffering.cxx
- * Handles creating the Depth Buffer resources and images for 3D fragment depth.
+ * DepthTesting.cxx
+ * Handles creating the Depth image buffer for 3D fragment depth testing.
  *
  * VULKRAY ENGINE SOFTWARE
  * Copyright (c) 2022, Max Rodriguez. All rights reserved.
@@ -13,7 +13,7 @@
 #include "Vulkan.h"
 #include <spdlog/spdlog.h>
 
-DepthBuffering::DepthBuffering(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
+DepthTesting::DepthTesting(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
 
     // Find a suitable depth format supported by the GPU
     VkFormat depthFormat = this->m_vulkan->m_physicalDevice->findDepthFormat();
@@ -31,7 +31,7 @@ DepthBuffering::DepthBuffering(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
                                       VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 }
 
-DepthBuffering::~DepthBuffering() {
+DepthTesting::~DepthTesting() {
     vmaDestroyImage(this->m_vulkan->m_VMA->memoryAllocator,
                     this->depthImage._imageInstance, this->depthImage._imageMemory);
 }

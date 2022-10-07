@@ -18,6 +18,7 @@
 GraphicsPipeline::GraphicsPipeline(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
 
     // read spir-v shader binary files
+    // TODO: Get shader code path from engine's input, instead of hardcoded shader file names.
     auto vertShaderCode = GraphicsPipeline::readSpirVShaderBinary("shaders/engine_basic.vert.spv");
     auto fragShaderCode = GraphicsPipeline::readSpirVShaderBinary("shaders/engine_basic.frag.spv");
     // create shader module instances
