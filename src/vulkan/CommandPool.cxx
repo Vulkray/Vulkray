@@ -82,8 +82,14 @@ void CommandPool::recordGraphicsCommands(uint32_t imageIndex) {
     renderPassInfo.framebuffer = this->m_vulkan->m_frameBuffers->swapChainFrameBuffers[imageIndex];
     renderPassInfo.renderArea.offset = {0, 0};
     renderPassInfo.renderArea.extent = this->m_vulkan->m_swapChain->swapChainExtent;
-    renderPassInfo.clearValueCount = 1;
-    renderPassInfo.pClearValues = &this->m_vulkan->graphicsInput.bufferClearColor;
+
+    // Specify buffer clear values for color/depth images
+    std::array<VkClearValue, 2> clearValues{};
+    clearValues[0].color = this->m_vulkan->graphicsInput.bufferClearColor.color;
+    clearValues[1].depthStencil = {1.0f, 0}; // 1.0f is the far plane Z value (maximum far)
+
+    renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+    renderPassInfo.pClearValues = clearValues.data();
 
     // Submit (record) command to begin render pass
     vkCmdBeginRenderPass(this->commandBuffers[this->m_vulkan->frameIndex],

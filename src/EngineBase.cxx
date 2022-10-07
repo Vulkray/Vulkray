@@ -28,7 +28,7 @@ VulkrayEngine::VulkrayEngine() {
     // fill in default graphics input struct
     this->graphicsInput.vertexData = {};
     this->graphicsInput.indexData = {};
-    this->graphicsInput.bufferClearColor = {{{0.1f, 0.1f, 0.1f, 1.0f}}};
+    this->graphicsInput.bufferClearColor = (VkClearValue){{{0.1f, 0.1f, 0.1f, 1.0f}}};
 }
 
 VulkrayEngine::~VulkrayEngine() {

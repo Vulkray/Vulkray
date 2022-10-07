@@ -21,13 +21,16 @@ FrameBuffers::FrameBuffers(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
 
     for (size_t i = 0; i < this->m_vulkan->m_imageViews->swapChainImageViews.size(); i++) {
 
-        VkImageView attachments[] = {this->m_vulkan->m_imageViews->swapChainImageViews[i]};
+        std::array<VkImageView, 2> attachments = { // Include both color & depth render attachments
+                this->m_vulkan->m_imageViews->swapChainImageViews[i],
+                this->m_vulkan->m_depthBuffering->depthImageView
+        };
         VkFramebufferCreateInfo framebufferInfo{};
 
         framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         framebufferInfo.renderPass = this->m_vulkan->m_renderPass->renderPass;
-        framebufferInfo.attachmentCount = 1;
-        framebufferInfo.pAttachments = attachments;
+        framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+        framebufferInfo.pAttachments = attachments.data();
         framebufferInfo.width = this->m_vulkan->m_swapChain->swapChainExtent.width;
         framebufferInfo.height = this->m_vulkan->m_swapChain->swapChainExtent.height;
         framebufferInfo.layers = 1;

@@ -209,6 +209,8 @@ public:
                                  VkImageUsageFlags usageFlags, VkFormat imageFormat);
     static VkImageView createImageView(VkDevice logicalDevice, VkImage image,
                                        VkFormat format, VkImageAspectFlags aspectFlags);
+    static void transitionImageLayout(AllocatedImage allocatedImage, VkFormat format,
+                                      VkImageLayout oldLayout, VkImageLayout newLayout);
 };
 
 // ---------- DepthBuffering.cxx ---------- //

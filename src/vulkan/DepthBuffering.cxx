@@ -22,8 +22,13 @@ DepthBuffering::DepthBuffering(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
                                  this->m_vulkan->m_swapChain->swapChainExtent.width,
                                  this->m_vulkan->m_swapChain->swapChainExtent.height,
                                  VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, depthFormat);
-    ImageViews::createImageView(this->m_vulkan->m_logicalDevice->logicalDevice,
-                                this->depthImage._imageInstance, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+
+    this->depthImageView = ImageViews::createImageView(this->m_vulkan->m_logicalDevice->logicalDevice,
+                                                       this->depthImage._imageInstance,
+                                                       depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+    // Currently does nothing; Will implement logic once textures are implemented.
+    ImageViews::transitionImageLayout(this->depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
+                                      VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 }
 
 DepthBuffering::~DepthBuffering() {

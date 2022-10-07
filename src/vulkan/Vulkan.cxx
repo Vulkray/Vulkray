@@ -106,7 +106,7 @@ void Vulkan::getNextSwapChainImage(uint32_t *imageIndex) {
     if (result == VK_ERROR_OUT_OF_DATE_KHR || this->framebufferResized) {
         this->framebufferResized = false; // reset GLFW triggered framebuffer resized flag
         this->recreateSwapChain();
-        // reset fence only if we know we're submitting work
+        // resetting fences here fixed something. already forgot what lol
         vkResetFences(this->m_logicalDevice->logicalDevice, 1,
                       &this->m_synchronization->inFlightFences[this->frameIndex]);
         return;
