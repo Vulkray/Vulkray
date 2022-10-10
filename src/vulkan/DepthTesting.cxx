@@ -21,7 +21,8 @@ DepthTesting::DepthTesting(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
     ImageViews::allocateVMAImage(this->m_vulkan->m_VMA->memoryAllocator, &this->depthImage,
                                  this->m_vulkan->m_swapChain->swapChainExtent.width,
                                  this->m_vulkan->m_swapChain->swapChainExtent.height,
-                                 VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, depthFormat);
+                                 VK_IMAGE_TILING_OPTIMAL, this->m_vulkan->m_physicalDevice->msaaSamples,
+                                 VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, depthFormat);
 
     this->depthImageView = ImageViews::createImageView(this->m_vulkan->m_logicalDevice->logicalDevice,
                                                        this->depthImage._imageInstance,
@@ -34,4 +35,5 @@ DepthTesting::DepthTesting(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
 DepthTesting::~DepthTesting() {
     vmaDestroyImage(this->m_vulkan->m_VMA->memoryAllocator,
                     this->depthImage._imageInstance, this->depthImage._imageMemory);
+    vkDestroyImageView(this->m_vulkan->m_logicalDevice->logicalDevice, this->depthImageView, nullptr);
 }

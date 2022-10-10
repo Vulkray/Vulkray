@@ -36,7 +36,8 @@ set(sources src/global_definitions.h
         src/vulkan/DescriptorPool.cxx src/vulkan/Buffers.cxx
         src/vulkan/GraphicsPipeline.cxx src/vulkan/FrameBuffers.cxx
         src/vulkan/CommandPool.cxx src/vulkan/Synchronization.cxx
-        src/vulkan/DepthTesting.cxx src/vulkan/Vulkan.cxx include/vulkray.h)
+        src/vulkan/MultiSampling.cxx src/vulkan/DepthTesting.cxx
+        src/vulkan/Vulkan.cxx include/vulkray.h)
 
 # Engine dynamic library binary target (.so/.dll/.dylib)
 add_library(${name} SHARED ${sources})

@@ -105,9 +105,9 @@ GraphicsPipeline::GraphicsPipeline(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
 
     // currently multisampling is disabled; temporary!
     multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-    multisampling.sampleShadingEnable = VK_FALSE;
-    multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-    multisampling.minSampleShading = 1.0f;
+    multisampling.sampleShadingEnable = VK_TRUE; // TODO: Add engine API to enable/disable texture MSAA.
+    multisampling.rasterizationSamples = this->m_vulkan->m_physicalDevice->msaaSamples;
+    multisampling.minSampleShading = .2f; // minimum fraction for sample shading. closer to 1 is smoother.
     multisampling.pSampleMask = nullptr;
     multisampling.alphaToCoverageEnable = VK_FALSE;
     multisampling.alphaToOneEnable = VK_FALSE;

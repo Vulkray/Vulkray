@@ -25,8 +25,11 @@ LogicalDevice::LogicalDevice(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
             queueFamilies.presentFamily.value(),
             queueFamilies.transferFamily.value()
     };
-    VkPhysicalDeviceFeatures deviceFeatures{}; // device features are not configured for now
     VkDeviceCreateInfo createInfo{};
+
+    // GPU device features configuration
+    VkPhysicalDeviceFeatures deviceFeatures{};
+    deviceFeatures.sampleRateShading = VK_TRUE; // TODO: Add engine API to enable/disable texture MSAA.
 
     // Create logical device queue create info struct for each queue
     for (uint32_t queueFamily : uniqueQueueFamilies) {

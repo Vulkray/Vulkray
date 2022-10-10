@@ -61,8 +61,8 @@ SwapImageViews::~SwapImageViews() {
 
 // --------- Static Helper Class for allocating images using VMA ---------- //
 
-void ImageViews::allocateVMAImage(VmaAllocator allocator, AllocatedImage *allocatedImage,
-                                  uint32_t width, uint32_t height, VkImageTiling tiling,
+void ImageViews::allocateVMAImage(VmaAllocator allocator, AllocatedImage *allocatedImage, uint32_t width,
+                                  uint32_t height, VkImageTiling tiling, VkSampleCountFlagBits msaaSamples,
                                   VkImageUsageFlags usageFlags, VkFormat imageFormat) {
     VkExtent3D imageExtent = {
         .width = width,
@@ -76,7 +76,7 @@ void ImageViews::allocateVMAImage(VmaAllocator allocator, AllocatedImage *alloca
         .extent = imageExtent,
         .mipLevels = 1,
         .arrayLayers = 1,
-        .samples = VK_SAMPLE_COUNT_1_BIT,
+        .samples = msaaSamples,
         .tiling = tiling,
         .usage = usageFlags,
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,

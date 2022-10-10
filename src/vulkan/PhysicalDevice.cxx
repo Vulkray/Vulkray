@@ -55,8 +55,9 @@ PhysicalDevice::PhysicalDevice(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
 
     spdlog::info("Vulkan GPU Selected: {0}", gpuProperties.deviceName);
 
-    // Initialize `queueFamilies` struct with GPU device queue family indices
+    // Store final selected GPU device information
     this->queueFamilies = this->findDeviceQueueFamilies();
+    this->msaaSamples = this->getMaxUsableSampleCount();
 }
 
 int PhysicalDevice::rateGPUSuitability() {
@@ -66,6 +67,7 @@ int PhysicalDevice::rateGPUSuitability() {
     VkPhysicalDeviceProperties gpuProperties;
     VkPhysicalDeviceFeatures gpuFeatures;
     bool hasRequiredExtensions = this->checkGPUExtensionSupport();
+    VkSampleCountFlagBits msaaSupported = this->getMaxUsableSampleCount();
 
     vkGetPhysicalDeviceProperties(this->physicalDevice, &gpuProperties);
     vkGetPhysicalDeviceFeatures(this->physicalDevice, &gpuFeatures);
@@ -84,6 +86,7 @@ int PhysicalDevice::rateGPUSuitability() {
 
     // Rate GPU physical device with score
     if (gpuProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) deviceScore += 1000;
+    if (msaaSupported != VK_SAMPLE_COUNT_1_BIT) deviceScore += 500; // prefer MSAA support
     // Maximum possible size of textures affects graphics quality
     deviceScore += gpuProperties.limits.maxImageDimension2D;
 
@@ -189,4 +192,22 @@ VkFormat PhysicalDevice::findDepthFormat() {
 
 bool PhysicalDevice::depthFormatHasStencilComponent(VkFormat format) {
     return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
+}
+
+// Gets best compatible MSAA configuration for GPU device
+VkSampleCountFlagBits PhysicalDevice::getMaxUsableSampleCount() {
+
+    VkPhysicalDeviceProperties physicalDeviceProperties;
+    vkGetPhysicalDeviceProperties(this->physicalDevice, &physicalDeviceProperties);
+
+    VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts &
+                                physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+    if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
+    if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
+    if (counts & VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
+    if (counts & VK_SAMPLE_COUNT_8_BIT) { return VK_SAMPLE_COUNT_8_BIT; }
+    if (counts & VK_SAMPLE_COUNT_4_BIT) { return VK_SAMPLE_COUNT_4_BIT; }
+    if (counts & VK_SAMPLE_COUNT_2_BIT) { return VK_SAMPLE_COUNT_2_BIT; }
+
+    return VK_SAMPLE_COUNT_1_BIT; // if no MSAA supported, keep disabled default.
 }

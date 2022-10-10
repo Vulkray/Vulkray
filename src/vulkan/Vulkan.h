@@ -87,9 +87,11 @@ class PhysicalDevice: public VkModuleBase {
 public:
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
     QueueFamilyIndices queueFamilies;
+    VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT; // default MSAA
     PhysicalDevice(Vulkan *m_vulkan);
     VkFormat findDepthFormat();
     bool depthFormatHasStencilComponent(VkFormat format);
+    VkSampleCountFlagBits getMaxUsableSampleCount();
 private:
     VkFormat findSupportedDepthFormat(const std::vector<VkFormat>& candidates,
                                       VkImageTiling tiling, VkFormatFeatureFlags features);
@@ -204,13 +206,22 @@ public:
 // static helper class for creating images using VMA
 class ImageViews {
 public:
-    static void allocateVMAImage(VmaAllocator allocator, AllocatedImage *allocatedImage,
-                                 uint32_t width, uint32_t height, VkImageTiling tiling,
+    static void allocateVMAImage(VmaAllocator allocator, AllocatedImage *allocatedImage, uint32_t width,
+                                 uint32_t height, VkImageTiling tiling, VkSampleCountFlagBits msaaSamples,
                                  VkImageUsageFlags usageFlags, VkFormat imageFormat);
     static VkImageView createImageView(VkDevice logicalDevice, VkImage image,
                                        VkFormat format, VkImageAspectFlags aspectFlags);
     static void transitionImageLayout(AllocatedImage allocatedImage, VkFormat format,
                                       VkImageLayout oldLayout, VkImageLayout newLayout);
+};
+
+// ---------- MultiSampling.cxx ---------- //
+class MultiSampling: public VkModuleBase {
+public:
+    AllocatedImage msaaImage;
+    VkImageView msaaImageView;
+    MultiSampling(Vulkan *m_vulkan);
+    ~MultiSampling();
 };
 
 // ---------- DepthBuffering.cxx ---------- //
@@ -307,6 +318,7 @@ public:
     std::unique_ptr<SwapChain> m_swapChain;
     std::unique_ptr<SwapChain> m_oldSwapChain = nullptr; // used for swap recreation
     std::unique_ptr<SwapImageViews> m_imageViews;
+    std::unique_ptr<MultiSampling> m_MSAA;
     std::unique_ptr<DepthTesting> m_depthTesting;
     std::unique_ptr<RenderPass> m_renderPass;
     std::unique_ptr<DescriptorPool> m_descriptorPool;

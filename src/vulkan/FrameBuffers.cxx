@@ -21,9 +21,10 @@ FrameBuffers::FrameBuffers(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
 
     for (size_t i = 0; i < this->m_vulkan->m_imageViews->swapChainImageViews.size(); i++) {
 
-        std::array<VkImageView, 2> attachments = { // Include both color & depth render attachments
-                this->m_vulkan->m_imageViews->swapChainImageViews[i],
-                this->m_vulkan->m_depthTesting->depthImageView
+        std::array<VkImageView, 3> attachments = {
+                this->m_vulkan->m_MSAA->msaaImageView, // color attachment resolve (multi-sampling/MSAA)
+                this->m_vulkan->m_depthTesting->depthImageView, // depth attachment (depth testing)
+                this->m_vulkan->m_imageViews->swapChainImageViews[i] // color attachment (fragment render)
         };
         VkFramebufferCreateInfo framebufferInfo{};
 
