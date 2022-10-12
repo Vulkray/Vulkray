@@ -29,7 +29,7 @@ Buffer::Buffer(Vulkan *m_vulkan, VkBufferUsageFlagBits bufferType,
             break;
         default:
             spdlog::error("Unsupported VkBufferUsageFlagBit type given to Buffer constructor. Exiting..");
-            throw std::runtime_error("Invalid buffer usage flag bit given to buffer constructor.");
+            throw std::runtime_error("Invalid buffer usage flag bit given to buffer constructor.\n");
     }
 }
 
@@ -124,8 +124,8 @@ void Buffer::allocateBuffer(AllocatedBuffer *buffer, VkBufferUsageFlags usageTyp
     VkResult bufferResult = vmaCreateBuffer(this->m_vulkan->m_VMA->memoryAllocator, &bufferInfo, &allocInfo,
                                       &buffer->_bufferInstance, &buffer->_bufferMemory, nullptr);
     if (bufferResult != VK_SUCCESS) {
-        spdlog::error("An error occurred after attempting to allocate the Vertex Buffer using VMA.");
-        throw std::runtime_error("Failed to create the Vulkan vertex buffer!");
+        spdlog::error("An error occurred while allocating a VMA buffer. VkBufferUsageFlagBit: {0:x}", usageTypeBit);
+        throw std::runtime_error("Failed to allocate a graphics buffer!\n");
     }
 }
 

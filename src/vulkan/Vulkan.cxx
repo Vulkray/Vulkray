@@ -16,14 +16,14 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-Vulkan::Vulkan(GraphicsInput graphicsInput) {
+Vulkan::Vulkan(GraphicsInput graphicsInput, char* winTitle) {
     // store as class attribute for modules to access
     this->graphicsInput = graphicsInput;
 
     // initialize modules using smart pointers and store as class properties
     spdlog::debug("Initializing Vulkan ...");
     this->m_vulkanInstance = std::make_unique<VulkanInstance>(this);
-    this->m_window = std::make_unique<Window>(this);
+    this->m_window = std::make_unique<Window>(this, winTitle);
     this->m_physicalDevice = std::make_unique<PhysicalDevice>(this);
     this->m_logicalDevice = std::make_unique<LogicalDevice>(this);
     this->m_VMA = std::make_unique<VulkanMemoryAllocator>(this);

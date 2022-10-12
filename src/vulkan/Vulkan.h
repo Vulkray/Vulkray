@@ -22,7 +22,7 @@
 #include <GLFW/glfw3.h>
 #include <vk_mem_alloc.h>
 // exposing some definitions to the API
-#include "../../include/vulkan.h"
+#include "../../include/Vulkray/Graphics.h"
 
 #include <memory>
 #include <array>
@@ -58,7 +58,7 @@ public:
     int height = 600;
     GLFWwindow *window{};
     VkSurfaceKHR surface;
-    Window(Vulkan *m_vulkan);
+    Window(Vulkan *m_vulkan, char* winTitle);
     ~Window();
     void waitForWindowFocus();
 private:
@@ -330,7 +330,7 @@ public:
     std::unique_ptr<Buffer> m_indexBuffer;
     std::vector<std::unique_ptr<Buffer>> m_uniformBuffers;
     std::unique_ptr<Synchronization> m_synchronization;
-    Vulkan(GraphicsInput graphicsInput);
+    Vulkan(GraphicsInput graphicsInput, char* winTitle);
     ~Vulkan();
 private:
     void renderFrame();

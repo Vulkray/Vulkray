@@ -1,6 +1,6 @@
 /*
- * vulkan.h
- * API Header - Initializes and manages all the engine's Vulkan instances.
+ * Graphics.h
+ * API Header - Exposes some definitions of the Vulkan classes / instances.
  *
  * VULKRAY ENGINE SOFTWARE
  * Copyright (c) 2022, Max Rodriguez. All rights reserved.
@@ -10,8 +10,8 @@
  * with this source code in a file named "COPYING."
  */
 
-#ifndef VULKRAY_API_VULKAN_H
-#define VULKRAY_API_VULKAN_H
+#ifndef VULKRAY_API_GRAPHICS_H
+#define VULKRAY_API_GRAPHICS_H
 
 #include <vulkan/vulkan.h>
 #include <glm/vec2.hpp>
@@ -53,10 +53,15 @@ struct Vertex {
         return attributeDescriptions;
     }
 };
+
 struct GraphicsInput {
-    std::vector<Vertex> vertexData;
-    std::vector<uint32_t> indexData;
-    VkClearValue bufferClearColor;
+    std::vector<Vertex> vertexData = {
+            {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}, // invisible placeholder vertex (buffer cannot be empty)
+    };
+    std::vector<uint32_t> indexData = {
+            0, 0, 0 // invisible placeholder indices (buffer cannot be initialized empty)
+    };
+    VkClearValue bufferClearColor = (VkClearValue){{{0.1f, 0.1f, 0.1f, 1.0f}}}; // default world background color
 };
 
-#endif //VULKRAY_API_VULKAN_H
+#endif //VULKRAY_API_GRAPHICS_H

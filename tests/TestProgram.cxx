@@ -9,15 +9,14 @@
  * with this source code in a file named "COPYING."
  */
 
-#include "../include/vulkray.h"
+#include "../include/Vulkray/ShowBase.h"
 #include <iostream>
 
 int main() {
-    // Instantiate the engine base class using a smart pointer
-    std::unique_ptr<VulkrayEngine> engine = std::make_unique<VulkrayEngine>();
-
-    // Feed graphics information to the engine (currently very manual, temporary!)
-    engine->graphicsInput.vertexData = {
+    // Prepare Vulkray engine configuration
+    EngineConfig configuration;
+    configuration.windowTitle = (char*) "Vulkray Test";
+    configuration.graphicsInput.vertexData = {
             {{-0.5f, -0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}}, // 0
             {{0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}}, // 1
             {{0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}, // 2
@@ -27,7 +26,7 @@ int main() {
             {{0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}}, // 6
             {{-0.5f, 0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}} // 7
     };
-    engine->graphicsInput.indexData = {
+    configuration.graphicsInput.indexData = {
             0, 1, 2, 2, 3, 0, // top face
             4, 7, 6, 6, 5, 4, // bottom face
             0, 4, 5, 5, 1, 0, // back face
@@ -36,9 +35,12 @@ int main() {
             3, 2, 6, 6, 7, 3 // front face
     };
 
+    // Instantiate the engine base class using a smart pointer
+    std::unique_ptr<ShowBase> base = std::make_unique<ShowBase>(configuration);
+
     // Initialize the engine vulkan renderer
     try {
-        engine->initialize();
+        base->initialize();
     } catch (const std::exception& exception) {
         std::cout << "An exception was thrown by the engine:\n" << exception.what();
         return 1;

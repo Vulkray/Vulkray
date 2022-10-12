@@ -21,12 +21,21 @@
     #include <GLFW/glfw3native.h>
 #endif
 
-Window::Window(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {
+Window::Window(Vulkan *m_vulkan, char* winTitle): VkModuleBase(m_vulkan) {
     // Initialize the GLFW window object
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-    this->title = (char*) this->m_vulkan->engineName;
+    if (winTitle == nullptr) { // engine name as default window title
+        this->title = (char*) this->m_vulkan->engineName;
+    } else {
+        this->title = winTitle;
+        // check that window name doesn't exceed character limit
+        if (strlen(winTitle) > 70) {
+            spdlog::warn("Window title string cannot be larger than 70 characters! Setting to default.");
+            this->title = (char*) this->m_vulkan->engineName;
+        }
+    }
     this->window = glfwCreateWindow(this->width, this->height, this->title, nullptr, nullptr);
 
     glfwSetWindowUserPointer(this->window, this->m_vulkan);
