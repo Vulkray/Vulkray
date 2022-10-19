@@ -35,4 +35,6 @@ ShowBase::~ShowBase() {
 void ShowBase::initialize() {
     // Initialize the engine vulkan renderer loop
     this->m_vulkan = std::make_unique<Vulkan>(this->config.graphicsInput, this->config.windowTitle);
+    // Initialize the camera instance
+    this->camera = std::make_unique<Camera>();
 }

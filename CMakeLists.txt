@@ -28,7 +28,7 @@ conan_basic_setup()
 
 # Source code files
 set(sources src/global_definitions.h
-        src/vulkan/Vulkan.h src/ShowBase.cxx
+        src/vulkan/Vulkan.h src/ShowBase.cxx src/Camera.cxx
         src/vulkan/VulkanInstance.cxx src/vulkan/Window.cxx
         src/vulkan/PhysicalDevice.cxx src/vulkan/LogicalDevice.cxx
         src/vulkan/VulkanMemoryAllocator.cxx src/vulkan/SwapChain.cxx
@@ -37,7 +37,7 @@ set(sources src/global_definitions.h
         src/vulkan/GraphicsPipeline.cxx src/vulkan/FrameBuffers.cxx
         src/vulkan/CommandPool.cxx src/vulkan/Synchronization.cxx
         src/vulkan/MultiSampling.cxx src/vulkan/DepthTesting.cxx
-        src/vulkan/Vulkan.cxx include/Vulkray/ShowBase.h)
+        src/vulkan/Vulkan.cxx)
 
 # Engine dynamic library binary target (.so/.dll/.dylib)
 add_library(${name} SHARED ${sources})

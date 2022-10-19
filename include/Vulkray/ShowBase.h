@@ -14,6 +14,7 @@
 #define VULKRAY_API_SHOWBASE_H
 
 #include "Graphics.h"
+#include "Camera.h"
 #include <memory>
 
 struct EngineConfig {
@@ -24,6 +25,7 @@ struct EngineConfig {
 class ShowBase {
 public:
     EngineConfig config;
+    std::unique_ptr<Camera> camera;
     ShowBase(EngineConfig config);
     ~ShowBase();
     void initialize();
