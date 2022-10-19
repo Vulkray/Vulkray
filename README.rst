@@ -1,12 +1,12 @@
+.. image:: logo/vulkray-banner.png
+    :width: 100%
+    :alt: Vulkray Engine
+
+|license| |platforms| |ci| |last_commit| |discord|
+
 Vulkray Engine
 ##############
-A work in progress, lightweight Linux native 3D game engine powered by Vulkan using modern C++20.
-
-|license| |ci| |pull_requests| |platforms| |discord|
-
-.. image:: logo/vulkray-logo.png
-    :width: 70%
-    :alt: Vulkray Engine
+A work in progress, high-performance, lightweight Linux native 3D game engine powered by the Vulkan graphics API.
 
 Getting Started
 ###############
@@ -41,17 +41,17 @@ Please read the `contributor guidelines <./CONTRIBUTING.rst>`_ before submitting
 
 Any contributions, big or small, are encouraged and greatly appreciated. :)
 
-.. |license| image:: https://img.shields.io/github/license/Max-Rodriguez/Vulkray?color=green&label=License&logo=github&logoColor=white
+.. |license| image:: https://img.shields.io/github/license/Max-Rodriguez/Vulkray
     :target: https://github.com/Max-Rodriguez/Vulkray/blob/master/COPYING
     
 .. |ci| image:: https://img.shields.io/github/workflow/status/Max-Rodriguez/Vulkray/Continuous%20Integration?label=CI%20Build
    :target: https://github.com/Max-Rodriguez/Vulkray/actions?query=workflow%3A%22Continuous%20Integration%22
 
-.. |pull_requests| image:: https://img.shields.io/github/issues-pr-closed/Max-Rodriguez/Vulkray?color=green&label=Pull%20Requests&logo=github&logoColor=white
-    :target: https://github.com/Max-Rodriguez/Vulkray/pulls
-
-.. |platforms| image:: https://img.shields.io/static/v1?label=Platforms&message=Linux&color=orange&logo=linux&logoColor=white
+.. |platforms| image:: https://img.shields.io/static/v1?label=Platforms&message=Linux&color=green&logo=linux&logoColor=white
     :target: https://github.com/Max-Rodriguez/Vulkray/blob/master/README.rst
+    
+.. |last_commit| image:: https://img.shields.io/github/last-commit/Max-Rodriguez/Vulkray
+    :target: https://github.com/Max-Rodriguez/Vulkray
 
 .. |discord| image:: https://img.shields.io/discord/1000247031698313327?color=blue&label=Discord&logo=discord&logoColor=white
     :target: https://discord.gg/
