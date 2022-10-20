@@ -26,15 +26,17 @@ ShowBase::ShowBase(EngineConfig config) {
     spdlog::set_level(spdlog::level::info); // only print info output on release builds
 #endif
     spdlog::set_pattern("[%H:%M:%S] [%n] [%^%l%$] %v");
+
+    // Initialize the camera instance
+    this->camera = std::make_unique<Camera>();
 }
 
 ShowBase::~ShowBase() {
     this->m_vulkan.reset(); // not actually required, just a placeholder for now
 }
 
-void ShowBase::initialize() {
+void ShowBase::launch() {
     // Initialize the engine vulkan renderer loop
-    this->m_vulkan = std::make_unique<Vulkan>(this->config.graphicsInput, this->config.windowTitle);
-    // Initialize the camera instance
-    this->camera = std::make_unique<Camera>();
+    this->m_vulkan = std::make_unique<Vulkan>(this->camera.get(),
+                                              this->config.graphicsInput, this->config.windowTitle);
 }

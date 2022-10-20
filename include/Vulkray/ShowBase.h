@@ -28,7 +28,7 @@ public:
     std::unique_ptr<Camera> camera;
     ShowBase(EngineConfig config);
     ~ShowBase();
-    void initialize();
+    void launch();
 private:
     std::unique_ptr<Vulkan> m_vulkan;
 };

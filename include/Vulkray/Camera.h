@@ -19,24 +19,34 @@
 class Camera {
 private:
     glm::mat4x4 view_matrix;
-    double fov_radians;
+    glm::vec3 look_at_vector = {1.0f, 0.0f, 0.0f}; // looking at +X by default
+    float fov_radians;
+    /*
+     * Projection matrix is created in the Vulkan module
+     * and not here, as it uses the swap chain width / height values.
+     * (Only the `fov_radians` variable is used in the proj. matrix)
+     */
 public:
-    double fov = 45.0f; // field of view (degrees)
-    double x = 0.0f;
-    double y = 0.0f;
-    double z = 0.0f;
-    double h = 0.0f; // heading (degrees)
-    double p = 0.0f; // pitch (degrees)
-    double r = 0.0f; // roll (degrees)
-    void set_fov(double fov);
-    void set_x(double x);
-    void set_y(double y);
-    void set_z(double z);
-    void set_xyz(double x, double y, double z);
-    void set_h(double h);
-    void set_p(double p);
-    void set_r(double r);
-    void set_hpr(double h, double p, double r);
+    float fov = 45.0f; // field of view (degrees)
+    float x = 0.0f;
+    float y = 0.0f;
+    float z = 0.0f;
+    float h = 0.0f; // heading (degrees)
+    float p = 0.0f; // pitch (degrees)
+    float r = 0.0f; // roll (degrees)
+    void set_fov(float fov);
+    float get_fov_radians();
+    void set_x(float x);
+    void set_y(float y);
+    void set_z(float z);
+    void set_xyz(float x, float y, float z);
+    void set_h(float h);
+    void set_p(float p);
+    void set_r(float r);
+    void set_hpr(float h, float p, float r);
+    glm::mat4x4 get_view_matrix();
+    void create_view_matrix();
+    void calculate_look_vector();
     Camera();
     ~Camera();
 };

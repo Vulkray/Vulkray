@@ -16,8 +16,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-Vulkan::Vulkan(GraphicsInput graphicsInput, char* winTitle) {
-    // store as class attribute for modules to access
+Vulkan::Vulkan(Camera *camera, GraphicsInput graphicsInput, char* winTitle) {
+    // store args as class attributes for modules to access
+    this->m_camera = camera;
     this->graphicsInput = graphicsInput;
 
     // initialize modules using smart pointers and store as class properties
@@ -82,8 +83,9 @@ void Vulkan::updateUniformBuffer(uint32_t imageIndex) {
 
     UniformBufferObject ubo{};
     ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 1.0f));
-    ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    ubo.proj = glm::perspective(glm::radians(45.0f), swapImageWidth / (float) swapImageHeight, 0.1f, 10.0f);
+    ubo.view = this->m_camera->get_view_matrix();
+    ubo.proj = glm::perspective(this->m_camera->get_fov_radians(),
+                                swapImageWidth / (float) swapImageHeight, 0.1f, 10.0f);
     ubo.proj[1][1] *= -1; // GLM was designed for OpenGL, where Y coordinates are flipped. Corrected for vulkan here.
 
     // map new UBO information to current uniform buffer memory

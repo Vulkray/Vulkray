@@ -12,11 +12,17 @@
 #include "../include/Vulkray/ShowBase.h"
 #include <iostream>
 
-int main() {
-    // Prepare Vulkray engine configuration
+class Application {
+public:
     EngineConfig configuration;
-    configuration.windowTitle = (char*) "Vulkray Test";
-    configuration.graphicsInput.vertexData = {
+    std::unique_ptr<ShowBase> base;
+    Application();
+};
+
+Application::Application() {
+    // Prepare Vulkray engine configuration
+    this->configuration.windowTitle = (char*) "Vulkray Test";
+    this->configuration.graphicsInput.vertexData = {
             {{-0.5f, -0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}}, // 0
             {{0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}}, // 1
             {{0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}, // 2
@@ -26,7 +32,7 @@ int main() {
             {{0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}}, // 6
             {{-0.5f, 0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}} // 7
     };
-    configuration.graphicsInput.indexData = {
+    this->configuration.graphicsInput.indexData = {
             0, 1, 2, 2, 3, 0, // top face
             4, 7, 6, 6, 5, 4, // bottom face
             0, 4, 5, 5, 1, 0, // back face
@@ -36,14 +42,25 @@ int main() {
     };
 
     // Instantiate the engine base class using a smart pointer
-    std::unique_ptr<ShowBase> base = std::make_unique<ShowBase>(configuration);
+    this->base = std::make_unique<ShowBase>(configuration);
+
+    // Set initial camera field of view in degrees
+    this->base->camera->set_fov(50);
+
+    // Move camera 4 units back to see the cube
+    this->base->camera->set_xyz(-4, 0, 0);
+    this->base->camera->set_hpr(0, 0, 0);
 
     // Initialize the engine vulkan renderer
     try {
-        base->initialize();
+        this->base->launch();
     } catch (const std::exception& exception) {
         std::cout << "An exception was thrown by the engine:\n" << exception.what();
-        return 1;
+        exit(1);
     }
+}
+
+int main() {
+    Application *myGame = new Application();
     return 0;
 }
