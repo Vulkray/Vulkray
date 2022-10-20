@@ -85,7 +85,8 @@ void Vulkan::updateUniformBuffer(uint32_t imageIndex) {
     ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 1.0f));
     ubo.view = this->m_camera->get_view_matrix();
     ubo.proj = glm::perspective(this->m_camera->get_fov_radians(),
-                                swapImageWidth / (float) swapImageHeight, 0.1f, 10.0f);
+                                swapImageWidth / (float) swapImageHeight,
+                                this->m_camera->near, this->m_camera->far);
     ubo.proj[1][1] *= -1; // GLM was designed for OpenGL, where Y coordinates are flipped. Corrected for vulkan here.
 
     // map new UBO information to current uniform buffer memory

@@ -27,6 +27,8 @@ private:
      * (Only the `fov_radians` variable is used in the proj. matrix)
      */
 public:
+    float near = 0.1f; // projection near plane
+    float far = 5000.0f; // projection far plane
     float fov = 45.0f; // field of view (degrees)
     float x = 0.0f;
     float y = 0.0f;
@@ -34,6 +36,8 @@ public:
     float h = 0.0f; // heading (degrees)
     float p = 0.0f; // pitch (degrees)
     float r = 0.0f; // roll (degrees)
+    void set_near(float near);
+    void set_far(float far);
     void set_fov(float fov);
     float get_fov_radians();
     void set_x(float x);

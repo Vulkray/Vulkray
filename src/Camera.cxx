@@ -57,6 +57,14 @@ void Camera::calculate_look_vector() {
     this->look_at_vector.z += glm::sin(glm::radians(this->p)); // z
 }
 
+void Camera::set_near(float near) {
+    this->near = near;
+}
+
+void Camera::set_far(float far) {
+    this->far = far;
+}
+
 void Camera::set_fov(float fov) {
     this->fov = fov;
     this->fov_radians = glm::radians(fov);
