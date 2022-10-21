@@ -21,9 +21,10 @@
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 #include <vk_mem_alloc.h>
+
 // exposing some definitions to the API
 #include "../../include/Vulkray/Graphics.h"
-#include "../../include/Vulkray/Camera.h"
+#include "../../include/Vulkray/ShowBase.h"
 
 #include <memory>
 #include <array>
@@ -331,8 +332,8 @@ public:
     std::unique_ptr<Buffer> m_indexBuffer;
     std::vector<std::unique_ptr<Buffer>> m_uniformBuffers;
     std::unique_ptr<Synchronization> m_synchronization;
-    Camera *m_camera;
-    Vulkan(Camera *camera, GraphicsInput graphicsInput, char* winTitle);
+    ShowBase *base;
+    Vulkan(ShowBase *base, GraphicsInput graphicsInput, char* winTitle);
     ~Vulkan();
 private:
     void renderFrame();

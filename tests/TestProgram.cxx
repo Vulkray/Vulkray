@@ -17,11 +17,13 @@ public:
     EngineConfig configuration;
     std::unique_ptr<ShowBase> base;
     Application();
+private:
+    static void cameraSpinJob(ShowBase *base);
 };
 
 Application::Application() {
     // Prepare Vulkray engine configuration
-    this->configuration.windowTitle = (char*) "Vulkray Test";
+    this->configuration.windowTitle = "Vulkray Test";
     this->configuration.graphicsInput.vertexData = {
             {{-0.5f, -0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}}, // 0
             {{0.5f, -0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}}, // 1
@@ -51,6 +53,9 @@ Application::Application() {
     this->base->camera->set_xyz(-4, 0, 0);
     this->base->camera->set_hpr(0, 0, 0);
 
+    // Set job callbacks to execute every frame
+    this->base->jobManager->set_job_callback("Camera Spin", &this->cameraSpinJob);
+
     // Initialize the engine vulkan renderer
     try {
         this->base->launch();
@@ -58,6 +63,10 @@ Application::Application() {
         std::cout << "An exception was thrown by the engine:\n" << exception.what();
         exit(1);
     }
+}
+
+void Application::cameraSpinJob(ShowBase *base) {
+    base->camera->set_h(base->camera->h + 1);
 }
 
 int main() {

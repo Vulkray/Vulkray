@@ -27,16 +27,19 @@ ShowBase::ShowBase(EngineConfig config) {
 #endif
     spdlog::set_pattern("[%H:%M:%S] [%n] [%^%l%$] %v");
 
-    // Initialize the camera instance
+    // Initialize the Job Manager & Camera instances
+    this->jobManager = std::make_unique<JobManager>();
     this->camera = std::make_unique<Camera>();
 }
 
 ShowBase::~ShowBase() {
-    this->m_vulkan.reset(); // not actually required, just a placeholder for now
+    // not actually required, just a placeholder for now
+    this->jobManager.reset();
+    this->camera.reset();
+    this->vulkanRenderer.reset();
 }
 
 void ShowBase::launch() {
     // Initialize the engine vulkan renderer loop
-    this->m_vulkan = std::make_unique<Vulkan>(this->camera.get(),
-                                              this->config.graphicsInput, this->config.windowTitle);
+    this->vulkanRenderer = std::make_unique<Vulkan>(this, this->config.graphicsInput, (char*) this->config.windowTitle);
 }

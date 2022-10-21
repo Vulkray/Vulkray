@@ -28,7 +28,8 @@ conan_basic_setup()
 
 # Source code files
 set(sources src/global_definitions.h
-        src/vulkan/Vulkan.h src/ShowBase.cxx src/Camera.cxx
+        src/vulkan/Vulkan.h src/ShowBase.cxx
+        src/JobManager.cxx src/Camera.cxx
         src/vulkan/VulkanInstance.cxx src/vulkan/Window.cxx
         src/vulkan/PhysicalDevice.cxx src/vulkan/LogicalDevice.cxx
         src/vulkan/VulkanMemoryAllocator.cxx src/vulkan/SwapChain.cxx

@@ -16,9 +16,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-Vulkan::Vulkan(Camera *camera, GraphicsInput graphicsInput, char* winTitle) {
+Vulkan::Vulkan(ShowBase *base, GraphicsInput graphicsInput, char* winTitle) {
     // store args as class attributes for modules to access
-    this->m_camera = camera;
+    this->base = base;
     this->graphicsInput = graphicsInput;
 
     // initialize modules using smart pointers and store as class properties
@@ -58,6 +58,14 @@ Vulkan::Vulkan(Camera *camera, GraphicsInput graphicsInput, char* winTitle) {
 }
 
 void Vulkan::renderFrame() {
+    /* before rendering a new image, execute user jobs for this frame
+     * (also utilizes the CPU the most it can rather than waiting for the previous frame to finish) */
+    std::vector<JobCallback> jobCallbacks = this->base->jobManager->_get_job_callbacks_vector();
+
+    for (JobCallback jobStruct : jobCallbacks) {
+        jobStruct.pFunction(this->base); // execute every job callback in vector
+    }
+    // render the next frame after the previous one is finished
     uint32_t imageIndex;
     this->waitForPreviousFrame(); // TODO: Measure FPS at this point in the engine renderer
     this->getNextSwapChainImage(&imageIndex); // <-- swap chain recreation called here (via Vulkan OUT_OF_DATE_KHR)
@@ -83,10 +91,10 @@ void Vulkan::updateUniformBuffer(uint32_t imageIndex) {
 
     UniformBufferObject ubo{};
     ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 1.0f));
-    ubo.view = this->m_camera->get_view_matrix();
-    ubo.proj = glm::perspective(this->m_camera->get_fov_radians(),
+    ubo.view = this->base->camera->get_view_matrix();
+    ubo.proj = glm::perspective(this->base->camera->get_fov_radians(),
                                 swapImageWidth / (float) swapImageHeight,
-                                this->m_camera->near, this->m_camera->far);
+                                this->base->camera->near, this->base->camera->far);
     ubo.proj[1][1] *= -1; // GLM was designed for OpenGL, where Y coordinates are flipped. Corrected for vulkan here.
 
     // map new UBO information to current uniform buffer memory
