@@ -10,7 +10,7 @@
  * with this source code in a file named "COPYING."
  */
 
-#include "../include/Vulkray/JobManager.h"
+#include "../../include/Vulkray/JobManager.h"
 #include <spdlog/spdlog.h>
 
 JobManager::JobManager() {

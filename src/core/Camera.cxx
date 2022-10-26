@@ -10,7 +10,7 @@
  * with this source code in a file named "COPYING."
  */
 
-#include "../include/Vulkray/Camera.h"
+#include "../../include/Vulkray/Camera.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 

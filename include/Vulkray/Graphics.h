@@ -61,7 +61,7 @@ struct GraphicsInput {
     std::vector<uint32_t> indexData = {
             0, 0, 0 // invisible placeholder indices (buffer cannot be initialized empty)
     };
-    VkClearValue bufferClearColor = (VkClearValue){{{0.1f, 0.1f, 0.1f, 1.0f}}}; // default world background color
+    VkClearValue bufferClearColor = (VkClearValue){{{0.05f, 0.05f, 0.05f, 1.0f}}}; // default world background color
 };
 
 #endif //VULKRAY_API_GRAPHICS_H

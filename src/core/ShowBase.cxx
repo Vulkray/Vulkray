@@ -10,11 +10,11 @@
  * with this source code in a file named "COPYING."
  */
 
-#include "global_definitions.h"
+#include "../global_definitions.h"
 #include <spdlog/spdlog.h>
 
-#include "vulkan/Vulkan.h"
-#include "../include/Vulkray/ShowBase.h"
+#include "../vulkan/Vulkan.h"
+#include "../../include/Vulkray/ShowBase.h"
 
 ShowBase::ShowBase(EngineConfig config) {
     this->config = config;
