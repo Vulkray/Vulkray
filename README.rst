@@ -41,6 +41,10 @@ Please read the `contributor guidelines <./CONTRIBUTING.rst>`_ before submitting
 
 Any contributions, big or small, are encouraged and greatly appreciated. :)
 
+Contact
+#######
+If you have any questions regards to the open source project, feel free to contact us via email at `info@vulkray.com <mailto:info@vulkray.com>`_.
+
 .. |license| image:: https://img.shields.io/github/license/Max-Rodriguez/Vulkray
     :target: https://github.com/Max-Rodriguez/Vulkray/blob/master/COPYING
     
