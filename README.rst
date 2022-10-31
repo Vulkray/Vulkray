@@ -41,6 +41,10 @@ Please read the `contributor guidelines <./CONTRIBUTING.rst>`_ before submitting
 
 Any contributions, big or small, are encouraged and greatly appreciated. :)
 
+Security Policy
+###############
+Please read the `security policy <./SECURITY.md>`_ document before reporting a software vulnerability.
+
 Contact
 #######
 If you have any questions regards to the open source project, feel free to contact us via email at `info@vulkray.com <mailto:info@vulkray.com>`_.
@@ -58,4 +62,4 @@ If you have any questions regards to the open source project, feel free to conta
     :target: https://github.com/Max-Rodriguez/Vulkray
 
 .. |discord| image:: https://img.shields.io/discord/1000247031698313327?color=blue&label=Discord&logo=discord&logoColor=white
-    :target: https://discord.gg/
+    :target: https://discord.gg/AgKWUqxmEj
