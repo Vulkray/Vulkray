@@ -33,7 +33,7 @@ jobs:
       GLSL_COMPILER_VERSION: "shaderc-2022.2"
       CC_BINARY: "clang"
       CXX_BINARY: "clang++"
-      CLANG_VERSION: "14"
+      CLANG_VERSION: "10"
 
     strategy:
       fail-fast: false
