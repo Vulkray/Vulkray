@@ -28,6 +28,12 @@ jobs:
       actions: read
       contents: read
       security-events: write
+    env:
+      DEBIAN_FRONTEND: "noninteractive"
+      GLSL_COMPILER_VERSION: "shaderc-2022.2"
+      CC_BINARY: "clang"
+      CXX_BINARY: "clang++"
+      CLANG_VERSION: "14"
 
     strategy:
       fail-fast: false
@@ -66,15 +72,49 @@ jobs:
       run: |
         conan profile new default --detect
         conan profile update settings.compiler.libcxx=libstdc++11 default
-        conan profile update settings.compiler=clang default
-        conan profile update settings.compiler.version=14 default
+        conan profile update settings.compiler=${{ env.CC_BINARY }} default
+        conan profile update settings.compiler.version=${{ env.CLANG_VERSION }} default
         conan profile update conf.tools.system.package_manager:mode=install default
-
+        
+    - name: Overwrite Default ~/.conan/settings.yml
+      shell: bash
+      run: |
+        wget https://raw.githubusercontent.com/Vulkray/Vulkray/master/.github/workflows/conan-settings.yml
+        cat conan-settings.yml > ~/.conan/settings.yml
+          
+    - name: Check Cached Conan Dependencies
+      id: conan-cache
+      uses: actions/cache@v3.0.8
+      with:
+        path: /github/home/.conan/data/*
+        key: ${{ runner.os }}-conan-data-${{ hashFiles('**/conanfile.txt') }}
+          
+    - name: Check Cached GLSLC Binary
+      id: glslc-cache
+      uses: actions/cache@v3.0.8
+      with:
+        path: /bin/glslc
+        key: ${{ runner.os }}-${{ env.GLSL_COMPILER_VERSION }}-binary
+          
+    - name: Build Google GLSL Compiler # Ubuntu/Debian doesn't package glslc binary; do if not cached!
+      if: steps.glslc-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        wget https://github.com/google/shaderc/archive/refs/tags/v2022.2.tar.gz
+        tar -xvf v2022.2.tar.gz
+        cd shaderc-2022.2
+        ./utils/git-sync-deps
+        mkdir build
+        cd build
+        cmake -GNinja -DCMAKE_BUILD_TYPE=Release ..
+        ninja
+        sudo cp glslc/glslc /bin
+          
     - name: Run Build Script
       shell: bash
       run: |
-        export CC=clang
-        export CXX=clang++
+        export CC=${{ env.CC_BINARY }}
+        export CXX=${{ env.CXX_BINARY }}
         bash ./linux/configure.sh release
         bash ./linux/build.sh release
 
