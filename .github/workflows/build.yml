@@ -85,6 +85,12 @@ jobs:
           conan profile update settings.compiler.libcxx=libstdc++11 default
           conan profile update settings.compiler=${{ matrix.config.compiler }} default
           conan profile update settings.compiler.version=${{ matrix.config.cc_version }} default
+          conan profile update conf.tools.system.package_manager:mode=install default
+      - name: Overwrite Default ~/.conan/settings.yml
+        shell: bash
+        run: |
+          wget https://raw.githubusercontent.com/Vulkray/Vulkray/master/.github/workflows/conan-settings.yml
+          cat conan-settings.yml > ~/.conan/settings.yml
       - name: Check Cached Conan Dependencies
         id: conan-cache
         uses: actions/cache@v3.0.8
