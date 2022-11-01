@@ -57,7 +57,8 @@ jobs:
       run: |
         sudo apt install -y \
           ninja-build \
-          clang
+          clang \
+          libgl-dev
         pip3 install conan
         
     - name: Create Default Conan Profile
