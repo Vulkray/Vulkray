@@ -55,6 +55,7 @@ jobs:
     - name: Create Default Conan Profile
       shell: bash
       run: |
+        pip3 install conan
         conan profile new default --detect
         conan profile update settings.compiler.libcxx=libstdc++11 default
         conan profile update settings.compiler=clang default
@@ -63,7 +64,6 @@ jobs:
     - name: Run Build Script
       shell: bash
       run: |
-        pip3 install conan
         bash ./linux/configure.sh release
         bash ./linux/build.sh release
 
