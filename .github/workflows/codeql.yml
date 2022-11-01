@@ -55,7 +55,7 @@ jobs:
     - name: Install required packages
       shell: bash
       run: |
-        apt install -y ninja
+        sudo apt install -y ninja
         pip3 install conan
         
     - name: Create Default Conan Profile
