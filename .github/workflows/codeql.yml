@@ -51,6 +51,14 @@ jobs:
         
         # Details on CodeQL's query packs refer to : https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
         # queries: security-extended,security-and-quality
+        
+    - name: Create Default Conan Profile
+      shell: bash
+      run: |
+        conan profile new default --detect
+        conan profile update settings.compiler.libcxx=libstdc++11 default
+        conan profile update settings.compiler=clang default
+        conan profile update settings.compiler.version=14 default
 
     - name: Run Build Script
       shell: bash
