@@ -75,6 +75,7 @@ jobs:
         conan profile update settings.compiler=${{ env.CC_BINARY }} default
         conan profile update settings.compiler.version=${{ env.CLANG_VERSION }} default
         conan profile update conf.tools.system.package_manager:mode=install default
+        conan profile update conf.tools.system.package_manager:sudo=True default
         
     - name: Overwrite Default ~/.conan/settings.yml
       shell: bash
