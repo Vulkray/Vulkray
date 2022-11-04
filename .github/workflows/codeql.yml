@@ -34,6 +34,9 @@ jobs:
       CC_BINARY: "clang"
       CXX_BINARY: "clang++"
       CLANG_VERSION: "10"
+    container:
+      image: ubuntu:rolling
+      options: --user root
 
     strategy:
       fail-fast: false
