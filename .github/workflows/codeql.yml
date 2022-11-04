@@ -64,7 +64,7 @@ jobs:
     - name: Install required packages
       shell: bash
       run: |
-        sudo apt install -y \
+        apt install -y \
           sudo \
           ninja-build \
           clang \
