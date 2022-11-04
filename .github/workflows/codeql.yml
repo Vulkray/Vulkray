@@ -65,6 +65,7 @@ jobs:
       shell: bash
       run: |
         sudo apt install -y \
+          sudo \
           ninja-build \
           clang \
           libgl-dev
