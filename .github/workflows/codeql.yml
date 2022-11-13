@@ -64,6 +64,7 @@ jobs:
     - name: Install required packages
       shell: bash
       run: |
+        apt update
         apt install -y \
           sudo \
           ninja-build \
