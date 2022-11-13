@@ -61,18 +61,53 @@ jobs:
         # Details on CodeQL's query packs refer to : https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
         # queries: security-extended,security-and-quality
         
-    - name: Install required packages
+    - name: Update system environment
       shell: bash
       run: |
-        apt update
+        # Update package lists
+        apt update -qq
+        # Install build tools
         apt install -y \
           sudo \
-          ninja-build \
           clang \
+          clang-14 \
+          cmake \
+          git \
+          wget \
+          google-mock \
+          libgtest-dev \
+          libgl1-mesa-dev \
+          libx11-dev \
+          libx11-xcb-dev \
+          libxcb-dri3-dev \
+          libxcb-icccm4-dev \
+          libxcb-image0-dev \
+          libxcb-keysyms1-dev \
+          libxcb-randr0-dev \
+          libxcb-render-util0-dev \
+          libxcb-render0-dev \
+          libxcb-shape0-dev \
+          libxcb-sync-dev \
+          libxcb-util-dev \
+          libxcb-xfixes0-dev \
+          libxcb-xinerama0-dev \
+          libxcb-xkb-dev \
           libgl-dev \
+          lld \
+          ninja-build \
+          pkg-config \
+          python3 \
           python3-pip \
-          wget
-        python3 -m pip install conan
+          xkb-data \
+          xorg-dev \
+          libvulkan-dev \
+          vulkan-tools \
+          vulkan-validationlayers-dev \
+          spirv-tools \
+          glslang-dev \
+          glslang-tools
+        pip3 install wheel setuptools
+        pip3 install conan mako
         
     - name: Create Default Conan Profile
       shell: bash
