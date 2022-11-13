@@ -33,7 +33,7 @@ jobs:
       GLSL_COMPILER_VERSION: "shaderc-2022.2"
       CC_BINARY: "clang"
       CXX_BINARY: "clang++"
-      CLANG_VERSION: "10"
+      CLANG_VERSION: "15"
     container:
       image: ubuntu:rolling
       options: --user root
@@ -70,7 +70,7 @@ jobs:
         apt install -y \
           sudo \
           clang \
-          clang-14 \
+          clang-15 \
           cmake \
           git \
           wget \
