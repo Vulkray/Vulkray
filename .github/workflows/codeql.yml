@@ -70,7 +70,7 @@ jobs:
           ninja-build \
           clang \
           libgl-dev
-        pip3 install conan
+        python3 -m pip install conan
         
     - name: Create Default Conan Profile
       shell: bash
