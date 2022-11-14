@@ -22,5 +22,5 @@ fi
 ninja
 # Run program if not in continuous integration environment
 if [[ -z "$CI" ]]; then
-  ./bin/VulkrayExampleProgram
+  ./bin/SampleProgram
 fi

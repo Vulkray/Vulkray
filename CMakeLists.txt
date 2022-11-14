@@ -52,3 +52,6 @@ add_dependencies(${name} vulkray-shaders)
 # Google Tests
 enable_testing()
 add_subdirectory(tests)
+
+# Example Programs
+add_subdirectory(examples)
