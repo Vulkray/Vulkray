@@ -10,7 +10,7 @@
  * with this source code in a file named "COPYING."
  */
 
-#include "Vulkan.h"
+#include "../../include/Vulkray/Vulkan.h"
 #include <spdlog/spdlog.h>
 
 CommandPool::CommandPool(Vulkan *m_vulkan, VkCommandPoolCreateFlags additionalFlags,

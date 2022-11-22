@@ -10,7 +10,7 @@
  * with this source code in a file named "COPYING."
  */
 
-#include "Vulkan.h"
+#include "../../include/Vulkray/Vulkan.h"
 #include <chrono>
 #include <spdlog/spdlog.h>
 #include <glm/glm.hpp>

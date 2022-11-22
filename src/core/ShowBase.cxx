@@ -13,7 +13,7 @@
 #include "../global_definitions.h"
 #include <spdlog/spdlog.h>
 
-#include "../vulkan/Vulkan.h"
+#include "../../include/Vulkray/Vulkan.h"
 #include "../../include/Vulkray/ShowBase.h"
 
 ShowBase::ShowBase(EngineConfig config) {
@@ -27,13 +27,15 @@ ShowBase::ShowBase(EngineConfig config) {
 #endif
     spdlog::set_pattern("[%H:%M:%S] [%n] [%^%l%$] %v");
 
-    // Initialize the Job Manager & Camera instances
+    // Initialize top level show base instances
+    this->input = std::make_unique<UserInput>();
     this->jobManager = std::make_unique<JobManager>();
     this->camera = std::make_unique<Camera>();
 }
 
 ShowBase::~ShowBase() {
     // not actually required, just a placeholder for now
+    this->input.reset();
     this->jobManager.reset();
     this->camera.reset();
     this->vulkanRenderer.reset();
@@ -42,4 +44,6 @@ ShowBase::~ShowBase() {
 void ShowBase::launch() {
     // Initialize the engine vulkan renderer loop
     this->vulkanRenderer = std::make_unique<Vulkan>(this, this->config.graphicsInput, (char*) this->config.windowTitle);
+    // pass the window instance from vulkan to the input module
+    this->input->_init_glfw_callback(this->vulkanRenderer->m_window.get());
 }
