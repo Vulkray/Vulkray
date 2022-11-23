@@ -372,7 +372,7 @@ public:
     std::vector<std::unique_ptr<Buffer>> m_uniformBuffers;
     std::unique_ptr<Synchronization> m_synchronization;
     ShowBase *base;
-    Vulkan(ShowBase *base, GraphicsInput graphicsInput, char* winTitle);
+    Vulkan(ShowBase *base, GraphicsInput graphicsInput, char* winTitle, void (*initGlfwInput)(Vulkan *m_vulkan));
     ~Vulkan();
 private:
     void renderFrame();

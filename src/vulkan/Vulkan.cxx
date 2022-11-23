@@ -16,7 +16,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-Vulkan::Vulkan(ShowBase *base, GraphicsInput graphicsInput, char* winTitle) {
+Vulkan::Vulkan(ShowBase *base, GraphicsInput graphicsInput, char* winTitle,
+               void (*initGlfwInput)(Vulkan *m_vulkan)) {
+
     // store args as class attributes for modules to access
     this->base = base;
     this->graphicsInput = graphicsInput;
@@ -49,6 +51,10 @@ Vulkan::Vulkan(ShowBase *base, GraphicsInput graphicsInput, char* winTitle) {
     this->m_graphicsPipeline = std::make_unique<GraphicsPipeline>(this);
     this->m_frameBuffers = std::make_unique<FrameBuffers>(this);
     this->m_synchronization = std::make_unique<Synchronization>(this);
+
+    /* Before initializing render loop, call initGlfwInput callback,
+     * so the UserInput class (ShowBase's input module) can read keyboard input via GLFW. */
+    initGlfwInput(this);
 
     spdlog::debug("Running engine renderer ...");
     while(!glfwWindowShouldClose(this->m_window->window)) {

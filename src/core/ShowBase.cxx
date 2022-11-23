@@ -43,7 +43,7 @@ ShowBase::~ShowBase() {
 
 void ShowBase::launch() {
     // Initialize the engine vulkan renderer loop
-    this->vulkanRenderer = std::make_unique<Vulkan>(this, this->config.graphicsInput, (char*) this->config.windowTitle);
-    // pass the window instance from vulkan to the input module
-    this->input->_init_glfw_callback(this->vulkanRenderer->m_window.get());
+    this->vulkanRenderer = std::make_unique<Vulkan>(this, this->config.graphicsInput,
+                                                    (char*) this->config.windowTitle,
+                                                    this->input->_static_init_glfw_input);
 }

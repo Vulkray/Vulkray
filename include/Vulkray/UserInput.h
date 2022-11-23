@@ -19,8 +19,8 @@
 class UserInput {
 private:
     Window *m_window;
-    static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
-    int keyMap[128][2] = { // 2^7 (7-bit) = 128 possible keys. nested array is GLFW key macro & 0-1 value (key pressed)
+    static void static_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+    int keyMap[128][2] = { // 2^7 (7-bit) = 128 possible keys. nested array is GLFW key macro & 0-2 value (key status)
             // Integer
             {GLFW_KEY_0, 0}, {GLFW_KEY_1, 0}, {GLFW_KEY_2, 0}, {GLFW_KEY_3, 0}, {GLFW_KEY_4, 0},
             {GLFW_KEY_5, 0}, {GLFW_KEY_6, 0}, {GLFW_KEY_7, 0}, {GLFW_KEY_8, 0}, {GLFW_KEY_9, 0},
@@ -57,9 +57,11 @@ private:
             {GLFW_KEY_KP_6, 0}, {GLFW_KEY_KP_7, 0}, {GLFW_KEY_KP_8, 0}, {GLFW_KEY_KP_9, 0},
     };
 public:
-    void _init_glfw_callback(Window *m_window);
     UserInput();
     ~UserInput();
+    static void _static_init_glfw_input(Vulkan *m_vulkan);
+    void _non_static_init_glfw_input(Window *m_window);
+    void _non_static_key_callback(int key, int scancode, int action, int mods);
 };
 
 #endif //VULKRAY_API_USERINPUT_H
