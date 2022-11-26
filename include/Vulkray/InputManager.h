@@ -1,5 +1,5 @@
 /*
- * UserInput.h
+ * InputManager.h
  * API Header - Uses the GLFW library to get Window keyboard / mouse input.
  *
  * VULKRAY ENGINE SOFTWARE
@@ -10,16 +10,28 @@
  * with this source code in a file named "COPYING."
  */
 
-#ifndef VULKRAY_API_USERINPUT_H
-#define VULKRAY_API_USERINPUT_H
+#ifndef VULKRAY_API_INPUTMANAGER_H
+#define VULKRAY_API_INPUTMANAGER_H
 
 #include "Vulkan.h"
 #include <GLFW/glfw3.h>
+#include <string>
+
+#define KEY_RELEASED 0
+#define KEY_PRESSED 1
+#define KEY_HELD 2
+
+struct KeyCallback {
+    std::string key;
+    void(*pFunction)(ShowBase *base); // all callbacks must return void
+};
 
 class UserInput {
 private:
     Window *m_window;
+    std::vector<KeyCallback> keyCallbacks;
     static void static_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+
     int keyMap[128][2] = { // 2^7 (7-bit) = 128 possible keys. nested array is GLFW key macro & 0-2 value (key status)
             // Integer
             {GLFW_KEY_0, 0}, {GLFW_KEY_1, 0}, {GLFW_KEY_2, 0}, {GLFW_KEY_3, 0}, {GLFW_KEY_4, 0},
@@ -54,14 +66,39 @@ private:
             {GLFW_KEY_KP_SUBTRACT, 0}, {GLFW_KEY_KP_DIVIDE, 0}, {GLFW_KEY_KP_ADD, 0}, {GLFW_KEY_KP_MULTIPLY, 0},
             {GLFW_KEY_KP_DECIMAL, 0}, {GLFW_KEY_KP_ENTER, 0}, {GLFW_KEY_KP_EQUAL, 0}, {GLFW_KEY_KP_0, 0},
             {GLFW_KEY_KP_1, 0}, {GLFW_KEY_KP_2, 0}, {GLFW_KEY_KP_3, 0}, {GLFW_KEY_KP_4, 0}, {GLFW_KEY_KP_5, 0},
-            {GLFW_KEY_KP_6, 0}, {GLFW_KEY_KP_7, 0}, {GLFW_KEY_KP_8, 0}, {GLFW_KEY_KP_9, 0},
+            {GLFW_KEY_KP_6, 0}, {GLFW_KEY_KP_7, 0}, {GLFW_KEY_KP_8, 0}, {GLFW_KEY_KP_9, 0}
+    };
+    std::string keyAliases[128] = {
+            // Integer
+            "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+            // Character
+            "a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
+            "k", "l", "m", "n", "o", "p", "q", "r", "s", "t",
+            "u", "v", "w", "x", "y", "z",
+            // Function
+            "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10",
+            "F11", "F12", "F13", "F14", "F15", "F16", "F17", "F18", "F19", "F20",
+            "F21", "F22", "F23", "F24", "F25",
+            // Punctuation
+            "'", ",", ".", "/", ";", "\\", "-", "=", "[", "]", "`", " ",
+            // Modifiers
+            "ESC", "TAB", "CAPS_LOCK", "LEFT_SHIFT", "RIGHT_SHIFT", "ENTER", "BACKSPACE",
+            "LEFT_CONTROL", "RIGHT_CONTROL", "LEFT_ALT", "RIGHT_ALT", "LEFT_SUPER", "RIGHT_SUPER",
+            // Navigation
+            "UP", "DOWN", "LEFT", "RIGHT", "DELETE", "INSERT", "HOME", "PAGE_UP",
+            "PAGE_DOWN", "END", "PRINT_SCREEN", "SCROLL_LOCK", "PAUSE",
+            // Number Pad (Key Pad)
+            "NP_SUBTRACT", "NP_DIVIDE", "NP_ADD", "NP_MULTIPLY", "NP_DECIMAL",
+            "NP_ENTER", "NP_EQUAL", "NP_0", "NP_1", "NP_2", "NP_3",
+            "NP_4", "NP_5", "NP_6", "NP_7", "NP_8", "NP_9"
     };
 public:
     UserInput();
     ~UserInput();
+    void accept(const char *key, int action, void (*pFunction)(ShowBase *base));
     static void _static_init_glfw_input(Vulkan *m_vulkan);
     void _non_static_init_glfw_input(Window *m_window);
     void _non_static_key_callback(int key, int scancode, int action, int mods);
 };
 
-#endif //VULKRAY_API_USERINPUT_H
+#endif //VULKRAY_API_INPUTMANAGER_H

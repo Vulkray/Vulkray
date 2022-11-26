@@ -13,7 +13,7 @@
 #ifndef VULKRAY_API_SHOWBASE_H
 #define VULKRAY_API_SHOWBASE_H
 
-#include "UserInput.h"
+#include "InputManager.h"
 #include "JobManager.h"
 #include "Camera.h"
 #include "Vulkan.h"
