@@ -32,6 +32,7 @@ void InputManager::_non_static_key_callback(int key, int scancode, int action, i
 
         for (KeyCallback callback : this->keyCallbacks) {
             if (callback.key.compare(alias.keyAlias) == 0) continue; // skip if callback key doesn't match
+            if (callback.action != action) continue; // skip if callback action doesn't match
             callback.pFunction(this->m_window->m_vulkan->base);
         }
         return;
