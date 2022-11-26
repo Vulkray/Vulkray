@@ -20,7 +20,7 @@
 #include <memory>
 
 // class prototypes
-class UserInput;
+class InputManager;
 
 struct EngineConfig {
     const char* windowTitle = nullptr; // default set at vulkan/Window.cxx module
@@ -30,7 +30,7 @@ struct EngineConfig {
 class ShowBase {
 public:
     EngineConfig config;
-    std::unique_ptr<UserInput> input;
+    std::unique_ptr<InputManager> input;
     std::unique_ptr<JobManager> jobManager;
     std::unique_ptr<Camera> camera;
     ShowBase(EngineConfig config);

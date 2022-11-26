@@ -28,7 +28,7 @@ ShowBase::ShowBase(EngineConfig config) {
     spdlog::set_pattern("[%H:%M:%S] [%n] [%^%l%$] %v");
 
     // Initialize top level show base instances
-    this->input = std::make_unique<UserInput>();
+    this->input = std::make_unique<InputManager>();
     this->jobManager = std::make_unique<JobManager>();
     this->camera = std::make_unique<Camera>();
 }

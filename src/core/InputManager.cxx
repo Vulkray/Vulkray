@@ -15,50 +15,63 @@
 #include <spdlog/spdlog.h>
 #include "../../include/Vulkray/InputManager.h"
 
-UserInput::UserInput() {
+InputManager::InputManager() {
     // placeholder
 }
 
-UserInput::~UserInput() {
+InputManager::~InputManager() {
     // placeholder
 }
 
-void UserInput::_non_static_key_callback(int key, int scancode, int action, int mods) {
-    size_t keyMapLength = sizeof(this->keyMap) / sizeof(this->keyMap[0]);
+void InputManager::_non_static_key_callback(int key, int scancode, int action, int mods) {
+    size_t keyMapLength = sizeof(this->keyAliases) / sizeof(GLFWKeyAlias);
 
     for (size_t i = 0; i < keyMapLength; i++) {
-        if (this->keyMap[i][0] != key) continue;
-        this->keyMap[i][1] = action; // either GLFW_PRESS, GLFW_REPEAT, or GLFW_RELEASE (0, 1, or 2)
+        GLFWKeyAlias alias = this->keyAliases[i];
+        if (alias.glfwKeyID != key) continue;
+
+        for (KeyCallback callback : this->keyCallbacks) {
+            if (callback.key.compare(alias.keyAlias) == 0) continue; // skip if callback key doesn't match
+            callback.pFunction(this->m_window->m_vulkan->base);
+        }
         return;
     }
     spdlog::error("The UserInput module key callback received an invalid key!");
     throw std::runtime_error("An invalid key was received by the input module.");
 }
 
-void UserInput::static_key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
+void InputManager::static_key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
 
     auto m_vulkan = reinterpret_cast<Vulkan*>(glfwGetWindowUserPointer(window));
     // pass key callback parameter data to non-static method from UserInput class to process input
     m_vulkan->base->input->_non_static_key_callback(key, scancode, action, mods);
 }
 
-void UserInput::_non_static_init_glfw_input(Window *m_window) {
+void InputManager::_non_static_init_glfw_input(Window *m_window) {
     this->m_window = m_window; // store window module pointer
     glfwSetKeyCallback(this->m_window->window, this->static_key_callback);
 }
 
-void UserInput::_static_init_glfw_input(Vulkan *m_vulkan) {
+void InputManager::_static_init_glfw_input(Vulkan *m_vulkan) {
     // call non-static method from UserInput class and pass window module pointer
     m_vulkan->base->input->_non_static_init_glfw_input(m_vulkan->m_window.get());
 }
 
-void UserInput::accept(const char *key, int action, void (*pFunction)(ShowBase *)) {
-    size_t keyMapLength = sizeof(this->keyAliases) / sizeof(std::string);
+void InputManager::accept(const char *key, int action, void (*pFunction)(ShowBase *)) {
+    size_t keyMapLength = sizeof(this->keyAliases) / sizeof(GLFWKeyAlias);
 
     for (size_t i = 0; i < keyMapLength; i++) {
-        if (this->keyAliases[i].compare(key) == 0) continue;
-
-
+        if (this->keyAliases[i].keyAlias.compare(key) == 0) continue;
+        if (action > 2 || action < 0) {
+            spdlog::error("Key callbacks can only accept from an action between 0-2!");
+            throw std::runtime_error("An invalid action was given to the input module to accept.");
+        }
+        // once params are validated, append new callback struct to vector
+        KeyCallback newCallback;
+        newCallback.key.assign(key);
+        newCallback.action = action;
+        newCallback.pFunction = pFunction;
+        this->keyCallbacks.push_back(newCallback);
         return;
     }
     spdlog::error("An invalid key was given to the input module to accept!");
