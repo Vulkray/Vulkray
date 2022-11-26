@@ -58,7 +58,7 @@ void InputManager::_static_init_glfw_input(Vulkan *m_vulkan) {
     m_vulkan->base->input->_non_static_init_glfw_input(m_vulkan->m_window.get());
 }
 
-void InputManager::accept(const char *key, int action, void (*pFunction)(ShowBase *)) {
+void InputManager::accept_key(const char *key, int action, void (*pFunction)(ShowBase *)) {
     size_t keyMapLength = sizeof(this->keyAliases) / sizeof(GLFWKeyAlias);
 
     for (size_t i = 0; i < keyMapLength; i++) {

@@ -84,7 +84,7 @@ private:
 public:
     InputManager();
     ~InputManager();
-    void accept(const char *key, int action, void (*pFunction)(ShowBase *base));
+    void accept_key(const char *key, int action, void (*pFunction)(ShowBase *base));
     static void _static_init_glfw_input(Vulkan *m_vulkan);
     void _non_static_init_glfw_input(Window *m_window);
     void _non_static_key_callback(int key, int scancode, int action, int mods);
