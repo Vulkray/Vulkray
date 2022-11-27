@@ -36,8 +36,15 @@ public:
     ShowBase(EngineConfig config);
     ~ShowBase();
     void launch();
+    void enable_cam_controls();
+    void disable_cam_controls();
 private:
     std::unique_ptr<Vulkan> vulkanRenderer;
+    // default cam control callbacks
+    static void cam_control_forward(ShowBase *base);
+    static void cam_control_backward(ShowBase *base);
+    static void cam_control_left(ShowBase *base);
+    static void cam_control_right(ShowBase *base);
 };
 
 #endif //VULKRAY_API_SHOWBASE_H

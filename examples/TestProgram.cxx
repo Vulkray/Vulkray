@@ -56,8 +56,8 @@ Application::Application() {
     this->base->camera->set_hpr(0, 0, 0);
 
     // Set key callbacks to execute upon user input
-    this->base->input->accept_key("q", 1, &this->fovDecreaseCallback);
-    this->base->input->accept_key("e", 1, &this->fovIncreaseCallback);
+    this->base->input->new_accept("q", KEY_EITHER, &this->fovDecreaseCallback);
+    this->base->input->new_accept("e", KEY_EITHER, &this->fovIncreaseCallback);
 
     // Set job callbacks to execute every frame
     this->base->jobManager->new_job("Camera Spin", &this->cameraSpinJob);
@@ -76,10 +76,12 @@ void Application::cameraSpinJob(ShowBase *base) {
 }
 
 void Application::fovIncreaseCallback(ShowBase *base) {
+    if (base->camera->fov > 120) return; // limit
     base->camera->set_fov(base->camera->fov + 1);
 }
 
 void Application::fovDecreaseCallback(ShowBase *base) {
+    if (base->camera->fov < 25) return; // limit
     base->camera->set_fov(base->camera->fov - 1);
 }
 
