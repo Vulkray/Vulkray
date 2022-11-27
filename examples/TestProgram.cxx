@@ -19,6 +19,8 @@ public:
     Application();
 private:
     static void cameraSpinJob(ShowBase *base);
+    static void fovIncreaseCallback(ShowBase *base);
+    static void fovDecreaseCallback(ShowBase *base);
 };
 
 Application::Application() {
@@ -53,8 +55,12 @@ Application::Application() {
     this->base->camera->set_xyz(-4, 0, 0);
     this->base->camera->set_hpr(0, 0, 0);
 
+    // Set key callbacks to execute upon user input
+    this->base->input->new_accept("q", KEY_EITHER, &this->fovDecreaseCallback);
+    this->base->input->new_accept("e", KEY_EITHER, &this->fovIncreaseCallback);
+
     // Set job callbacks to execute every frame
-    this->base->jobManager->set_job_callback("Camera Spin", &this->cameraSpinJob);
+    this->base->jobManager->new_job("Camera Spin", &this->cameraSpinJob);
 
     // Initialize the engine vulkan renderer
     try {
@@ -66,7 +72,17 @@ Application::Application() {
 }
 
 void Application::cameraSpinJob(ShowBase *base) {
-    base->camera->set_h(base->camera->h + 1);
+    //base->camera->set_h(base->camera->h + 1);
+}
+
+void Application::fovIncreaseCallback(ShowBase *base) {
+    if (base->camera->fov > 120) return; // limit
+    base->camera->set_fov(base->camera->fov + 1);
+}
+
+void Application::fovDecreaseCallback(ShowBase *base) {
+    if (base->camera->fov < 25) return; // limit
+    base->camera->set_fov(base->camera->fov - 1);
 }
 
 int main() {

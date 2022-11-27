@@ -30,8 +30,8 @@ public:
     JobManager();
     ~JobManager();
     std::vector<JobCallback> _get_job_callbacks_vector();
-    void set_job_callback(const char *jobName, void (*pFunction)(ShowBase *base));
-    void remove_job_callback(const char *jobName);
+    void new_job(const char *jobName, void (*pFunction)(ShowBase *base));
+    void remove_job(const char *jobName);
 };
 
 #endif //VULKRAY_API_JOBMANAGER_H

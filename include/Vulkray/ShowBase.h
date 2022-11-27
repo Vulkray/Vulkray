@@ -13,10 +13,14 @@
 #ifndef VULKRAY_API_SHOWBASE_H
 #define VULKRAY_API_SHOWBASE_H
 
-#include "Graphics.h"
+#include "InputManager.h"
 #include "JobManager.h"
 #include "Camera.h"
+#include "Vulkan.h"
 #include <memory>
+
+// class prototypes
+class InputManager;
 
 struct EngineConfig {
     const char* windowTitle = nullptr; // default set at vulkan/Window.cxx module
@@ -26,13 +30,21 @@ struct EngineConfig {
 class ShowBase {
 public:
     EngineConfig config;
+    std::unique_ptr<InputManager> input;
     std::unique_ptr<JobManager> jobManager;
     std::unique_ptr<Camera> camera;
     ShowBase(EngineConfig config);
     ~ShowBase();
     void launch();
+    void enable_cam_controls();
+    void disable_cam_controls();
 private:
     std::unique_ptr<Vulkan> vulkanRenderer;
+    // default cam control callbacks
+    static void cam_control_forward(ShowBase *base);
+    static void cam_control_backward(ShowBase *base);
+    static void cam_control_left(ShowBase *base);
+    static void cam_control_right(ShowBase *base);
 };
 
 #endif //VULKRAY_API_SHOWBASE_H

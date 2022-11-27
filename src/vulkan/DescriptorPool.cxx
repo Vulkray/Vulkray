@@ -10,7 +10,7 @@
  * with this source code in a file named "COPYING."
  */
 
-#include "Vulkan.h"
+#include "../../include/Vulkray/Vulkan.h"
 #include <spdlog/spdlog.h>
 
 DescriptorPool::DescriptorPool(Vulkan *m_vulkan): VkModuleBase(m_vulkan) {

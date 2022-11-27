@@ -26,14 +26,14 @@ std::vector<JobCallback> JobManager::_get_job_callbacks_vector() {
     return this->jobCallbacks;
 }
 
-void JobManager::set_job_callback(const char *jobName, void (*pFunction)(ShowBase *base)) {
+void JobManager::new_job(const char *jobName, void (*pFunction)(ShowBase *base)) {
     JobCallback jobCallback;
     jobCallback.name = jobName;
     jobCallback.pFunction = pFunction;
     this->jobCallbacks.push_back(jobCallback); // push function pointer to jobs vector
 }
 
-void JobManager::remove_job_callback(const char *jobName) {
+void JobManager::remove_job(const char *jobName) {
     int index = 0;
     for (JobCallback jobCallback : this->jobCallbacks) {
         if (jobCallback.name.compare(jobName)) { // find job with matching name ID
