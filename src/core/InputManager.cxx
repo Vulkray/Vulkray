@@ -100,7 +100,7 @@ void InputManager::remove_accept(const char *key, int action) {
             if (callback.action != action) {
                 if (callback.action == KEY_EITHER & action != KEY_RELEASED) {
                     this->keyCallbacks.erase(this->keyCallbacks.begin() + j);
-                    j++; return;
+                    return; // callback found, return
                 } else {
                     j++; continue;
                     /* I know this is a mess and would be cleaner if the for loop incremented j for me,
@@ -109,7 +109,7 @@ void InputManager::remove_accept(const char *key, int action) {
                 }
             }
             this->keyCallbacks.erase(this->keyCallbacks.begin() + j);
-            j++; return;
+            return; // callback found, return
         }
         return;
     }
