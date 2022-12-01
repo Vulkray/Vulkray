@@ -69,7 +69,7 @@ void Vulkan::renderFrame() {
     std::vector<JobCallback> jobCallbacks = this->base->jobManager->_get_job_callbacks_vector();
 
     for (JobCallback jobStruct : jobCallbacks) {
-        jobStruct.pFunction(this->base); // execute every job callback in vector
+        jobStruct.pFunction(jobStruct.caller, this->base); // execute every job callback in vector
     }
     // render the next frame after the previous one is finished
     uint32_t imageIndex;

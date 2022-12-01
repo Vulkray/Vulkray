@@ -21,6 +21,7 @@
 #define KEY_PRESSED 1
 #define KEY_HELD 2
 #define KEY_EITHER 3
+#define KEY_ANY 4
 
 struct GLFWKeyAlias {
     int glfwKeyID;
@@ -28,8 +29,9 @@ struct GLFWKeyAlias {
 };
 struct KeyCallback {
     std::string key;
-    int action;
-    void(*pFunction)(ShowBase *base); // all callbacks must return void
+    int action; // integer in 0-4 range
+    void *caller; // pointer to class that created callback
+    void(*pFunction)(void *caller, ShowBase *base, int action); // all callbacks must return void
 };
 
 class InputManager {
@@ -85,8 +87,12 @@ private:
 public:
     InputManager();
     ~InputManager();
-    void new_accept(const char *key, int action, void (*pFunction)(ShowBase *base));
+    void new_accept(const char *key, int action, void *caller,
+                    void (*pFunction)(void *caller, ShowBase *base, int action));
+    void new_accept(const char *key, void *caller,
+                    void (*pFunction)(void *caller, ShowBase *base, int action));
     void remove_accept(const char *key, int action);
+    void remove_accept(const char *key);
     static void _static_init_glfw_input(Vulkan *m_vulkan);
     void _non_static_init_glfw_input(Window *m_window);
     void _non_static_key_callback(int key, int scancode, int action, int mods);

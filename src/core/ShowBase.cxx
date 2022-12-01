@@ -54,31 +54,80 @@ void ShowBase::launch() {
 // ----- Default Camera Controls ----- //
 
 void ShowBase::enable_cam_controls() {
-    this->input->new_accept("w", KEY_EITHER, this->cam_control_forward);
-    this->input->new_accept("s", KEY_EITHER, this->cam_control_backward);
-    this->input->new_accept("a", KEY_EITHER, this->cam_control_left);
-    this->input->new_accept("d", KEY_EITHER, this->cam_control_right);
+    if (this->defaultCamEnabled) return; // can't enable if already enabled!
+    this->defaultCamEnabled = true;
+    this->jobManager->new_job("_builtin_camera", this, &this->camera_task);
+    this->input->new_accept("w", this, this->cam_control_forward);
+    this->input->new_accept("s", this, this->cam_control_backward);
+    this->input->new_accept("a", this, this->cam_control_left);
+    this->input->new_accept("d", this, this->cam_control_right);
 }
 
 void ShowBase::disable_cam_controls() {
-    this->input->remove_accept("w", KEY_EITHER);
-    this->input->remove_accept("s", KEY_EITHER);
-    this->input->remove_accept("a", KEY_EITHER);
-    this->input->remove_accept("d", KEY_EITHER);
+    if (!this->defaultCamEnabled) return; // can't disable if already disabled!
+    this->defaultCamEnabled = false;
+    this->jobManager->remove_job("_builtin_camera");
+    this->input->remove_accept("w");
+    this->input->remove_accept("s");
+    this->input->remove_accept("a");
+    this->input->remove_accept("d");
 }
 
-void ShowBase::cam_control_forward(ShowBase *base) {
-    base->camera->set_x(base->camera->x + 0.05);
+void ShowBase::camera_task(void *caller, ShowBase *base) {
+    ShowBase* self = (ShowBase*)caller; // cast void pointer to defined class pointer
+    for (int i = 0; i < 4; i++) {
+        // TODO: Check key map, but needs to access class although static
+        base->camera->set_x(base->camera->x + (0.03 * self->_cam_controls_key_map[0]));
+        base->camera->set_x(base->camera->x - (0.03 * self->_cam_controls_key_map[1]));
+        base->camera->set_y(base->camera->y + (0.03 * self->_cam_controls_key_map[2]));
+        base->camera->set_y(base->camera->y - (0.03 * self->_cam_controls_key_map[3]));
+    }
 }
 
-void ShowBase::cam_control_backward(ShowBase *base) {
-    base->camera->set_x(base->camera->x - 0.05);
+void ShowBase::cam_control_forward(void *caller, ShowBase *base, int action) {
+    ShowBase* self = (ShowBase*)caller;
+    switch (action) {
+        case KEY_PRESSED:
+            self->_cam_controls_key_map[0] = 1;
+            break;
+        case KEY_RELEASED:
+            self->_cam_controls_key_map[0] = 0;
+            break;
+    }
 }
 
-void ShowBase::cam_control_left(ShowBase *base) {
-    base->camera->set_y(base->camera->y + 0.05);
+void ShowBase::cam_control_backward(void *caller, ShowBase *base, int action) {
+    ShowBase* self = (ShowBase*)caller;
+    switch (action) {
+        case KEY_PRESSED:
+            self->_cam_controls_key_map[1] = 1;
+            break;
+        case KEY_RELEASED:
+            self->_cam_controls_key_map[1] = 0;
+            break;
+    }
 }
 
-void ShowBase::cam_control_right(ShowBase *base) {
-    base->camera->set_y(base->camera->y - 0.05);
+void ShowBase::cam_control_left(void *caller, ShowBase *base, int action) {
+    ShowBase* self = (ShowBase*)caller;
+    switch (action) {
+        case KEY_PRESSED:
+            self->_cam_controls_key_map[2] = 1;
+            break;
+        case KEY_RELEASED:
+            self->_cam_controls_key_map[2] = 0;
+            break;
+    }
+}
+
+void ShowBase::cam_control_right(void *caller, ShowBase *base, int action) {
+    ShowBase* self = (ShowBase*)caller;
+    switch (action) {
+        case KEY_PRESSED:
+            self->_cam_controls_key_map[3] = 1;
+            break;
+        case KEY_RELEASED:
+            self->_cam_controls_key_map[3] = 0;
+            break;
+    }
 }
