@@ -33,12 +33,18 @@ struct KeyCallback {
     void *caller; // pointer to class that created callback
     void(*pFunction)(void *caller, ShowBase *base, int action); // all callbacks must return void
 };
+struct CursorCallback {
+    void *caller; // pointer to class that created callback
+    void(*pFunction)(void *caller, ShowBase *base, double x, double y); // all callbacks must return void
+};
 
 class InputManager {
 private:
     Window *m_window;
     std::vector<KeyCallback> keyCallbacks;
+    std::vector<CursorCallback> cursorCallbacks;
     static void static_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+    static void static_cursor_callback(GLFWwindow* window, double x_pos, double y_pos);
 
     GLFWKeyAlias keyAliases[128] = { // 2^7 (7-bit; USB keyboard standard) = 128 possible keys
             // Integer
@@ -87,15 +93,16 @@ private:
 public:
     InputManager();
     ~InputManager();
-    void new_accept(const char *key, int action, void *caller,
+    void new_accept_key(const char *key, int action, void *caller,
                     void (*pFunction)(void *caller, ShowBase *base, int action));
-    void new_accept(const char *key, void *caller,
+    void new_accept_key(const char *key, void *caller,
                     void (*pFunction)(void *caller, ShowBase *base, int action));
-    void remove_accept(const char *key, int action);
-    void remove_accept(const char *key);
+    void remove_accept_key(const char *key, int action);
+    void remove_accept_key(const char *key);
     static void _static_init_glfw_input(Vulkan *m_vulkan);
     void _non_static_init_glfw_input(Window *m_window);
     void _non_static_key_callback(int key, int scancode, int action, int mods);
+    void _non_static_cursor_callback(double x_pos, double y_pos);
 };
 
 #endif //VULKRAY_API_INPUTMANAGER_H

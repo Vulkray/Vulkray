@@ -57,26 +57,25 @@ void ShowBase::enable_cam_controls() {
     if (this->defaultCamEnabled) return; // can't enable if already enabled!
     this->defaultCamEnabled = true;
     this->jobManager->new_job("_builtin_camera", this, &this->camera_task);
-    this->input->new_accept("w", this, this->cam_control_forward);
-    this->input->new_accept("s", this, this->cam_control_backward);
-    this->input->new_accept("a", this, this->cam_control_left);
-    this->input->new_accept("d", this, this->cam_control_right);
+    this->input->new_accept_key("w", this, this->cam_control_forward);
+    this->input->new_accept_key("s", this, this->cam_control_backward);
+    this->input->new_accept_key("a", this, this->cam_control_left);
+    this->input->new_accept_key("d", this, this->cam_control_right);
 }
 
 void ShowBase::disable_cam_controls() {
     if (!this->defaultCamEnabled) return; // can't disable if already disabled!
     this->defaultCamEnabled = false;
     this->jobManager->remove_job("_builtin_camera");
-    this->input->remove_accept("w");
-    this->input->remove_accept("s");
-    this->input->remove_accept("a");
-    this->input->remove_accept("d");
+    this->input->remove_accept_key("w");
+    this->input->remove_accept_key("s");
+    this->input->remove_accept_key("a");
+    this->input->remove_accept_key("d");
 }
 
 void ShowBase::camera_task(void *caller, ShowBase *base) {
     ShowBase* self = (ShowBase*)caller; // cast void pointer to defined class pointer
     for (int i = 0; i < 4; i++) {
-        // TODO: Check key map, but needs to access class although static
         base->camera->set_x(base->camera->x + (0.03 * self->_cam_controls_key_map[0]));
         base->camera->set_x(base->camera->x - (0.03 * self->_cam_controls_key_map[1]));
         base->camera->set_y(base->camera->y + (0.03 * self->_cam_controls_key_map[2]));

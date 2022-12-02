@@ -50,6 +50,13 @@ void InputManager::_non_static_key_callback(int key, int scancode, int action, i
     throw std::runtime_error("An invalid key was received by the input module.");
 }
 
+void InputManager::_non_static_cursor_callback(double x_pos, double y_pos) {
+    // call every cursor callback allocated by the developer
+    for (CursorCallback callback : this->cursorCallbacks) {
+        callback.pFunction(callback.caller, this->m_window->m_vulkan->base, x_pos, y_pos);
+    }
+}
+
 void InputManager::static_key_callback(GLFWwindow *window, int key, int scancode, int action, int mods) {
 
     auto m_vulkan = reinterpret_cast<Vulkan*>(glfwGetWindowUserPointer(window));
@@ -57,9 +64,16 @@ void InputManager::static_key_callback(GLFWwindow *window, int key, int scancode
     m_vulkan->base->input->_non_static_key_callback(key, scancode, action, mods);
 }
 
+void InputManager::static_cursor_callback(GLFWwindow *window, double x_pos, double y_pos) {
+
+    auto m_vulkan = reinterpret_cast<Vulkan*>(glfwGetWindowUserPointer(window));
+    m_vulkan->base->input->_non_static_cursor_callback(x_pos, y_pos);
+}
+
 void InputManager::_non_static_init_glfw_input(Window *m_window) {
     this->m_window = m_window; // store window module pointer
     glfwSetKeyCallback(this->m_window->window, this->static_key_callback);
+    glfwSetCursorPosCallback(this->m_window->window, this->static_cursor_callback);
 }
 
 void InputManager::_static_init_glfw_input(Vulkan *m_vulkan) {
@@ -67,7 +81,7 @@ void InputManager::_static_init_glfw_input(Vulkan *m_vulkan) {
     m_vulkan->base->input->_non_static_init_glfw_input(m_vulkan->m_window.get());
 }
 
-void InputManager::new_accept(const char *key, int action, void *caller,
+void InputManager::new_accept_key(const char *key, int action, void *caller,
                               void (*pFunction)(void *caller, ShowBase *, int action)) {
 
     size_t keyMapLength = sizeof(this->keyAliases) / sizeof(GLFWKeyAlias);
@@ -91,7 +105,7 @@ void InputManager::new_accept(const char *key, int action, void *caller,
     throw std::runtime_error("An invalid key was given to the input module to accept.");
 }
 
-void InputManager::new_accept(const char *key, void *caller,
+void InputManager::new_accept_key(const char *key, void *caller,
                               void (*pFunction)(void *caller, ShowBase *, int action)) {
 
     size_t keyMapLength = sizeof(this->keyAliases) / sizeof(GLFWKeyAlias);
@@ -112,7 +126,7 @@ void InputManager::new_accept(const char *key, void *caller,
     throw std::runtime_error("An invalid key was given to the input module to accept.");
 }
 
-void InputManager::remove_accept(const char *key, int action) {
+void InputManager::remove_accept_key(const char *key, int action) {
     size_t keyMapLength = sizeof(this->keyAliases) / sizeof(GLFWKeyAlias);
 
     for (size_t i = 0; i < keyMapLength; i++) {
@@ -144,7 +158,7 @@ void InputManager::remove_accept(const char *key, int action) {
     throw std::runtime_error("An invalid key was received by the input module.");
 }
 
-void InputManager::remove_accept(const char *key) {
+void InputManager::remove_accept_key(const char *key) {
     size_t keyMapLength = sizeof(this->keyAliases) / sizeof(GLFWKeyAlias);
 
     for (size_t i = 0; i < keyMapLength; i++) {

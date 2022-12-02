@@ -55,7 +55,7 @@ Application::Application() {
     this->base->camera->set_hpr(0, 0, 0);
 
     // Set key callbacks to execute upon user input
-    this->base->input->new_accept("c", this, &this->toggleBuiltinCameraControl);
+    this->base->input->new_accept_key("c", this, &this->toggleBuiltinCameraControl);
 
     // Set job callbacks to execute every frame
     this->base->jobManager->new_job("Camera Spin", this, &this->cameraSpinJob);
