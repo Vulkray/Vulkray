@@ -97,6 +97,7 @@ public:
                     void (*pFunction)(void *caller, ShowBase *base, int action));
     void new_accept_key(const char *key, void *caller,
                     void (*pFunction)(void *caller, ShowBase *base, int action));
+    void new_accept_cursor(void *caller, void(*pFunction)(void *caller, ShowBase *base, double x, double y));
     void remove_accept_key(const char *key, int action);
     void remove_accept_key(const char *key);
     static void _static_init_glfw_input(Vulkan *m_vulkan);

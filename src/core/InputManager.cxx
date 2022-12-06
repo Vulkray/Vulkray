@@ -178,3 +178,10 @@ void InputManager::remove_accept_key(const char *key) {
     spdlog::error("remove_accept(): Received an invalid key string!");
     throw std::runtime_error("An invalid key was received by the input module.");
 }
+
+void InputManager::new_accept_cursor(void *caller, void (*pFunction)(void *, ShowBase *, double, double)) {
+    CursorCallback newCallback;
+    newCallback.caller = caller;
+    newCallback.pFunction = pFunction;
+    this->cursorCallbacks.push_back(newCallback);
+}

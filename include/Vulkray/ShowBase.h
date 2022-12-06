@@ -40,7 +40,7 @@ public:
     void enable_cam_controls();
     void disable_cam_controls();
     // below has to be public, used by the builtin camera (accessed via key callback static method)
-    int _cam_controls_key_map[4] = {0, 0, 0, 0};
+    int _cam_controls_key_map[6] = {0, 0, 0, 0, 0, 0};
 private:
     std::unique_ptr<Vulkan> vulkanRenderer;
     // default cam control callbacks
@@ -49,6 +49,8 @@ private:
     static void cam_control_backward(void *caller, ShowBase *base, int action);
     static void cam_control_left(void *caller, ShowBase *base, int action);
     static void cam_control_right(void *caller, ShowBase *base, int action);
+    static void cam_fov_increase(void *caller, ShowBase *base, int action);
+    static void cam_fov_decrease(void *caller, ShowBase *base, int action);
 };
 
 #endif //VULKRAY_API_SHOWBASE_H

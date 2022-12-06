@@ -61,6 +61,8 @@ void ShowBase::enable_cam_controls() {
     this->input->new_accept_key("s", this, this->cam_control_backward);
     this->input->new_accept_key("a", this, this->cam_control_left);
     this->input->new_accept_key("d", this, this->cam_control_right);
+    this->input->new_accept_key("q", this, this->cam_fov_increase);
+    this->input->new_accept_key("e", this, this->cam_fov_decrease);
 }
 
 void ShowBase::disable_cam_controls() {
@@ -71,15 +73,22 @@ void ShowBase::disable_cam_controls() {
     this->input->remove_accept_key("s");
     this->input->remove_accept_key("a");
     this->input->remove_accept_key("d");
+    this->input->remove_accept_key("q");
+    this->input->remove_accept_key("e");
 }
 
 void ShowBase::camera_task(void *caller, ShowBase *base) {
     ShowBase* self = (ShowBase*)caller; // cast void pointer to defined class pointer
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 6; i++) {
         base->camera->set_x(base->camera->x + (0.03 * self->_cam_controls_key_map[0]));
         base->camera->set_x(base->camera->x - (0.03 * self->_cam_controls_key_map[1]));
         base->camera->set_y(base->camera->y + (0.03 * self->_cam_controls_key_map[2]));
         base->camera->set_y(base->camera->y - (0.03 * self->_cam_controls_key_map[3]));
+        base->camera->set_fov(base->camera->fov + (0.1 * self->_cam_controls_key_map[4]));
+        base->camera->set_fov(base->camera->fov - (0.1 * self->_cam_controls_key_map[5]));
+        // fov limiter
+        if (base->camera->fov > 120) base->camera->set_fov(120);
+        if (base->camera->fov < 30) base->camera->set_fov(30);
     }
 }
 
@@ -127,6 +136,30 @@ void ShowBase::cam_control_right(void *caller, ShowBase *base, int action) {
             break;
         case KEY_RELEASED:
             self->_cam_controls_key_map[3] = 0;
+            break;
+    }
+}
+
+void ShowBase::cam_fov_increase(void *caller, ShowBase *base, int action) {
+    ShowBase* self = (ShowBase*)caller;
+    switch (action) {
+        case KEY_PRESSED:
+            self->_cam_controls_key_map[4] = 1;
+            break;
+        case KEY_RELEASED:
+            self->_cam_controls_key_map[4] = 0;
+            break;
+    }
+}
+
+void ShowBase::cam_fov_decrease(void *caller, ShowBase *base, int action) {
+    ShowBase* self = (ShowBase*)caller;
+    switch (action) {
+        case KEY_PRESSED:
+            self->_cam_controls_key_map[5] = 1;
+            break;
+        case KEY_RELEASED:
+            self->_cam_controls_key_map[5] = 0;
             break;
     }
 }
