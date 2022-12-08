@@ -34,6 +34,7 @@ struct KeyCallback {
     void(*pFunction)(void *caller, ShowBase *base, int action); // all callbacks must return void
 };
 struct CursorCallback {
+    std::string id;
     void *caller; // pointer to class that created callback
     void(*pFunction)(void *caller, ShowBase *base, double x, double y); // all callbacks must return void
 };
@@ -97,9 +98,11 @@ public:
                     void (*pFunction)(void *caller, ShowBase *base, int action));
     void new_accept_key(const char *key, void *caller,
                     void (*pFunction)(void *caller, ShowBase *base, int action));
-    void new_accept_cursor(void *caller, void(*pFunction)(void *caller, ShowBase *base, double x, double y));
+    void new_accept_cursor(void *caller, const char* id,
+                           void(*pFunction)(void *caller, ShowBase *base, double x, double y));
     void remove_accept_key(const char *key, int action);
     void remove_accept_key(const char *key);
+    void remove_accept_cursor(const char* id);
     static void _static_init_glfw_input(Vulkan *m_vulkan);
     void _non_static_init_glfw_input(Window *m_window);
     void _non_static_key_callback(int key, int scancode, int action, int mods);

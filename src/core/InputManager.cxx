@@ -179,9 +179,22 @@ void InputManager::remove_accept_key(const char *key) {
     throw std::runtime_error("An invalid key was received by the input module.");
 }
 
-void InputManager::new_accept_cursor(void *caller, void (*pFunction)(void *, ShowBase *, double, double)) {
+void InputManager::new_accept_cursor(void *caller, const char* id,
+                                     void (*pFunction)(void *, ShowBase *, double, double)) {
     CursorCallback newCallback;
+    newCallback.id.assign(id);
     newCallback.caller = caller;
     newCallback.pFunction = pFunction;
     this->cursorCallbacks.push_back(newCallback);
+}
+
+void InputManager::remove_accept_cursor(const char *id) {
+    int j = 0;
+    for (CursorCallback callback : this->cursorCallbacks) {
+        if (callback.id.compare(id) != 0) {
+            j++; continue;
+        }
+        this->cursorCallbacks.erase(this->cursorCallbacks.begin() + j);
+        return;
+    }
 }

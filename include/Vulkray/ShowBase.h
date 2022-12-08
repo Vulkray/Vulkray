@@ -51,6 +51,7 @@ private:
     static void cam_control_right(void *caller, ShowBase *base, int action);
     static void cam_fov_increase(void *caller, ShowBase *base, int action);
     static void cam_fov_decrease(void *caller, ShowBase *base, int action);
+    static void cam_mouse_look(void *caller, ShowBase *base, double x, double y);
 };
 
 #endif //VULKRAY_API_SHOWBASE_H

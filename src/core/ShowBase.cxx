@@ -57,6 +57,7 @@ void ShowBase::enable_cam_controls() {
     if (this->defaultCamEnabled) return; // can't enable if already enabled!
     this->defaultCamEnabled = true;
     this->jobManager->new_job("_builtin_camera", this, &this->camera_task);
+    this->input->new_accept_cursor(this, "_builtin_cam_look", this->cam_mouse_look);
     this->input->new_accept_key("w", this, this->cam_control_forward);
     this->input->new_accept_key("s", this, this->cam_control_backward);
     this->input->new_accept_key("a", this, this->cam_control_left);
@@ -69,6 +70,7 @@ void ShowBase::disable_cam_controls() {
     if (!this->defaultCamEnabled) return; // can't disable if already disabled!
     this->defaultCamEnabled = false;
     this->jobManager->remove_job("_builtin_camera");
+    this->input->remove_accept_cursor("_builtin_cam_look");
     this->input->remove_accept_key("w");
     this->input->remove_accept_key("s");
     this->input->remove_accept_key("a");
@@ -90,6 +92,10 @@ void ShowBase::camera_task(void *caller, ShowBase *base) {
         if (base->camera->fov > 120) base->camera->set_fov(120);
         if (base->camera->fov < 30) base->camera->set_fov(30);
     }
+}
+
+void ShowBase::cam_mouse_look(void *caller, ShowBase *base, double x, double y) {
+    base->camera->set_hpr(x, y, 0);
 }
 
 void ShowBase::cam_control_forward(void *caller, ShowBase *base, int action) {
