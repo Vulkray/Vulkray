@@ -11,6 +11,7 @@
 
 #include "../include/Vulkray/ShowBase.h"
 #include <iostream>
+#include <spdlog/spdlog.h>
 
 class Application {
 public:
@@ -18,9 +19,8 @@ public:
     std::unique_ptr<ShowBase> base;
     Application();
 private:
-    static void cameraSpinJob(ShowBase *base);
-    static void fovIncreaseCallback(ShowBase *base);
-    static void fovDecreaseCallback(ShowBase *base);
+    static void cameraSpinJob(void *caller, ShowBase *base);
+    static void toggleBuiltinCameraControl(void *caller, ShowBase *base, int action);
 };
 
 Application::Application() {
@@ -56,11 +56,10 @@ Application::Application() {
     this->base->camera->set_hpr(0, 0, 0);
 
     // Set key callbacks to execute upon user input
-    this->base->input->new_accept("q", KEY_EITHER, &this->fovDecreaseCallback);
-    this->base->input->new_accept("e", KEY_EITHER, &this->fovIncreaseCallback);
+    this->base->input->new_accept_key("c", this, &this->toggleBuiltinCameraControl);
 
     // Set job callbacks to execute every frame
-    this->base->jobManager->new_job("Camera Spin", &this->cameraSpinJob);
+    this->base->jobManager->new_job("Camera Spin", this, &this->cameraSpinJob);
 
     // Initialize the engine vulkan renderer
     try {
@@ -71,18 +70,26 @@ Application::Application() {
     }
 }
 
-void Application::cameraSpinJob(ShowBase *base) {
+void Application::cameraSpinJob(void *caller, ShowBase *base) {
+    Application *self = (Application*)caller; // cast void pointer to defined class
     //base->camera->set_h(base->camera->h + 1);
+    spdlog::info("Cam Coords: {}, {}, {}", base->camera->x, base->camera->y, base->camera->z);
+    spdlog::info("Cam Look At: {}, {}, {}",
+                 base->camera->get_look_at_vector().x,
+                 base->camera->get_look_at_vector().y,
+                 base->camera->get_look_at_vector().z);
+    spdlog::info("Cam HPR : {}, {}, {}", base->camera->h, base->camera->p, base->camera->r);
 }
 
-void Application::fovIncreaseCallback(ShowBase *base) {
-    if (base->camera->fov > 120) return; // limit
-    base->camera->set_fov(base->camera->fov + 1);
-}
+void Application::toggleBuiltinCameraControl(void *caller, ShowBase *base, int action) {
+    Application *self = (Application*)caller;
+    if (action != KEY_RELEASED) return; // only process when key is released
 
-void Application::fovDecreaseCallback(ShowBase *base) {
-    if (base->camera->fov < 25) return; // limit
-    base->camera->set_fov(base->camera->fov - 1);
+    if (base->defaultCamEnabled) {
+        base->disable_cam_controls();
+        return;
+    }
+    base->enable_cam_controls();
 }
 
 int main() {

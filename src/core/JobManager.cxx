@@ -26,9 +26,10 @@ std::vector<JobCallback> JobManager::_get_job_callbacks_vector() {
     return this->jobCallbacks;
 }
 
-void JobManager::new_job(const char *jobName, void (*pFunction)(ShowBase *base)) {
+void JobManager::new_job(const char *jobName, void *caller, void (*pFunction)(void *caller, ShowBase *base)) {
     JobCallback jobCallback;
-    jobCallback.name = jobName;
+    jobCallback.name.assign(jobName);
+    jobCallback.caller = caller;
     jobCallback.pFunction = pFunction;
     this->jobCallbacks.push_back(jobCallback); // push function pointer to jobs vector
 }
@@ -38,9 +39,10 @@ void JobManager::remove_job(const char *jobName) {
     for (JobCallback jobCallback : this->jobCallbacks) {
         if (jobCallback.name.compare(jobName)) { // find job with matching name ID
             this->jobCallbacks.erase(this->jobCallbacks.begin() + index);
+            return;
         }
         index++;
     }
-    spdlog::error("Could not remove job callback! Job identifier (name) didn't match any jobs.");
+    spdlog::error("Could not remove job callback! Job name/identifier didn't match any jobs.");
     throw std::runtime_error("Failed to remove job callback! Identifier not found.\n");
 }

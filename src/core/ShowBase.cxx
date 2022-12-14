@@ -12,6 +12,7 @@
 
 #include "../global_definitions.h"
 #include <spdlog/spdlog.h>
+#include <glm/vec3.hpp>
 
 #include "../../include/Vulkray/Vulkan.h"
 #include "../../include/Vulkray/ShowBase.h"
@@ -30,7 +31,7 @@ ShowBase::ShowBase(EngineConfig config) {
     // Initialize top level show base instances
     this->input = std::make_unique<InputManager>();
     this->jobManager = std::make_unique<JobManager>();
-    this->camera = std::make_unique<Camera>();
+    this->camera = std::make_unique<Camera>(this);
 }
 
 ShowBase::~ShowBase() {
@@ -54,31 +55,125 @@ void ShowBase::launch() {
 // ----- Default Camera Controls ----- //
 
 void ShowBase::enable_cam_controls() {
-    this->input->new_accept("w", KEY_EITHER, this->cam_control_forward);
-    this->input->new_accept("s", KEY_EITHER, this->cam_control_backward);
-    this->input->new_accept("a", KEY_EITHER, this->cam_control_left);
-    this->input->new_accept("d", KEY_EITHER, this->cam_control_right);
+    if (this->defaultCamEnabled) return; // can't enable if already enabled!
+    this->defaultCamEnabled = true;
+    this->jobManager->new_job("_builtin_camera", this, &this->camera_task);
+    this->input->new_accept_cursor(this, "_builtin_cam_look", this->cam_mouse_look);
+    this->input->new_accept_key("w", this, this->cam_control_forward);
+    this->input->new_accept_key("s", this, this->cam_control_backward);
+    this->input->new_accept_key("a", this, this->cam_control_left);
+    this->input->new_accept_key("d", this, this->cam_control_right);
+    this->input->new_accept_key("q", this, this->cam_fov_increase);
+    this->input->new_accept_key("e", this, this->cam_fov_decrease);
 }
 
 void ShowBase::disable_cam_controls() {
-    this->input->remove_accept("w", KEY_EITHER);
-    this->input->remove_accept("s", KEY_EITHER);
-    this->input->remove_accept("a", KEY_EITHER);
-    this->input->remove_accept("d", KEY_EITHER);
+    if (!this->defaultCamEnabled) return; // can't disable if already disabled!
+    this->defaultCamEnabled = false;
+    this->jobManager->remove_job("_builtin_camera");
+    this->input->remove_accept_cursor("_builtin_cam_look");
+    this->input->remove_accept_key("w");
+    this->input->remove_accept_key("s");
+    this->input->remove_accept_key("a");
+    this->input->remove_accept_key("d");
+    this->input->remove_accept_key("q");
+    this->input->remove_accept_key("e");
 }
 
-void ShowBase::cam_control_forward(ShowBase *base) {
-    base->camera->set_x(base->camera->x + 0.05);
+void ShowBase::camera_task(void *caller, ShowBase *base) {
+    ShowBase* self = (ShowBase*)caller; // cast void pointer to defined class pointer
+
+    int fwd_direction = 0;
+    if (self->_cam_controls_key_map[0]) fwd_direction = 1;
+    if (self->_cam_controls_key_map[1]) fwd_direction = -1;
+
+    glm::vec3 newPos = base->camera->get_look_at_vector();
+    // moving forward along the look vector
+    newPos.x = base->camera->x + (newPos.x * (0.06 * fwd_direction));
+    newPos.y = base->camera->y + (newPos.y * (0.06 * fwd_direction));
+    newPos.z = base->camera->z + (newPos.z * (0.06 * fwd_direction));
+    base->camera->set_xyz(newPos.x, newPos.y, newPos.z);
+
+    // field of view controls (will change controls to mouse scroll wheel)
+    base->camera->fov += (0.1 * self->_cam_controls_key_map[4]);
+    base->camera->fov += (-0.1 * self->_cam_controls_key_map[5]);
+    // fov limiter
+    if (base->camera->fov > 120) base->camera->set_fov(120);
+    if (base->camera->fov < 30) base->camera->set_fov(30);
 }
 
-void ShowBase::cam_control_backward(ShowBase *base) {
-    base->camera->set_x(base->camera->x - 0.05);
+void ShowBase::cam_mouse_look(void *caller, ShowBase *base, double x, double y) {
+    base->camera->set_hpr(x, y, 0);
 }
 
-void ShowBase::cam_control_left(ShowBase *base) {
-    base->camera->set_y(base->camera->y + 0.05);
+void ShowBase::cam_control_forward(void *caller, ShowBase *base, int action) {
+    ShowBase* self = (ShowBase*)caller;
+    switch (action) {
+        case KEY_PRESSED:
+            self->_cam_controls_key_map[0] = 1;
+            break;
+        case KEY_RELEASED:
+            self->_cam_controls_key_map[0] = 0;
+            break;
+    }
 }
 
-void ShowBase::cam_control_right(ShowBase *base) {
-    base->camera->set_y(base->camera->y - 0.05);
+void ShowBase::cam_control_backward(void *caller, ShowBase *base, int action) {
+    ShowBase* self = (ShowBase*)caller;
+    switch (action) {
+        case KEY_PRESSED:
+            self->_cam_controls_key_map[1] = 1;
+            break;
+        case KEY_RELEASED:
+            self->_cam_controls_key_map[1] = 0;
+            break;
+    }
+}
+
+void ShowBase::cam_control_left(void *caller, ShowBase *base, int action) {
+    ShowBase* self = (ShowBase*)caller;
+    switch (action) {
+        case KEY_PRESSED:
+            self->_cam_controls_key_map[2] = 1;
+            break;
+        case KEY_RELEASED:
+            self->_cam_controls_key_map[2] = 0;
+            break;
+    }
+}
+
+void ShowBase::cam_control_right(void *caller, ShowBase *base, int action) {
+    ShowBase* self = (ShowBase*)caller;
+    switch (action) {
+        case KEY_PRESSED:
+            self->_cam_controls_key_map[3] = 1;
+            break;
+        case KEY_RELEASED:
+            self->_cam_controls_key_map[3] = 0;
+            break;
+    }
+}
+
+void ShowBase::cam_fov_increase(void *caller, ShowBase *base, int action) {
+    ShowBase* self = (ShowBase*)caller;
+    switch (action) {
+        case KEY_PRESSED:
+            self->_cam_controls_key_map[4] = 1;
+            break;
+        case KEY_RELEASED:
+            self->_cam_controls_key_map[4] = 0;
+            break;
+    }
+}
+
+void ShowBase::cam_fov_decrease(void *caller, ShowBase *base, int action) {
+    ShowBase* self = (ShowBase*)caller;
+    switch (action) {
+        case KEY_PRESSED:
+            self->_cam_controls_key_map[5] = 1;
+            break;
+        case KEY_RELEASED:
+            self->_cam_controls_key_map[5] = 0;
+            break;
+    }
 }

@@ -20,7 +20,8 @@ class ShowBase; // prototype ShowBase class
 
 struct JobCallback {
     std::string name;
-    void(*pFunction)(ShowBase *base); // all jobs must return void
+    void *caller; // pointer to class that created job callback
+    void(*pFunction)(void *caller, ShowBase *base); // all jobs must return void
 };
 
 class JobManager {
@@ -30,7 +31,7 @@ public:
     JobManager();
     ~JobManager();
     std::vector<JobCallback> _get_job_callbacks_vector();
-    void new_job(const char *jobName, void (*pFunction)(ShowBase *base));
+    void new_job(const char *jobName, void *caller, void (*pFunction)(void *caller, ShowBase *base));
     void remove_job(const char *jobName);
 };
 
