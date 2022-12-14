@@ -12,6 +12,7 @@
 
 #include "../global_definitions.h"
 #include <spdlog/spdlog.h>
+#include <glm/vec3.hpp>
 
 #include "../../include/Vulkray/Vulkan.h"
 #include "../../include/Vulkray/ShowBase.h"
@@ -30,7 +31,7 @@ ShowBase::ShowBase(EngineConfig config) {
     // Initialize top level show base instances
     this->input = std::make_unique<InputManager>();
     this->jobManager = std::make_unique<JobManager>();
-    this->camera = std::make_unique<Camera>();
+    this->camera = std::make_unique<Camera>(this);
 }
 
 ShowBase::~ShowBase() {
@@ -81,17 +82,24 @@ void ShowBase::disable_cam_controls() {
 
 void ShowBase::camera_task(void *caller, ShowBase *base) {
     ShowBase* self = (ShowBase*)caller; // cast void pointer to defined class pointer
-    for (int i = 0; i < 6; i++) {
-        base->camera->set_x(base->camera->x + (0.03 * self->_cam_controls_key_map[0]));
-        base->camera->set_x(base->camera->x - (0.03 * self->_cam_controls_key_map[1]));
-        base->camera->set_y(base->camera->y + (0.03 * self->_cam_controls_key_map[2]));
-        base->camera->set_y(base->camera->y - (0.03 * self->_cam_controls_key_map[3]));
-        base->camera->set_fov(base->camera->fov + (0.1 * self->_cam_controls_key_map[4]));
-        base->camera->set_fov(base->camera->fov - (0.1 * self->_cam_controls_key_map[5]));
-        // fov limiter
-        if (base->camera->fov > 120) base->camera->set_fov(120);
-        if (base->camera->fov < 30) base->camera->set_fov(30);
-    }
+
+    int fwd_direction = 0;
+    if (self->_cam_controls_key_map[0]) fwd_direction = 1;
+    if (self->_cam_controls_key_map[1]) fwd_direction = -1;
+
+    glm::vec3 newPos = base->camera->get_look_at_vector();
+    // moving forward along the look vector
+    newPos.x = base->camera->x + (newPos.x * (0.06 * fwd_direction));
+    newPos.y = base->camera->y + (newPos.y * (0.06 * fwd_direction));
+    newPos.z = base->camera->z + (newPos.z * (0.06 * fwd_direction));
+    base->camera->set_xyz(newPos.x, newPos.y, newPos.z);
+
+    // field of view controls (will change controls to mouse scroll wheel)
+    base->camera->fov += (0.1 * self->_cam_controls_key_map[4]);
+    base->camera->fov += (-0.1 * self->_cam_controls_key_map[5]);
+    // fov limiter
+    if (base->camera->fov > 120) base->camera->set_fov(120);
+    if (base->camera->fov < 30) base->camera->set_fov(30);
 }
 
 void ShowBase::cam_mouse_look(void *caller, ShowBase *base, double x, double y) {

@@ -88,15 +88,12 @@ void Vulkan::waitForPreviousFrame() {
 }
 
 void Vulkan::updateUniformBuffer(uint32_t imageIndex) {
-    static auto startTime = std::chrono::high_resolution_clock::now();
-    auto currentTime = std::chrono::high_resolution_clock::now();
-    float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-
     uint32_t swapImageWidth = this->m_swapChain->swapChainExtent.width;
     uint32_t swapImageHeight = this->m_swapChain->swapChainExtent.height;
 
     UniformBufferObject ubo{};
-    ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 1.0f));
+    // TODO: Currently model transform does not change any geometry. Will edit once camera rotation is implemented.
+    ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     ubo.view = this->base->camera->get_view_matrix();
     ubo.proj = glm::perspective(this->base->camera->get_fov_radians(),
                                 swapImageWidth / (float) swapImageHeight,

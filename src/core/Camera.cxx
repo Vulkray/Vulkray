@@ -11,18 +11,30 @@
  */
 
 #include "../../include/Vulkray/Camera.h"
+#include "../../include/Vulkray/ObjectNode.h"
+#include "../../include/Vulkray/JobManager.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 
-Camera::Camera() {
-    // Create default view matrix
-    this->create_view_matrix();
-    // Store default FOV value in radians
-    this->fov_radians = glm::radians(this->fov);
+Camera::Camera(ShowBase *base): ObjectNode() {
+    this->update(); // initial camera update
+    this->base = base;
+    base->jobManager->new_job("_global_cam_update", this, &this->_per_frame_update);
 }
 
 Camera::~Camera() {
     // placeholder
+}
+
+void Camera::update() {
+    this->create_view_matrix();
+    this->fov_radians = glm::radians(this->fov);
+    this->calculate_look_vector();
+}
+
+void Camera::_per_frame_update(void *caller, ShowBase *base) {
+    Camera* self = (Camera*)caller;
+    self->update(); // update camera
 }
 
 void Camera::create_view_matrix() {
@@ -38,6 +50,11 @@ void Camera::create_view_matrix() {
 glm::mat4x4 Camera::get_view_matrix() {
     // used by the Vulkan module for the uniform buffer
     return this->view_matrix;
+}
+
+glm::vec3 Camera::get_look_at_vector() {
+    this->calculate_look_vector(); // make sure look_at vector is updated!
+    return this->look_at_vector;
 }
 
 void Camera::calculate_look_vector() {
@@ -72,52 +89,4 @@ void Camera::set_fov(float fov) {
 
 float Camera::get_fov_radians() {
     return this->fov_radians;
-}
-
-void Camera::set_x(float x) {
-    this->x = x;
-    this->create_view_matrix();
-}
-
-void Camera::set_y(float y) {
-    this->y = y;
-    this->create_view_matrix();
-}
-
-void Camera::set_z(float z) {
-    this->z = z;
-    this->create_view_matrix();
-}
-
-void Camera::set_xyz(float x, float y, float z) {
-    this->x = x;
-    this->y = y;
-    this->z = z;
-    this->create_view_matrix();
-}
-
-void Camera::set_h(float h) {
-    this->h = h;
-    this->calculate_look_vector();
-    this->create_view_matrix();
-}
-
-void Camera::set_p(float p) {
-    this->p = p;
-    this->calculate_look_vector();
-    this->create_view_matrix();
-}
-
-void Camera::set_r(float r) {
-    this->r = r;
-    this->calculate_look_vector();
-    this->create_view_matrix();
-}
-
-void Camera::set_hpr(float h, float p, float r) {
-    this->h = h;
-    this->p = p;
-    this->r = r;
-    this->calculate_look_vector();
-    this->create_view_matrix();
 }

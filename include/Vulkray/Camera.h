@@ -13,10 +13,28 @@
 #ifndef VULKRAY_API_CAMERA_H
 #define VULKRAY_API_CAMERA_H
 
+#include "ObjectNode.h"
+#include "ShowBase.h"
 #include <glm/mat4x4.hpp>
 #include <glm/glm.hpp>
 
-class Camera {
+class Camera : public ObjectNode {
+public:
+    Camera(ShowBase *base);
+    ~Camera();
+    ShowBase *base;
+    float near = 0.1f; // projection near plane
+    float far = 5000.0f; // projection far plane
+    float fov = 45.0f; // field of view (degrees)
+    void update(); // updates camera by its properties
+    void set_near(float near);
+    void set_far(float far);
+    void set_fov(float fov);
+    float get_fov_radians();
+    glm::mat4x4 get_view_matrix();
+    void create_view_matrix();
+    void calculate_look_vector();
+    glm::vec3 get_look_at_vector();
 private:
     glm::mat4x4 view_matrix;
     glm::vec3 look_at_vector = {1.0f, 0.0f, 0.0f}; // looking at +X by default
@@ -26,33 +44,7 @@ private:
      * and not here, as it uses the swap chain width / height values.
      * (Only the `fov_radians` variable is used in the proj. matrix)
      */
-public:
-    float near = 0.1f; // projection near plane
-    float far = 5000.0f; // projection far plane
-    float fov = 45.0f; // field of view (degrees)
-    float x = 0.0f;
-    float y = 0.0f;
-    float z = 0.0f;
-    float h = 0.0f; // heading (degrees)
-    float p = 0.0f; // pitch (degrees)
-    float r = 0.0f; // roll (degrees)
-    void set_near(float near);
-    void set_far(float far);
-    void set_fov(float fov);
-    float get_fov_radians();
-    void set_x(float x);
-    void set_y(float y);
-    void set_z(float z);
-    void set_xyz(float x, float y, float z);
-    void set_h(float h);
-    void set_p(float p);
-    void set_r(float r);
-    void set_hpr(float h, float p, float r);
-    glm::mat4x4 get_view_matrix();
-    void create_view_matrix();
-    void calculate_look_vector();
-    Camera();
-    ~Camera();
+    static void _per_frame_update(void *caller, ShowBase *base);
 };
 
 #endif //VULKRAY_API_CAMERA_H

@@ -11,6 +11,7 @@
 
 #include "../include/Vulkray/ShowBase.h"
 #include <iostream>
+#include <spdlog/spdlog.h>
 
 class Application {
 public:
@@ -72,6 +73,12 @@ Application::Application() {
 void Application::cameraSpinJob(void *caller, ShowBase *base) {
     Application *self = (Application*)caller; // cast void pointer to defined class
     //base->camera->set_h(base->camera->h + 1);
+    spdlog::info("Cam Coords: {}, {}, {}", base->camera->x, base->camera->y, base->camera->z);
+    spdlog::info("Cam Look At: {}, {}, {}",
+                 base->camera->get_look_at_vector().x,
+                 base->camera->get_look_at_vector().y,
+                 base->camera->get_look_at_vector().z);
+    spdlog::info("Cam HPR : {}, {}, {}", base->camera->h, base->camera->p, base->camera->r);
 }
 
 void Application::toggleBuiltinCameraControl(void *caller, ShowBase *base, int action) {

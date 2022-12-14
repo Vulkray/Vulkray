@@ -21,6 +21,7 @@
 
 // class prototypes
 class InputManager;
+class Camera;
 
 struct EngineConfig {
     const char* windowTitle = nullptr; // default set at vulkan/Window.cxx module
