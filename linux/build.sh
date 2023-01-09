@@ -20,7 +20,3 @@ fi
 
 # Build with Ninja
 ninja
-# Run program if not in continuous integration environment
-if [[ -z "$CI" ]]; then
-  ./bin/SampleProgram
-fi

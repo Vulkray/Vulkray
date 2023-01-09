@@ -38,6 +38,20 @@ void ObjectNode::set_xyz(float x, float y, float z) {
     this->z = z;
 }
 
+void ObjectNode::set_xyz(Vector3 xyz) {
+    this->x = xyz.x;
+    this->y = xyz.y;
+    this->z = xyz.z;
+}
+
+Vector3 ObjectNode::get_xyz() {
+    Vector3 vec3;
+    vec3.x = this->x;
+    vec3.y = this->y;
+    vec3.z = this->z;
+    return vec3;
+}
+
 void ObjectNode::set_h(float h) {
     this->h = h;
 }
@@ -54,4 +68,18 @@ void ObjectNode::set_hpr(float h, float p, float r) {
     this->h = h;
     this->p = p;
     this->r = r;
+}
+
+void ObjectNode::set_hpr(Vector3 hpr) {
+    this->h = hpr.x;
+    this->p = hpr.y;
+    this->r = hpr.z;
+}
+
+Vector3 ObjectNode::get_hpr() {
+    Vector3 vec3;
+    vec3.x = this->h;
+    vec3.y = this->p;
+    vec3.z = this->r;
+    return vec3;
 }
