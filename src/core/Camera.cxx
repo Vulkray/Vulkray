@@ -3,7 +3,7 @@
  * Defines the camera class which manipulates the view matrix.
  *
  * VULKRAY ENGINE SOFTWARE
- * Copyright (c) 2022, Max Rodriguez. All rights reserved.
+ * Copyright (c) 2023, Max Rodriguez. All rights reserved.
  *
  * All use of this software is subject to the terms of the revised BSD
  * license. You should have received a copy of this license along
