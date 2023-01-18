@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-Currently there is no official release of the Vulkray engine binary.
+Currently, there is no official release of the Vulkray engine binary.
 As of now, all versions or builds of the Vulkray binary with found vulnerabilities
 can be reported to the Vulkray team, which includes all opensource collaborators.
 

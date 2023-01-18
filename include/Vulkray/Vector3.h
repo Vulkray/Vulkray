@@ -1,5 +1,6 @@
 /*
- * Google Test example
+ * Vector3.h
+ * API Header - Defines the Vector3 object essential to 3D linear math.
  *
  * VULKRAY ENGINE SOFTWARE
  * Copyright (c) 2023, Max Rodriguez. All rights reserved.
@@ -9,14 +10,15 @@
  * with this source code in a file named "COPYING."
  */
 
-#include <gtest/gtest.h>
+#ifndef VULKRAY_API_VECTOR3_H
+#define VULKRAY_API_VECTOR3_H
 
-bool test_func() {
-    return true;
-}
+class Vector3 {
+public:
+    Vector3();
+    ~Vector3();
+private:
+    //
+};
 
-TEST(UnitTests, DemonstrateGTestMacros) {
-    EXPECT_EQ(true, true);
-    const bool result = test_func();
-    EXPECT_EQ(true, result);
-}
+#endif //VULKRAY_API_VECTOR3_H

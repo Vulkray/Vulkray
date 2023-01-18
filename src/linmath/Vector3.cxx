@@ -1,5 +1,6 @@
 /*
- * Google Test example
+ * Vector3.cxx
+ * Defines the Vector3 object essential to 3D linear math.
  *
  * VULKRAY ENGINE SOFTWARE
  * Copyright (c) 2023, Max Rodriguez. All rights reserved.
@@ -9,14 +10,12 @@
  * with this source code in a file named "COPYING."
  */
 
-#include <gtest/gtest.h>
+#include "../../include/Vulkray/Vector3.h"
 
-bool test_func() {
-    return true;
+Vector3::Vector3() {
+    // placeholder
 }
 
-TEST(UnitTests, DemonstrateGTestMacros) {
-    EXPECT_EQ(true, true);
-    const bool result = test_func();
-    EXPECT_EQ(true, result);
+Vector3::~Vector3() {
+    // placeholder
 }
