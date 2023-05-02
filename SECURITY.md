@@ -8,7 +8,7 @@ can be reported to the Vulkray team, which includes all opensource collaborators
 
 | Version | Supported          |
 | ------- | ------------------ |
-| > 0.0.1 | :white_check_mark: |
+| > 0.0.0 | :heavy_check_mark: |
 
 ## Reporting a Vulnerability
 
